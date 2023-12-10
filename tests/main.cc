@@ -1,8 +1,15 @@
 #include "testwindow.h"
 
+#include "panic.h"
+
+#include <muui/font.h>
 #include <muui/painter.h>
+#include <muui/textureatlas.h>
 
 #include <memory>
+
+using namespace std::string_literals;
+using namespace std::string_view_literals;
 
 class PainterTest : public TestWindow
 {
@@ -14,12 +21,19 @@ public:
 
 private:
     std::unique_ptr<miniui::Painter> m_painter;
+    std::unique_ptr<TextureAtlas> m_textureAtlas;
+    std::unique_ptr<miniui::Font> m_font;
 };
 
 void PainterTest::initialize()
 {
     m_painter = std::make_unique<miniui::Painter>();
     m_painter->setWindowSize(m_width, m_height);
+
+    m_textureAtlas = std::make_unique<TextureAtlas>(512, 512, PixelType::Grayscale);
+    m_font = std::make_unique<miniui::Font>(m_textureAtlas.get());
+    if (!m_font->load(ASSETSDIR "OpenSans_Bold.ttf", 60))
+        panic("Failed to load font\n");
 }
 
 void PainterTest::render()
@@ -36,6 +50,10 @@ void PainterTest::render()
 
     m_painter->begin();
     m_painter->drawCircle({40, 40}, 30, glm::vec4(1), 0);
+    m_painter->drawRoundedRect({{10, 80}, {100, 140}}, 20, glm::vec4(1), 0);
+    m_painter->drawRect({{10, 150}, {100, 210}}, glm::vec4(1), 0);
+    m_painter->setFont(m_font.get());
+    m_painter->drawText(U"Sphinx of black quartz"sv, {10, 220}, glm::vec4(1), 0);
     m_painter->end();
 }
 

@@ -11,3 +11,8 @@ PUBLIC
     glfw
     muui
 )
+
+target_compile_definitions(test
+PRIVATE
+    ASSETSDIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/"
+)
