@@ -121,7 +121,6 @@ void TestWindow::createWindow()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
 
-    glfwWindowHint(GLFW_SAMPLES, 16);
     m_window = glfwCreateWindow(m_width, m_height, m_title.c_str(), nullptr, nullptr);
 
     glfwMakeContextCurrent(m_window);

@@ -59,6 +59,6 @@ void PainterTest::render()
 
 int main(int argc, char *argv[])
 {
-    PainterTest w(400, 400, "hello");
+    PainterTest w(800, 400, "hello");
     w.run();
 }
