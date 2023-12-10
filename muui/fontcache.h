@@ -22,7 +22,7 @@ public:
     explicit FontCache(TextureAtlas *textureAtlas);
     ~FontCache();
 
-    Font *font(std::string_view fontName, int pixelHeight);
+    Font *font(std::string_view source, int pixelHeight);
 
 private:
     TextureAtlas *m_textureAtlas;

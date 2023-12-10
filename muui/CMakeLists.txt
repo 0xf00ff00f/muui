@@ -1,4 +1,5 @@
 add_subdirectory(muslots)
+add_subdirectory(assets)
 add_subdirectory(3rdparty)
 
 if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Android")
@@ -10,8 +11,6 @@ add_library(muui STATIC)
 target_sources(${PROJECT_NAME}
 PRIVATE
     abstracttexture.h
-    assetpath.cc
-    assetpath.h
     buffer.cc
     buffer.h
     fontcache.cc
@@ -65,6 +64,9 @@ PUBLIC
     glm
     stb
     fmt::fmt
+PRIVATE
+    cmrc-base
+    embed-assets
 )
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Android")

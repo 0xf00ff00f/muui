@@ -1,6 +1,5 @@
 #include "fontcache.h"
 
-#include "assetpath.h"
 #include "log.h"
 
 #include <fmt/core.h>
@@ -25,17 +24,16 @@ std::size_t FontCache::FontKeyHasher::operator()(const FontCache::FontKey &key) 
     return hash;
 }
 
-Font *FontCache::font(std::string_view name, int pixelHeight)
+Font *FontCache::font(std::string_view source, int pixelHeight)
 {
-    FontKey key{std::string(name), pixelHeight};
+    FontKey key{std::string(source), pixelHeight};
     auto it = m_fonts.find(key);
     if (it == m_fonts.end())
     {
         auto font = std::make_unique<Font>(m_textureAtlas);
-        const auto path = assetPath(fmt::format("fonts/{}.ttf", name));
-        if (!font->load(path, pixelHeight))
+        if (!font->load(std::string(source), pixelHeight))
         {
-            log_error("Failed to load font %s", path.c_str());
+            log_error("Failed to load font %s", std::string(source).c_str());
             font.reset();
         }
         it = m_fonts.emplace(std::move(key), std::move(font)).first;

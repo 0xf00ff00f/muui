@@ -1,29 +1,32 @@
 #include "shadermanager.h"
 
-#include "assetpath.h"
 #include "log.h"
 
 #include <fmt/core.h>
 
+#include <cmrc/cmrc.hpp>
+
 #include <span>
 #include <type_traits>
 
+CMRC_DECLARE(assets);
+
 namespace
 {
-std::string shaderPath(std::string_view basename)
-{
-    return assetPath(fmt::format("shaders/{}", basename));
-}
-
 std::unique_ptr<gl::ShaderProgram> loadProgram(const char *vertexShader, const char *fragmentShader)
 {
     auto program = std::make_unique<gl::ShaderProgram>();
-    if (!program->addShader(GL_VERTEX_SHADER, shaderPath(vertexShader)))
+    auto addShaderSource = [&program](GLenum type, const char *shader) {
+        auto fs = cmrc::assets::get_filesystem();
+        auto file = fs.open(fmt::format("assets/shaders/{}", shader));
+        return program->addShaderSource(type, std::string_view(file.begin(), file.end()));
+    };
+    if (!addShaderSource(GL_VERTEX_SHADER, vertexShader))
     {
         log_error("Failed to add vertex shader for program %s: %s", vertexShader, program->log().c_str());
         return {};
     }
-    if (!program->addShader(GL_FRAGMENT_SHADER, shaderPath(fragmentShader)))
+    if (!addShaderSource(GL_FRAGMENT_SHADER, fragmentShader))
     {
         log_error("Failed to add fragment shader for program %s: %s", fragmentShader, program->log().c_str());
         return {};

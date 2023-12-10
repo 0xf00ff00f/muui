@@ -1,6 +1,5 @@
 #include "pixmapcache.h"
 
-#include "assetpath.h"
 #include "log.h"
 
 #include <fmt/core.h>
@@ -22,7 +21,7 @@ std::optional<PackedPixmap> PixmapCache::pixmap(std::string_view source)
     if (it == m_pixmaps.end())
     {
         auto pixmap = [this, &source]() -> std::optional<PackedPixmap> {
-            const auto path = assetPath(fmt::format("images/{}", source));
+            const auto path = std::string(source);
             Pixmap pm = loadPixmap(path);
             if (!pm)
             {
