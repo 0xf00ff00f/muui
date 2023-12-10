@@ -6,7 +6,7 @@
 
 #include "gl.h"
 
-namespace gl
+namespace muui::gl
 {
 
 class Buffer : private NonCopyable

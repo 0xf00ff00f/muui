@@ -12,7 +12,7 @@
 
 #include <glm/glm.hpp>
 
-namespace gl
+namespace muui::gl
 {
 
 class ShaderProgram : private NonCopyable

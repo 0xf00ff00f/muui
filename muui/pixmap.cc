@@ -8,6 +8,9 @@
 
 #include <cassert>
 
+namespace muui
+{
+
 Pixmap loadPixmap(const std::string &path, bool flip)
 {
     if (flip)
@@ -51,3 +54,5 @@ Pixmap loadPixmap(const std::string &path, bool flip)
     return {};
 #endif
 }
+
+} // namespace muui

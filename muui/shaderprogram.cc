@@ -11,7 +11,7 @@
 #include <memory>
 #include <optional>
 
-namespace gl
+namespace muui::gl
 {
 
 ShaderProgram::ShaderProgram()

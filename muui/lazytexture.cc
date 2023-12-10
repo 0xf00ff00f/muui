@@ -2,6 +2,9 @@
 
 #include "pixmap.h"
 
+namespace muui
+{
+
 LazyTexture::LazyTexture(const Pixmap *pixmap)
     : m_pixmap(pixmap)
     , m_texture(pixmap->width, pixmap->height, pixmap->pixelType)
@@ -28,3 +31,5 @@ const Pixmap *LazyTexture::pixmap() const
 {
     return m_pixmap;
 }
+
+} // namespace muui

@@ -8,9 +8,12 @@
 #include <memory>
 #include <string>
 
+namespace muui
+{
 struct Pixmap;
+}
 
-namespace gl
+namespace muui::gl
 {
 
 class Texture : public AbstractTexture

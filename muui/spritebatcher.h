@@ -9,10 +9,9 @@
 
 #include <array>
 
-class AbstractTexture;
-
 namespace muui
 {
+class AbstractTexture;
 struct PackedPixmap;
 
 class SpriteBatcher : private NonCopyable

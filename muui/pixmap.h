@@ -5,6 +5,9 @@
 #include <string>
 #include <vector>
 
+namespace muui
+{
+
 struct Pixmap
 {
     int width;
@@ -31,3 +34,5 @@ struct Pixmap
 };
 
 Pixmap loadPixmap(const std::string &path, bool flip = false);
+
+} // namespace muui

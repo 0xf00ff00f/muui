@@ -3,7 +3,7 @@
 
 #include <memory>
 
-namespace gl
+namespace muui::gl
 {
 
 namespace

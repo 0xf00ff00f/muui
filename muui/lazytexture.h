@@ -3,6 +3,9 @@
 #include "abstracttexture.h"
 #include "texture.h"
 
+namespace muui
+{
+
 struct Pixmap;
 
 class LazyTexture : public AbstractTexture
@@ -21,3 +24,5 @@ private:
     gl::Texture m_texture;
     mutable bool m_dirty;
 };
+
+} // namespace muui

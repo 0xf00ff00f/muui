@@ -2,6 +2,9 @@
 
 #include "noncopyable.h"
 
+namespace muui
+{
+
 class AbstractTexture : private NonCopyable
 {
 public:
@@ -9,3 +12,5 @@ public:
 
     virtual void bind(int textureUnit = 0) const = 0;
 };
+
+} // namespace muui

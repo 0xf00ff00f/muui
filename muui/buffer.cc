@@ -1,6 +1,6 @@
 #include "buffer.h"
 
-namespace gl
+namespace muui::gl
 {
 
 namespace
