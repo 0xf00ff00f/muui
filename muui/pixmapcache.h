@@ -4,6 +4,7 @@
 
 #include "textureatlas.h"
 
+#include <filesystem>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -21,9 +22,13 @@ public:
 
     std::optional<PackedPixmap> pixmap(std::string_view source);
 
+    void setRootPath(const std::filesystem::path &path);
+    const std::filesystem::path &rootPath() const { return m_rootPath; }
+
 private:
     TextureAtlas *m_textureAtlas;
     std::unordered_map<std::string, std::optional<PackedPixmap>> m_pixmaps;
+    std::filesystem::path m_rootPath;
 };
 
 } // namespace muui

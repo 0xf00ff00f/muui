@@ -21,8 +21,8 @@ std::optional<PackedPixmap> PixmapCache::pixmap(std::string_view source)
     if (it == m_pixmaps.end())
     {
         auto pixmap = [this, &source]() -> std::optional<PackedPixmap> {
-            const auto path = std::string(source);
-            Pixmap pm = loadPixmap(path);
+            const auto path = m_rootPath / source;
+            Pixmap pm = loadPixmap(path.string());
             if (!pm)
             {
                 log_error("Failed to load image %s", path.c_str());
@@ -33,6 +33,11 @@ std::optional<PackedPixmap> PixmapCache::pixmap(std::string_view source)
         it = m_pixmaps.emplace(std::move(key), pixmap).first;
     }
     return it->second;
+}
+
+void PixmapCache::setRootPath(const std::filesystem::path &path)
+{
+    m_rootPath = path;
 }
 
 } // namespace muui

@@ -31,7 +31,8 @@ Font *FontCache::font(std::string_view source, int pixelHeight)
     if (it == m_fonts.end())
     {
         auto font = std::make_unique<Font>(m_textureAtlas);
-        if (!font->load(std::string(source), pixelHeight))
+        const auto path = m_rootPath / fmt::format("{}.ttf", source);
+        if (!font->load(path, pixelHeight))
         {
             log_error("Failed to load font %s", std::string(source).c_str());
             font.reset();
@@ -39,6 +40,11 @@ Font *FontCache::font(std::string_view source, int pixelHeight)
         it = m_fonts.emplace(std::move(key), std::move(font)).first;
     }
     return it->second.get();
+}
+
+void FontCache::setRootPath(const std::filesystem::path &path)
+{
+    m_rootPath = path;
 }
 
 } // namespace muui

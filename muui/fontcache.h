@@ -5,6 +5,7 @@
 #include "font.h"
 
 #include <cstddef>
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -22,7 +23,10 @@ public:
     explicit FontCache(TextureAtlas *textureAtlas);
     ~FontCache();
 
-    Font *font(std::string_view source, int pixelHeight);
+    Font *font(std::string_view name, int pixelHeight);
+
+    void setRootPath(const std::filesystem::path &path);
+    const std::filesystem::path &rootPath() const { return m_rootPath; }
 
 private:
     TextureAtlas *m_textureAtlas;
@@ -37,6 +41,7 @@ private:
         std::size_t operator()(const FontKey &key) const;
     };
     std::unordered_map<FontKey, std::unique_ptr<Font>, FontKeyHasher> m_fonts;
+    std::filesystem::path m_rootPath;
 };
 
 } // namespace muui

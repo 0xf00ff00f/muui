@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <stb_truetype.h>
 
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -22,7 +23,7 @@ public:
     explicit Font(TextureAtlas *textureAtlas);
     ~Font();
 
-    bool load(const std::string &ttfPath, int pixelHeight);
+    bool load(const std::filesystem::path &path, int pixelHeight);
 
     struct Glyph
     {

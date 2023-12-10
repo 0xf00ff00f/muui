@@ -14,11 +14,11 @@ Font::Font(TextureAtlas *textureAtlas)
 
 Font::~Font() = default;
 
-bool Font::load(const std::string &ttfPath, int pixelHeight)
+bool Font::load(const std::filesystem::path &path, int pixelHeight)
 {
-    log_info("Loading font %s:%d", ttfPath.c_str(), pixelHeight);
+    log_info("Loading font %s:%d", path.c_str(), pixelHeight);
 
-    auto buffer = util::readFile(ttfPath);
+    auto buffer = util::readFile(path.string());
     if (!buffer)
         return false;
 
