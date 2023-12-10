@@ -3,7 +3,6 @@ add_subdirectory(3rdparty)
 
 if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Android")
     find_package(OpenGL REQUIRED)
-    find_package(GLEW REQUIRED)
 endif()
 
 add_library(muui STATIC)
@@ -83,7 +82,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Android")
 else()
     target_link_libraries(${PROJECT_NAME}
     PUBLIC
-        GLEW::GLEW
+        glew
         OpenGL::GL
     )
     target_compile_definitions(${PROJECT_NAME}

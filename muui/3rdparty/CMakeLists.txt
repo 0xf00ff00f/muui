@@ -1,3 +1,6 @@
+if (NOT ${CMAKE_SYSTEM_NAME} MATCHES "Android")
+    add_subdirectory(glew)
+endif()
 add_subdirectory(fmt)
 add_subdirectory(glm)
 add_subdirectory(stb)
