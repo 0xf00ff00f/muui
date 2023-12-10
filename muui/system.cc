@@ -1,5 +1,6 @@
 #include "system.h"
 
+#include "log.h"
 #include "fontcache.h"
 #include "pixmapcache.h"
 #include "shadermanager.h"
@@ -18,7 +19,11 @@ constexpr auto TextureAtlasPageSize = 1024;
 bool System::initialize()
 {
 #if !defined(__ANDROID__)
-    glewInit();
+    if (glewInit() != GLEW_OK)
+    {
+        log_error("Failed to initialize GLEW");
+        return false;
+    }
 #endif
     return true;
 }
