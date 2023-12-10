@@ -2,10 +2,8 @@ add_subdirectory(3rdparty)
 
 add_library(test-common STATIC testwindow.cc testwindow.h)
 target_link_libraries(test-common PUBLIC glfw muui)
-target_compile_definitions(test-common
-PUBLIC
-    ASSETSDIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/"
-)
+target_compile_definitions(
+  test-common PUBLIC ASSETSDIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/")
 
 add_executable(test-painter test-painter.cc)
 target_link_libraries(test-painter PUBLIC test-common)

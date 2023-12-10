@@ -8,15 +8,14 @@ set(ASSET_FILES
     shaders/roundedrect.frag
     shaders/roundedrect.vert
     shaders/text.frag
-    shaders/text.vert
-)
+    shaders/text.vert)
 
 cmrc_add_resource_library(
-    embed-assets
-    NAMESPACE
-    assets
-    WHENCE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    PREFIX
-    assets
-    ${ASSET_FILES})
+  embed-assets
+  NAMESPACE
+  assets
+  WHENCE
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  PREFIX
+  assets
+  ${ASSET_FILES})
