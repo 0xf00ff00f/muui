@@ -8,11 +8,11 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace miniui
+namespace muui
 {
 
 Painter::Painter()
-    : m_spriteBatcher(std::make_unique<gl::SpriteBatcher>())
+    : m_spriteBatcher(std::make_unique<SpriteBatcher>())
 {
     updateTransformMatrix();
 }
@@ -151,4 +151,4 @@ void Painter::drawRoundedRect(const RectF &rect, float cornerRadius, const glm::
     m_spriteBatcher->addSprite(nullptr, rect, texCoords, color, glm::vec4(size, radius, 0), depth);
 }
 
-} // namespace miniui
+} // namespace muui

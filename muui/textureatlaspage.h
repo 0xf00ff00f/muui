@@ -11,6 +11,9 @@
 #include <optional>
 #include <vector>
 
+namespace muui
+{
+
 class TextureAtlasPage : private NonCopyable
 {
 public:
@@ -26,3 +29,5 @@ private:
     struct Node;
     std::unique_ptr<Node> m_tree;
 };
+
+} // namespace muui

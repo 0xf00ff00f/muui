@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 
-namespace miniui
+namespace muui
 {
 
 struct TouchEvent
@@ -20,4 +20,4 @@ struct TouchEvent
     glm::vec2 position;
 };
 
-} // namespace miniui
+} // namespace muui

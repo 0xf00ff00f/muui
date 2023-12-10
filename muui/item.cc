@@ -1,8 +1,6 @@
-#include "miniui.h"
+#include "item.h"
 
 #include "fontcache.h"
-#include "glm/detail/qualifier.hpp"
-#include "glm/fwd.hpp"
 #include "painter.h"
 #include "pixmapcache.h"
 #include "system.h"
@@ -10,7 +8,7 @@
 #include <algorithm>
 #include <memory>
 
-namespace miniui
+namespace muui
 {
 namespace
 {
@@ -983,4 +981,4 @@ Item *ImageButton::handleMouseEvent(const TouchEvent &event)
     }
 }
 
-} // namespace miniui
+} // namespace muui

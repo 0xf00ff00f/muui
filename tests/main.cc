@@ -20,18 +20,18 @@ public:
     void render() override;
 
 private:
-    std::unique_ptr<miniui::Painter> m_painter;
-    std::unique_ptr<TextureAtlas> m_textureAtlas;
-    std::unique_ptr<miniui::Font> m_font;
+    std::unique_ptr<muui::Painter> m_painter;
+    std::unique_ptr<muui::TextureAtlas> m_textureAtlas;
+    std::unique_ptr<muui::Font> m_font;
 };
 
 void PainterTest::initialize()
 {
-    m_painter = std::make_unique<miniui::Painter>();
+    m_painter = std::make_unique<muui::Painter>();
     m_painter->setWindowSize(m_width, m_height);
 
-    m_textureAtlas = std::make_unique<TextureAtlas>(512, 512, PixelType::Grayscale);
-    m_font = std::make_unique<miniui::Font>(m_textureAtlas.get());
+    m_textureAtlas = std::make_unique<muui::TextureAtlas>(512, 512, PixelType::Grayscale);
+    m_font = std::make_unique<muui::Font>(m_textureAtlas.get());
     if (!m_font->load(ASSETSDIR "OpenSans_Bold.ttf", 60))
         panic("Failed to load font\n");
 }

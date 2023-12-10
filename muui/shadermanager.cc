@@ -11,6 +11,9 @@
 
 CMRC_DECLARE(assets);
 
+namespace muui
+{
+
 namespace
 {
 std::unique_ptr<gl::ShaderProgram> loadProgram(const char *vertexShader, const char *fragmentShader)
@@ -110,3 +113,5 @@ int ShaderManager::uniformLocation(Uniform id)
     }
     return location;
 }
+
+} // namespace muui

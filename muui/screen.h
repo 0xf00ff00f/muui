@@ -6,7 +6,7 @@
 
 #include <memory>
 
-namespace miniui
+namespace muui
 {
 class Item;
 class Painter;
@@ -24,16 +24,16 @@ public:
     int width() const;
     int height() const;
 
-    miniui::Item *rootItem() const { return m_rootItem; }
-    void setRootItem(miniui::Item *rootItem);
+    muui::Item *rootItem() const { return m_rootItem; }
+    void setRootItem(Item *rootItem);
 
 public:
-    std::unique_ptr<miniui::Painter> m_painter;
-    miniui::Item *m_rootItem = nullptr;
-    miniui::Item *m_grabTarget = nullptr;
-    miniui::Item *m_clickTarget = nullptr;
+    std::unique_ptr<muui::Painter> m_painter;
+    Item *m_rootItem = nullptr;
+    Item *m_grabTarget = nullptr;
+    Item *m_clickTarget = nullptr;
     bool m_dragStarted = false;
     glm::vec2 m_lastTouchPosition;
 };
 
-} // namespace miniui
+} // namespace muui

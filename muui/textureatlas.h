@@ -10,6 +10,9 @@
 
 struct Pixmap;
 
+namespace muui
+{
+
 struct PackedPixmap
 {
     int width;
@@ -45,3 +48,5 @@ private:
     PixelType m_pixelType;
     std::vector<std::unique_ptr<PageTexture>> m_pages;
 };
+
+} // namespace muui

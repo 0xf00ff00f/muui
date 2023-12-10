@@ -7,7 +7,7 @@
 
 #include <algorithm>
 
-namespace gl
+namespace muui
 {
 
 namespace
@@ -21,7 +21,7 @@ constexpr SpriteBatcher::Quad asQuad(const RectF &rect)
 } // namespace
 
 SpriteBatcher::SpriteBatcher()
-    : m_buffer(Buffer::Type::Vertex, Buffer::Usage::DynamicDraw)
+    : m_buffer(gl::Buffer::Type::Vertex, gl::Buffer::Usage::DynamicDraw)
 {
     glGenVertexArrays(1, &m_vao);
 
@@ -231,7 +231,7 @@ void SpriteBatcher::flush()
         if (currentProgram != batchProgram)
         {
             currentProgram = batchProgram;
-            auto *shaderManager = System::instance()->shaderManager();
+            auto *shaderManager = muui::System::instance()->shaderManager();
             shaderManager->useProgram(batchProgram);
             shaderManager->setUniform(ShaderManager::Uniform::ModelViewProjection, m_transformMatrix);
             if (currentTexture)

@@ -6,7 +6,7 @@
 
 #include <cstddef>
 
-namespace miniui
+namespace muui
 {
 
 FontCache::FontCache(TextureAtlas *textureAtlas)
@@ -41,4 +41,4 @@ Font *FontCache::font(std::string_view source, int pixelHeight)
     return it->second.get();
 }
 
-} // namespace miniui
+} // namespace muui

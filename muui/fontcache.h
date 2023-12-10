@@ -12,7 +12,7 @@
 
 class TextureAtlas;
 
-namespace miniui
+namespace muui
 {
 class Font;
 
@@ -39,4 +39,4 @@ private:
     std::unordered_map<FontKey, std::unique_ptr<Font>, FontKeyHasher> m_fonts;
 };
 
-} // namespace miniui
+} // namespace muui

@@ -15,7 +15,7 @@
 #include <string_view>
 #include <vector>
 
-namespace miniui
+namespace muui
 {
 class Painter;
 
@@ -445,4 +445,4 @@ protected:
     Item *handleMouseEvent(const TouchEvent &event) override;
 };
 
-} // namespace miniui
+} // namespace muui

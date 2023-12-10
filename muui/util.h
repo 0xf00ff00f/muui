@@ -3,6 +3,9 @@
 #include <array>
 #include <glm/glm.hpp>
 
+namespace muui
+{
+
 template<typename Point>
 struct Rect
 {
@@ -92,3 +95,5 @@ inline Rect<Point> operator&(Rect<Point> lhs, const Rect<Point> &rhs)
 
 using RectF = Rect<glm::vec2>;
 using RectI = Rect<glm::ivec2>;
+
+} // namespace muui

@@ -4,6 +4,9 @@
 
 #include <cassert>
 
+namespace muui
+{
+
 struct TextureAtlasPage::Node
 {
     struct Rect
@@ -122,3 +125,5 @@ std::optional<RectF> TextureAtlasPage::insert(const Pixmap &pixmap)
 
     return RectF{uvMin, uvMax};
 }
+
+} // namespace muui

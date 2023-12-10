@@ -4,7 +4,7 @@
 #include "log.h"
 #include "pixmap.h"
 
-namespace miniui
+namespace muui
 {
 
 Font::Font(TextureAtlas *textureAtlas)
@@ -114,4 +114,4 @@ std::unique_ptr<Font::Glyph> Font::initializeGlyph(int codepoint)
     return glyph;
 }
 
-} // namespace miniui
+} // namespace muui

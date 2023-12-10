@@ -11,16 +11,11 @@
 #include <string_view>
 #include <unordered_map>
 
-struct PackedPixmap;
-
-namespace gl
-{
-class SpriteBatcher;
-}
-
-namespace miniui
+namespace muui
 {
 class Font;
+class SpriteBatcher;
+struct PackedPixmap;
 
 class Painter : private NonCopyable
 {
@@ -42,7 +37,7 @@ public:
     void setClipRect(const RectF &rect);
     RectF clipRect() const { return m_clipRect; }
 
-    gl::SpriteBatcher *spriteBatcher() const { return m_spriteBatcher.get(); }
+    SpriteBatcher *spriteBatcher() const { return m_spriteBatcher.get(); }
 
     void drawRect(const RectF &rect, const glm::vec4 &color, int depth);
     void drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const glm::vec4 &color, int depth);
@@ -59,10 +54,10 @@ private:
 
     int m_windowWidth = 0;
     int m_windowHeight = 0;
-    std::unique_ptr<gl::SpriteBatcher> m_spriteBatcher;
+    std::unique_ptr<SpriteBatcher> m_spriteBatcher;
     Font *m_font = nullptr;
     RectF m_clipRect;
     bool m_clippingEnabled = false;
 };
 
-} // namespace miniui
+} // namespace muui

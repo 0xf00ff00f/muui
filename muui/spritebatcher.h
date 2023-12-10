@@ -10,10 +10,10 @@
 #include <array>
 
 class AbstractTexture;
-struct PackedPixmap;
 
-namespace gl
+namespace muui
 {
+struct PackedPixmap;
 
 class SpriteBatcher : private NonCopyable
 {
@@ -83,7 +83,7 @@ private:
 
     std::array<Sprite, MaxQuadsPerBatch> m_sprites;
     int m_quadCount = 0;
-    Buffer m_buffer;
+    gl::Buffer m_buffer;
     glm::mat4 m_transformMatrix;
     ShaderManager::Program m_batchProgram = ShaderManager::Program::Flat;
     bool m_bufferAllocated = false;

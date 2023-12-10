@@ -20,11 +20,11 @@ PRIVATE
     gl.h
     ioutil.cc
     ioutil.h
+    item.cc
+    item.h
     lazytexture.cc
     lazytexture.h
     log.h
-    miniui.cc
-    miniui.h
     noncopyable.h
     painter.cc
     painter.h

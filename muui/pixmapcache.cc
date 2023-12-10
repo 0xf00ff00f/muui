@@ -4,7 +4,7 @@
 
 #include <fmt/core.h>
 
-namespace miniui
+namespace muui
 {
 
 PixmapCache::PixmapCache(TextureAtlas *textureAtlas)
@@ -35,4 +35,4 @@ std::optional<PackedPixmap> PixmapCache::pixmap(std::string_view source)
     return it->second;
 }
 
-} // namespace miniui
+} // namespace muui

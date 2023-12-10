@@ -1,11 +1,11 @@
 #include "screen.h"
 
-#include "miniui.h"
+#include "item.h"
 #include "painter.h"
 
 #include "gl.h"
 
-namespace miniui
+namespace muui
 {
 Screen::Screen()
     : m_painter(std::make_unique<Painter>())
@@ -48,7 +48,7 @@ void Screen::render() const
     glDisable(GL_BLEND);
 }
 
-void Screen::setRootItem(miniui::Item *rootItem)
+void Screen::setRootItem(Item *rootItem)
 {
     m_rootItem = rootItem;
 }
@@ -114,4 +114,4 @@ bool Screen::handleTouchEvent(TouchAction action, int x, int y)
     return false;
 }
 
-} // namespace miniui
+} // namespace muui

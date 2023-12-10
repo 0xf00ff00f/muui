@@ -13,7 +13,7 @@
 
 struct Pixmap;
 
-namespace miniui
+namespace muui
 {
 
 class Font
@@ -52,4 +52,4 @@ private:
     float m_lineGap;
 };
 
-} // namespace miniui
+} // namespace muui

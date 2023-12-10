@@ -3,6 +3,9 @@
 #include "log.h"
 #include "pixmap.h"
 
+namespace muui
+{
+
 TextureAtlas::TextureAtlas(int pageWidth, int pageHeight, PixelType pixelType)
     : m_pageWidth(pageWidth)
     , m_pageHeight(pageHeight)
@@ -92,3 +95,5 @@ TextureAtlas::PageTexture::PageTexture(int width, int height, PixelType pixelTyp
     , texture(page.pixmap())
 {
 }
+
+} // namespace muui

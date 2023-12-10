@@ -5,6 +5,9 @@
 #include "shadermanager.h"
 #include "textureatlas.h"
 
+namespace muui
+{
+
 System *System::s_instance = nullptr;
 
 namespace
@@ -31,9 +34,11 @@ System::System()
     , m_fontTextureAtlas(
           std::make_unique<TextureAtlas>(TextureAtlasPageSize, TextureAtlasPageSize, PixelType::Grayscale))
     , m_pixmapTextureAtlas(std::make_unique<TextureAtlas>(TextureAtlasPageSize, TextureAtlasPageSize, PixelType::RGBA))
-    , m_fontCache(std::make_unique<miniui::FontCache>(m_fontTextureAtlas.get()))
-    , m_pixmapCache(std::make_unique<miniui::PixmapCache>(m_pixmapTextureAtlas.get()))
+    , m_fontCache(std::make_unique<FontCache>(m_fontTextureAtlas.get()))
+    , m_pixmapCache(std::make_unique<PixmapCache>(m_pixmapTextureAtlas.get()))
 {
 }
 
 System::~System() = default;
+
+} // namespace muui

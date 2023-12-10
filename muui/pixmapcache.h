@@ -10,7 +10,7 @@
 
 class TextureAtlas;
 
-namespace miniui
+namespace muui
 {
 
 class PixmapCache : private NonCopyable
@@ -26,4 +26,4 @@ private:
     std::unordered_map<std::string, std::optional<PackedPixmap>> m_pixmaps;
 };
 
-} // namespace miniui
+} // namespace muui

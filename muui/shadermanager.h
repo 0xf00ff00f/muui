@@ -13,6 +13,9 @@ namespace gl
 class ShaderProgram;
 }
 
+namespace muui
+{
+
 class ShaderManager : private NonCopyable
 {
 public:
@@ -64,3 +67,5 @@ private:
     std::array<std::unique_ptr<CachedProgram>, static_cast<int>(Program::NumPrograms)> m_cachedPrograms;
     CachedProgram *m_currentProgram = nullptr;
 };
+
+} // namespace muui

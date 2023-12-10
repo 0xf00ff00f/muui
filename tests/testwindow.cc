@@ -127,7 +127,7 @@ void TestWindow::createWindow()
     glfwMakeContextCurrent(m_window);
     glfwSwapInterval(1);
 
-    System::initialize();
+    muui::System::initialize();
 
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(
@@ -144,7 +144,7 @@ void TestWindow::createWindow()
 
 void TestWindow::destroyWindow()
 {
-    System::shutdown();
+    muui::System::shutdown();
 
     glfwDestroyWindow(m_window);
 
