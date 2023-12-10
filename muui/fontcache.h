@@ -30,7 +30,7 @@ private:
     {
         std::string name;
         int pixelHeight;
-        bool operator==(const FontKey &other) const { return name == other.name && pixelHeight == other.pixelHeight; }
+        bool operator==(const FontKey &other) const = default;
     };
     struct FontKeyHasher
     {

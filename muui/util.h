@@ -58,7 +58,7 @@ struct Rect
 
     Rect intersected(const Rect &other) const { return *this & other; }
 
-    bool operator==(const Rect &other) const { return min == other.min && max == other.max; }
+    bool operator==(const Rect &other) const = default;
 
     bool contains(const Point &p) const { return p.x >= min.x && p.x < max.x && p.y >= min.y && p.y < max.y; }
 

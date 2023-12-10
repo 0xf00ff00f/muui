@@ -60,10 +60,7 @@ struct Margins
     float left = 0;
     float right = 0;
 
-    bool operator==(const Margins &other) const
-    {
-        return top == other.top && bottom == other.bottom && left == other.left && right == other.right;
-    }
+    bool operator==(const Margins &other) const = default;
 
     Margins &operator*=(float s)
     {
@@ -87,7 +84,7 @@ struct Size
     float width = 0;
     float height = 0;
 
-    bool operator==(const Size &other) const { return width == other.width && height == other.height; }
+    bool operator==(const Size &other) const = default;
 
     Size &operator*=(float s)
     {
