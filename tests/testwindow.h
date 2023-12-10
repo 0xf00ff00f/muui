@@ -19,9 +19,12 @@ protected:
     virtual void initialize();
     virtual void update(float dt);
     virtual void render();
+    virtual void mouseButtonEvent(int button, int action, int mods);
+    virtual void mouseMoveEvent(double x, double y);
 
     int m_width{0};
     int m_height{0};
+    GLFWwindow *m_window{nullptr};
 
 private:
     void createWindow();
@@ -29,5 +32,4 @@ private:
 
     std::string m_title;
     bool m_initialized{false};
-    GLFWwindow *m_window{nullptr};
 };

@@ -12,3 +12,6 @@ target_link_libraries(test-painter PUBLIC test-common)
 
 add_executable(test-container test-container.cc)
 target_link_libraries(test-container PUBLIC test-common)
+
+add_executable(test-leaderboard test-leaderboard.cc)
+target_link_libraries(test-leaderboard PUBLIC test-common)

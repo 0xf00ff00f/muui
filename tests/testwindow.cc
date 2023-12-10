@@ -123,6 +123,16 @@ void TestWindow::createWindow()
 
     m_window = glfwCreateWindow(m_width, m_height, m_title.c_str(), nullptr, nullptr);
 
+    glfwSetWindowUserPointer(m_window, this);
+    glfwSetMouseButtonCallback(m_window, [](GLFWwindow *window, int button, int action, int mods) {
+        auto *testWindow = reinterpret_cast<TestWindow *>(glfwGetWindowUserPointer(window));
+        testWindow->mouseButtonEvent(button, action, mods);
+    });
+    glfwSetCursorPosCallback(m_window, [](GLFWwindow *window, double x, double y) {
+        auto *testWindow = reinterpret_cast<TestWindow *>(glfwGetWindowUserPointer(window));
+        testWindow->mouseMoveEvent(x, y);
+    });
+
     glfwMakeContextCurrent(m_window);
     glfwSwapInterval(1);
 
@@ -155,3 +165,9 @@ void TestWindow::initialize() {}
 void TestWindow::render() {}
 
 void TestWindow::update([[maybe_unused]] float dt) {}
+
+void TestWindow::mouseButtonEvent([[maybe_unused]] int button, [[maybe_unused]] int action, [[maybe_unused]] int mods)
+{
+}
+
+void TestWindow::mouseMoveEvent([[maybe_unused]] double x, [[maybe_unused]] double y) {}
