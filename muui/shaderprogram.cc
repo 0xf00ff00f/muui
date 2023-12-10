@@ -2,13 +2,14 @@
 
 #include "ioutil.h"
 
+#include <fmt/core.h>
+
+#include <glm/gtc/type_ptr.hpp>
+
 #include <array>
 #include <fstream>
 #include <memory>
 #include <optional>
-#include <sstream>
-
-#include <glm/gtc/type_ptr.hpp>
 
 namespace gl
 {
@@ -30,9 +31,7 @@ bool ShaderProgram::addShader(GLenum type, std::string_view filename)
     auto source = util::readFile(std::string(filename));
     if (!source)
     {
-        std::stringstream ss;
-        ss << "failed to load " << filename;
-        m_log = ss.str();
+        m_log = fmt::format("failed to load {}", filename);
         return false;
     }
     const auto *data = reinterpret_cast<const char *>(source->data());
