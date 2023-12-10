@@ -28,8 +28,6 @@ PRIVATE
     noncopyable.h
     painter.cc
     painter.h
-    palette.cc
-    palette.h
     pixeltype.h
     pixmapcache.cc
     pixmapcache.h
