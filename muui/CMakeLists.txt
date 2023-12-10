@@ -67,6 +67,11 @@ target_link_libraries(
   PUBLIC muslots glm stb fmt::fmt
   PRIVATE cmrc-base embed-assets)
 
+if(MUUI_USE_SDL2)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE USE_SDL)
+    target_link_libraries(${PROJECT_NAME} PUBLIC SDL2::SDL2)
+endif()
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "Android")
   target_link_libraries(${PROJECT_NAME} PUBLIC android log EGL GLESv3)
   target_compile_definitions(${PROJECT_NAME} PRIVATE ASSETSDIR="")
