@@ -8,7 +8,9 @@ set(ASSET_FILES
     shaders/roundedrect.frag
     shaders/roundedrect.vert
     shaders/text.frag
-    shaders/text.vert)
+    shaders/text.vert
+    shaders/decal.frag
+    shaders/decal.vert)
 
 cmrc_add_resource_library(
   embed-assets
