@@ -4,9 +4,14 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 project(muui)
 
+option(MUUI_TESTS "Build tests" ON)
+
 include(CMakeRC)
 
 set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory(muui)
-add_subdirectory(tests)
+
+if(MUUI_TESTS)
+  add_subdirectory(tests)
+endif()
