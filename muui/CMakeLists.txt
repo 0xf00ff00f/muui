@@ -17,8 +17,6 @@ set(MUUI_SOURCES
     font.cc
     font.h
     gl.h
-    ioutil.cc
-    ioutil.h
     item.cc
     item.h
     lazytexture.cc

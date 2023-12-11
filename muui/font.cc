@@ -1,6 +1,6 @@
 #include "font.h"
 
-#include "ioutil.h"
+#include "file.h"
 #include "log.h"
 #include "pixmap.h"
 
@@ -18,11 +18,11 @@ bool Font::load(const std::filesystem::path &path, int pixelHeight)
 {
     log_info("Loading font %s:%d", path.c_str(), pixelHeight);
 
-    auto buffer = util::readFile(path.string());
-    if (!buffer)
+    File file(path);
+    if (!file)
         return false;
 
-    m_ttfBuffer = std::move(*buffer);
+    m_ttfBuffer = file.readAll();
 
     auto *ttfData = reinterpret_cast<const unsigned char *>(m_ttfBuffer.data());
     int result = stbtt_InitFont(&m_font, ttfData, stbtt_GetFontOffsetForIndex(ttfData, 0));
