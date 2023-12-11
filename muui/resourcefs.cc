@@ -32,14 +32,13 @@ public:
         return data;
     }
 
-    bool skip(std::size_t size) override
+    void skip(std::size_t size) override
     {
         if (eof())
-            return false;
+            return;
         assert(m_index <= m_file.size());
         const auto length = std::min(m_file.size() - m_index, size);
         m_index += length;
-        return true;
     }
 
     bool eof() const override { return m_index >= m_file.size(); }

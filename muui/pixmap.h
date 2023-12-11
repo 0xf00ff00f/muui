@@ -2,7 +2,7 @@
 
 #include "pixeltype.h"
 
-#include <string>
+#include <filesystem>
 #include <vector>
 
 namespace muui
@@ -33,6 +33,6 @@ struct Pixmap
     operator bool() const { return pixelType != PixelType::Invalid; }
 };
 
-Pixmap loadPixmap(const std::string &path, bool flip = false);
+Pixmap loadPixmap(const std::filesystem::path &path, bool flip = false);
 
 } // namespace muui

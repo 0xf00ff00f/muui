@@ -21,7 +21,7 @@ public:
     VFS *vfs() const;
     std::size_t read(std::byte *data, std::size_t size);
     std::vector<std::byte> readAll();
-    bool skip(std::size_t size);
+    void skip(std::size_t size);
     bool eof() const;
 
 private:

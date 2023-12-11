@@ -8,59 +8,64 @@ endif()
 
 add_library(muui STATIC)
 
-target_sources(
-  ${PROJECT_NAME}
-  PRIVATE abstracttexture.h
-          buffer.cc
-          buffer.h
-          fontcache.cc
-          fontcache.h
-          font.cc
-          font.h
-          gl.h
-          ioutil.cc
-          ioutil.h
-          item.cc
-          item.h
-          lazytexture.cc
-          lazytexture.h
-          log.h
-          noncopyable.h
-          painter.cc
-          painter.h
-          pixeltype.h
-          pixmapcache.cc
-          pixmapcache.h
-          pixmap.cc
-          pixmap.h
-          screen.cc
-          screen.h
-          shadermanager.cc
-          shadermanager.h
-          shaderprogram.cc
-          shaderprogram.h
-          spritebatcher.cc
-          spritebatcher.h
-          system.cc
-          system.h
-          textureatlas.cc
-          textureatlas.h
-          textureatlaspage.cc
-          textureatlaspage.h
-          texture.cc
-          texture.h
-          touchevent.h
-          tweening.h
-          uiinput.h
-          util.h
-          valueanimation.h
-          vfs.h
-          diskfs.h
-          diskfs.cc
-          resourcefs.h
-          resourcefs.cc
-          file.h
-          file.cc)
+set(MUUI_SOURCES
+    abstracttexture.h
+    buffer.cc
+    buffer.h
+    fontcache.cc
+    fontcache.h
+    font.cc
+    font.h
+    gl.h
+    ioutil.cc
+    ioutil.h
+    item.cc
+    item.h
+    lazytexture.cc
+    lazytexture.h
+    log.h
+    noncopyable.h
+    painter.cc
+    painter.h
+    pixeltype.h
+    pixmapcache.cc
+    pixmapcache.h
+    pixmap.cc
+    pixmap.h
+    screen.cc
+    screen.h
+    shadermanager.cc
+    shadermanager.h
+    shaderprogram.cc
+    shaderprogram.h
+    spritebatcher.cc
+    spritebatcher.h
+    system.cc
+    system.h
+    textureatlas.cc
+    textureatlas.h
+    textureatlaspage.cc
+    textureatlaspage.h
+    texture.cc
+    texture.h
+    touchevent.h
+    tweening.h
+    uiinput.h
+    util.h
+    valueanimation.h
+    vfs.h
+    resourcefs.h
+    resourcefs.cc
+    file.h
+    file.cc)
+
+if(MUUI_USE_SDL2)
+  list(APPEND MUUI_SOURCES sdlfs.h sdlfs.cc)
+else()
+  list(APPEND MUUI_SOURCES diskfs.h diskfs.cc)
+endif()
+
+target_sources(${PROJECT_NAME} PRIVATE ${MUUI_SOURCES})
 
 target_link_libraries(
   ${PROJECT_NAME}
@@ -68,8 +73,8 @@ target_link_libraries(
   PRIVATE cmrc-base embed-assets)
 
 if(MUUI_USE_SDL2)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE USE_SDL)
-    target_link_libraries(${PROJECT_NAME} PUBLIC SDL2::SDL2)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE USE_SDL)
+  target_link_libraries(${PROJECT_NAME} PUBLIC SDL2::SDL2)
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Android")

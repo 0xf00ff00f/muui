@@ -1,7 +1,11 @@
 #include "file.h"
 
-#include "diskfs.h"
 #include "resourcefs.h"
+#ifdef USE_SDL
+#include "sdlfs.h"
+#else
+#include "diskfs.h"
+#endif
 
 CMRC_DECLARE(assets);
 
@@ -21,7 +25,11 @@ File::File(const std::filesystem::path &path)
         }
         else
         {
+#ifdef USE_SDL
+            static SDLFS fs;
+#else
             static DiskFS fs;
+#endif
             m_reader = fs.open(path);
         }
     }
@@ -50,10 +58,10 @@ std::vector<std::byte> File::readAll()
     return m_reader->readAll();
 }
 
-bool File::skip(std::size_t size)
+void File::skip(std::size_t size)
 {
     if (!m_reader)
-        return false;
+        return;
     return m_reader->skip(size);
 }
 

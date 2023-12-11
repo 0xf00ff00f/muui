@@ -20,7 +20,7 @@ public:
     VFS *vfs() const { return m_vfs; }
     virtual std::size_t read(std::byte *data, std::size_t size) = 0;
     virtual std::vector<std::byte> readAll() = 0;
-    virtual bool skip(std::size_t size) = 0;
+    virtual void skip(std::size_t size) = 0;
     virtual bool eof() const = 0;
 
 private:

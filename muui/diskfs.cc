@@ -38,7 +38,7 @@ public:
         return data;
     }
 
-    bool skip(std::size_t size) override { return fseek(m_stream, size, SEEK_CUR) == 0; }
+    void skip(std::size_t size) override { fseek(m_stream, size, SEEK_CUR); }
 
     bool eof() const override { return feof(m_stream); }
 
