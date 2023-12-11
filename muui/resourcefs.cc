@@ -6,11 +6,11 @@
 namespace muui
 {
 
-class ResourceFile : public VFS::File
+class ResourceFileReader : public FileReader
 {
 public:
-    ResourceFile(VFS *vfs, const cmrc::file &file)
-        : VFS::File(vfs)
+    ResourceFileReader(VFS *vfs, const cmrc::file &file)
+        : FileReader(vfs)
         , m_file(file)
     {
     }
@@ -58,11 +58,11 @@ ResourceFS::ResourceFS(const cmrc::embedded_filesystem &fs)
 {
 }
 
-std::unique_ptr<VFS::File> ResourceFS::open(const std::filesystem::path &path)
+std::unique_ptr<FileReader> ResourceFS::open(const std::filesystem::path &path)
 {
     if (!m_fs.is_file(path.string()))
         return {};
-    return std::make_unique<ResourceFile>(this, m_fs.open(path.string()));
+    return std::make_unique<ResourceFileReader>(this, m_fs.open(path.string()));
 }
 
 } // namespace muui

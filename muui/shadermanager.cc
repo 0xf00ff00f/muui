@@ -17,14 +17,9 @@ std::unique_ptr<gl::ShaderProgram> loadProgram(const char *vertexShader, const c
 {
     auto program = std::make_unique<gl::ShaderProgram>();
     auto addShaderSource = [&program](GLenum type, const char *shader) {
-        const auto path = fmt::format("assets/shaders/{}", shader);
-        auto file = System::instance()->resourceFS()->open(path);
-        if (!file)
-        {
-            log_error("Failed to open shader file %s", path.c_str());
-            return false;
-        }
-        if (!program->addShader(type, file.get()))
+        static const std::filesystem::path shaderRootPath{":/assets/shaders"};
+        const auto path = shaderRootPath / shader;
+        if (!program->addShader(type, path))
         {
             log_error("Failed to add vertex shader for program %s: %s", path.c_str(), program->log().c_str());
             return false;

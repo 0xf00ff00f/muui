@@ -1,5 +1,7 @@
 #include "shaderprogram.h"
 
+#include "file.h"
+
 #include <fmt/core.h>
 
 #include <glm/gtc/type_ptr.hpp>
@@ -24,9 +26,15 @@ void ShaderProgram::initialize()
     m_id = glCreateProgram();
 }
 
-bool ShaderProgram::addShader(GLenum type, VFS::File *file)
+bool ShaderProgram::addShader(GLenum type, const std::filesystem::path &path)
 {
-    auto source = file->readAll();
+    File file{path};
+    if (!file)
+    {
+        m_log = fmt::format("failed to load {}", path.string());
+        return false;
+    }
+    auto source = file.readAll();
     const auto *data = reinterpret_cast<const char *>(source.data());
     const auto size = source.size();
     return addShaderSource(type, {data, size});

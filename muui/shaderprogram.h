@@ -3,10 +3,10 @@
 #include "noncopyable.h"
 
 #include "gl.h"
-#include "vfs.h"
 
 #include <glm/glm.hpp>
 
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -22,7 +22,7 @@ public:
     ShaderProgram();
     ~ShaderProgram();
 
-    bool addShader(GLenum type, VFS::File *file);
+    bool addShader(GLenum type, const std::filesystem::path &path);
     bool addShaderSource(GLenum type, std::string_view source);
     bool link();
     const std::string &log() const { return m_log; }

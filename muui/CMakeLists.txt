@@ -58,7 +58,9 @@ target_sources(
           diskfs.h
           diskfs.cc
           resourcefs.h
-          resourcefs.cc)
+          resourcefs.cc
+          file.h
+          file.cc)
 
 target_link_libraries(
   ${PROJECT_NAME}

@@ -6,19 +6,16 @@
 namespace muui
 {
 
-namespace
-{
-
-class DiskFile : public VFS::File
+class DiskFileReader : public FileReader
 {
 public:
-    explicit DiskFile(VFS *vfs, const std::filesystem::path &path)
-        : VFS::File(vfs)
+    explicit DiskFileReader(VFS *vfs, const std::filesystem::path &path)
+        : FileReader(vfs)
         , m_stream(fopen(path.c_str(), "rb"))
     {
     }
 
-    ~DiskFile() override
+    ~DiskFileReader() override
     {
         if (m_stream)
             fclose(m_stream);
@@ -49,11 +46,9 @@ private:
     FILE *m_stream{nullptr};
 };
 
-} // namespace
-
-std::unique_ptr<VFS::File> DiskFS::open(const std::filesystem::path &path)
+std::unique_ptr<FileReader> DiskFS::open(const std::filesystem::path &path)
 {
-    auto file = std::make_unique<DiskFile>(this, path);
+    auto file = std::make_unique<DiskFileReader>(this, path);
     if (!file->isOpen())
         return {};
     return file;
