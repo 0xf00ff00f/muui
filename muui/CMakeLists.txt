@@ -53,7 +53,12 @@ target_sources(
           tweening.h
           uiinput.h
           util.h
-          valueanimation.h)
+          valueanimation.h
+          vfs.h
+          diskfs.h
+          diskfs.cc
+          resourcefs.h
+          resourcefs.cc)
 
 target_link_libraries(
   ${PROJECT_NAME}

@@ -1,15 +1,12 @@
 #include "shadermanager.h"
 
 #include "log.h"
+#include "system.h"
 
 #include <fmt/core.h>
 
-#include <cmrc/cmrc.hpp>
-
 #include <span>
 #include <type_traits>
-
-CMRC_DECLARE(assets);
 
 namespace muui
 {
@@ -20,18 +17,26 @@ std::unique_ptr<gl::ShaderProgram> loadProgram(const char *vertexShader, const c
 {
     auto program = std::make_unique<gl::ShaderProgram>();
     auto addShaderSource = [&program](GLenum type, const char *shader) {
-        auto fs = cmrc::assets::get_filesystem();
-        auto file = fs.open(fmt::format("assets/shaders/{}", shader));
-        return program->addShaderSource(type, std::string_view(file.begin(), file.end()));
+        const auto path = fmt::format("assets/shaders/{}", shader);
+        auto file = System::instance()->resourceFS()->open(path);
+        if (!file)
+        {
+            log_error("Failed to open shader file %s", path.c_str());
+            return false;
+        }
+        if (!program->addShader(type, file.get()))
+        {
+            log_error("Failed to add vertex shader for program %s: %s", path.c_str(), program->log().c_str());
+            return false;
+        }
+        return true;
     };
     if (!addShaderSource(GL_VERTEX_SHADER, vertexShader))
     {
-        log_error("Failed to add vertex shader for program %s: %s", vertexShader, program->log().c_str());
         return {};
     }
     if (!addShaderSource(GL_FRAGMENT_SHADER, fragmentShader))
     {
-        log_error("Failed to add fragment shader for program %s: %s", fragmentShader, program->log().c_str());
         return {};
     }
     if (!program->link())

@@ -3,14 +3,15 @@
 #include "noncopyable.h"
 
 #include "gl.h"
+#include "vfs.h"
+
+#include <glm/glm.hpp>
 
 #include <memory>
 #include <string>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
-
-#include <glm/glm.hpp>
 
 namespace muui::gl
 {
@@ -21,7 +22,7 @@ public:
     ShaderProgram();
     ~ShaderProgram();
 
-    bool addShader(GLenum type, std::string_view path);
+    bool addShader(GLenum type, VFS::File *file);
     bool addShaderSource(GLenum type, std::string_view source);
     bool link();
     const std::string &log() const { return m_log; }
