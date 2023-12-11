@@ -1,7 +1,9 @@
 #include "file.h"
 
-#include "system.h"
-#include "vfs.h"
+#include "diskfs.h"
+#include "resourcefs.h"
+
+CMRC_DECLARE(assets);
 
 namespace muui
 {
@@ -14,13 +16,13 @@ File::File(const std::filesystem::path &path)
     {
         if (*path.begin() == resourceRoot)
         {
-            auto *fs = System::instance()->resourceFS();
-            m_reader = fs->open(std::filesystem::relative(path, resourceRoot));
+            static ResourceFS fs{cmrc::assets::get_filesystem()};
+            m_reader = fs.open(std::filesystem::relative(path, resourceRoot));
         }
         else
         {
-            auto *fs = System::instance()->diskFS();
-            m_reader = fs->open(path);
+            static DiskFS fs;
+            m_reader = fs.open(path);
         }
     }
 }

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "vfs.h"
-
 #include <memory>
 
 namespace muui
@@ -11,8 +9,6 @@ class FontCache;
 class PixmapCache;
 class ShaderManager;
 class TextureAtlas;
-class DiskFS;
-class ResourceFS;
 
 class System
 {
@@ -31,9 +27,6 @@ public:
     FontCache *fontCache() const { return m_fontCache.get(); }
     PixmapCache *pixmapCache() const { return m_pixmapCache.get(); }
 
-    VFS *diskFS() const;
-    VFS *resourceFS() const;
-
 private:
     System();
     ~System();
@@ -45,8 +38,6 @@ private:
     std::unique_ptr<TextureAtlas> m_pixmapTextureAtlas;
     std::unique_ptr<FontCache> m_fontCache;
     std::unique_ptr<PixmapCache> m_pixmapCache;
-    std::unique_ptr<DiskFS> m_diskFS;
-    std::unique_ptr<ResourceFS> m_resourceFS;
 };
 
 } // namespace muui
