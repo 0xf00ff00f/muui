@@ -95,11 +95,16 @@ void ShaderManager::addBasicPrograms()
                                                   {"circle.vert", "circle.frag"},
                                                   {"roundedrect.vert", "roundedrect.frag"},
                                                   {"text.vert", "text.frag"}};
+    assert(m_cachedPrograms.empty());
+    m_cachedPrograms.reserve(programs.size());
     for (const auto &program : programs)
     {
         static const std::filesystem::path shaderRootPath{":/assets/shaders"};
-        addProgram({.vertexShaderPath = shaderRootPath / program.vertexShader,
-                    .fragmentShaderPath = shaderRootPath / program.fragmentShader});
+        auto cachedProgram = std::make_unique<CachedProgram>();
+        cachedProgram->description = {.vertexShaderPath = shaderRootPath / program.vertexShader,
+                                      .fragmentShaderPath = shaderRootPath / program.fragmentShader};
+        cachedProgram->program = loadProgram(cachedProgram->description);
+        m_cachedPrograms.push_back(std::move(cachedProgram));
     }
 }
 
