@@ -12,48 +12,6 @@
 namespace muui
 {
 
-namespace
-{
-
-ShaderManager::ProgramHandle addShaderProgram(const char *vertexShader, const char *fragmentShader)
-{
-    static const std::filesystem::path shaderRootPath{":/assets/shaders"};
-    return getShaderManager()->addProgram(
-        {.vertexShaderPath = shaderRootPath / vertexShader, .fragmentShaderPath = shaderRootPath / fragmentShader});
-}
-
-ShaderManager::ProgramHandle flatProgram()
-{
-    static auto program = addShaderProgram("flat.vert", "flat.frag");
-    return program;
-}
-
-ShaderManager::ProgramHandle textProgram()
-{
-    static auto program = addShaderProgram("text.vert", "text.frag");
-    return program;
-}
-
-ShaderManager::ProgramHandle decalProgram()
-{
-    static auto program = addShaderProgram("decal.vert", "decal.frag");
-    return program;
-}
-
-ShaderManager::ProgramHandle circleProgram()
-{
-    static auto program = addShaderProgram("circle.vert", "circle.frag");
-    return program;
-}
-
-ShaderManager::ProgramHandle roundedRectProgram()
-{
-    static auto program = addShaderProgram("roundedrect.vert", "roundedrect.frag");
-    return program;
-}
-
-} // namespace
-
 Painter::Painter()
     : m_spriteBatcher(std::make_unique<SpriteBatcher>())
 {
@@ -107,7 +65,7 @@ void Painter::drawRect(const RectF &rect, const glm::vec4 &color, int depth)
 {
     if (m_clipRect.intersects(rect))
     {
-        m_spriteBatcher->setBatchProgram(flatProgram());
+        m_spriteBatcher->setBatchProgram(ShaderManager::ProgramFlat);
         m_spriteBatcher->addSprite(rect, color, depth);
     }
 }
@@ -116,7 +74,7 @@ void Painter::drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const gl
 {
     if (m_clipRect.intersects(rect))
     {
-        m_spriteBatcher->setBatchProgram(decalProgram());
+        m_spriteBatcher->setBatchProgram(ShaderManager::ProgramDecal);
         m_spriteBatcher->addSprite(pixmap, rect, color, depth);
     }
 }
@@ -126,7 +84,7 @@ void Painter::drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const Re
 {
     if (m_clipRect.intersects(rect) && m_clipRect.intersects(rect))
     {
-        m_spriteBatcher->setBatchProgram(decalProgram());
+        m_spriteBatcher->setBatchProgram(ShaderManager::ProgramDecal);
         const auto texPos = [&rect, &texCoord = pixmap.texCoord](const glm::vec2 &p) {
             const float x =
                 (p.x - rect.min.x) * (texCoord.max.x - texCoord.min.x) / (rect.max.x - rect.min.x) + texCoord.min.x;
@@ -148,7 +106,7 @@ void Painter::drawText(std::u32string_view text, const glm::vec2 &pos, const glm
         return;
     }
 
-    m_spriteBatcher->setBatchProgram(textProgram());
+    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramText);
 
     auto basePos = glm::vec2(pos.x, pos.y + m_font->ascent());
     for (auto ch : text)
@@ -172,7 +130,7 @@ void Painter::drawCircle(const glm::vec2 &center, float radius, const glm::vec4 
     const auto rect = RectF{topLeft, bottomRight};
     if (m_clipRect.intersects(rect))
     {
-        m_spriteBatcher->setBatchProgram(circleProgram());
+        m_spriteBatcher->setBatchProgram(ShaderManager::ProgramCircle);
         m_spriteBatcher->addSprite(nullptr, rect, {{0, 0}, {1, 1}}, color, depth);
     }
 }
@@ -187,7 +145,7 @@ void Painter::drawRoundedRect(const RectF &rect, float cornerRadius, const glm::
 {
     if (!m_clipRect.intersects(rect))
         return;
-    m_spriteBatcher->setBatchProgram(roundedRectProgram());
+    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramRoundedRect);
     const auto radius = std::min(std::min(cornerRadius, 0.5f * rect.width()), 0.5f * rect.height());
     const glm::vec2 size(rect.width(), rect.height());
     const RectF texCoords{-0.5f * size, 0.5f * size};

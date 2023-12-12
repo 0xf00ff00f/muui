@@ -31,7 +31,13 @@ public:
 
     using ProgramHandle = int;
 
-    static constexpr auto InvalidProgram = static_cast<ProgramHandle>(-1);
+    static constexpr ProgramHandle InvalidProgram = -1;
+
+    static constexpr ProgramHandle ProgramFlat = 0;
+    static constexpr ProgramHandle ProgramDecal = 1;
+    static constexpr ProgramHandle ProgramCircle = 2;
+    static constexpr ProgramHandle ProgramRoundedRect = 3;
+    static constexpr ProgramHandle ProgramText = 4;
 
     ProgramHandle addProgram(const ProgramDescription &description);
 
@@ -54,6 +60,7 @@ public:
     }
 
 private:
+    void addBasicPrograms();
     int uniformLocation(const std::string &uniform);
 
     struct CachedProgram

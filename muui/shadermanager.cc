@@ -7,6 +7,7 @@
 #include <optional>
 #include <span>
 #include <type_traits>
+#include <vector>
 
 namespace muui
 {
@@ -38,7 +39,11 @@ std::unique_ptr<gl::ShaderProgram> loadProgram(const ProgramDescription &descrip
 
 } // namespace
 
-ShaderManager::ShaderManager() = default;
+ShaderManager::ShaderManager()
+{
+    addBasicPrograms();
+}
+
 ShaderManager::~ShaderManager() = default;
 
 ShaderManager::ProgramHandle ShaderManager::addProgram(const ProgramDescription &description)
@@ -76,6 +81,26 @@ int ShaderManager::uniformLocation(const std::string &uniform)
         it = uniformLocations.insert(it, {uniform, location});
     }
     return it->second;
+}
+
+void ShaderManager::addBasicPrograms()
+{
+    struct Program
+    {
+        const char *vertexShader;
+        const char *fragmentShader;
+    };
+    static const std::vector<Program> programs = {{"flat.vert", "flat.frag"},
+                                                  {"decal.vert", "decal.frag"},
+                                                  {"circle.vert", "circle.frag"},
+                                                  {"roundedrect.vert", "roundedrect.frag"},
+                                                  {"text.vert", "text.frag"}};
+    for (const auto &program : programs)
+    {
+        static const std::filesystem::path shaderRootPath{":/assets/shaders"};
+        addProgram({.vertexShaderPath = shaderRootPath / program.vertexShader,
+                    .fragmentShaderPath = shaderRootPath / program.fragmentShader});
+    }
 }
 
 } // namespace muui
