@@ -1,7 +1,7 @@
 #include "file.h"
 
 #include "resourcefs.h"
-#ifdef USE_SDL
+#ifdef MUUI_USE_SDL2
 #include "sdlfs.h"
 #else
 #include "diskfs.h"
@@ -25,7 +25,7 @@ File::File(const std::filesystem::path &path)
         }
         else
         {
-#ifdef USE_SDL
+#ifdef MUUI_USE_SDL2
             static SDLFS fs;
 #else
             static DiskFS fs;

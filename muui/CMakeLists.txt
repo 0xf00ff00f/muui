@@ -71,7 +71,7 @@ target_link_libraries(
   PRIVATE cmrc-base embed-assets)
 
 if(MUUI_USE_SDL2)
-  target_compile_definitions(${PROJECT_NAME} PRIVATE USE_SDL)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC MUUI_USE_SDL2)
   target_link_libraries(${PROJECT_NAME} PUBLIC SDL2::SDL2)
 endif()
 
