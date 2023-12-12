@@ -16,7 +16,7 @@ public:
     explicit File(const std::filesystem::path &path);
     ~File();
 
-    operator bool() const;
+    explicit operator bool() const;
     const std::filesystem::path &path() const { return m_path; }
     VFS *vfs() const;
     std::size_t read(std::byte *data, std::size_t size);

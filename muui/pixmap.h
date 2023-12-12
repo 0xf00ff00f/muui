@@ -30,7 +30,7 @@ struct Pixmap
     {
     }
 
-    operator bool() const { return pixelType != PixelType::Invalid; }
+    explicit operator bool() const { return pixelType != PixelType::Invalid; }
 };
 
 Pixmap loadPixmap(const std::filesystem::path &path, bool flip = false);
