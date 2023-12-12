@@ -52,4 +52,4 @@ private:
     GLuint m_handle = 0;
 };
 
-} // namespace gl
+} // namespace muui::gl

@@ -249,4 +249,4 @@ void SpriteBatcher::flush()
     m_quadCount = 0;
 }
 
-} // namespace gl
+} // namespace muui

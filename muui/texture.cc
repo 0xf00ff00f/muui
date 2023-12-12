@@ -74,4 +74,4 @@ void Texture::bind(int textureUnit) const
     glBindTexture(Target, m_id);
 }
 
-} // namespace gl
+} // namespace muui::gl

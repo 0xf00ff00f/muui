@@ -57,4 +57,4 @@ private:
     std::string m_log;
 };
 
-} // namespace gl
+} // namespace muui::gl

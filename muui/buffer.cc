@@ -74,4 +74,4 @@ void Buffer::unmap()
     glUnmapBuffer(m_type);
 }
 
-} // namespace gl
+} // namespace muui::gl

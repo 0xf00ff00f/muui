@@ -90,4 +90,4 @@ private:
     GLuint m_vao = 0;
 };
 
-} // namespace gl
+} // namespace muui

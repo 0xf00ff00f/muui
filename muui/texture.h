@@ -42,4 +42,4 @@ private:
     GLuint m_id;
 };
 
-} // namespace gl
+} // namespace muui::gl
