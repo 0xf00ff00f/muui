@@ -40,4 +40,8 @@ private:
     std::unique_ptr<PixmapCache> m_pixmapCache;
 };
 
+ShaderManager *getShaderManager();
+FontCache *getFontCache();
+PixmapCache *getPixmapCache();
+
 } // namespace muui

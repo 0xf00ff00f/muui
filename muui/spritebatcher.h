@@ -23,8 +23,8 @@ public:
     void setTransformMatrix(const glm::mat4 &matrix);
     glm::mat4 transformMatrix() const { return m_transformMatrix; }
 
-    void setBatchProgram(ShaderManager::Program program);
-    ShaderManager::Program batchProgram() const { return m_batchProgram; }
+    void setBatchProgram(ShaderManager::ProgramHandle program);
+    ShaderManager::ProgramHandle batchProgram() const { return m_batchProgram; }
 
     void setClipRect(const RectF &rect);
 
@@ -58,7 +58,7 @@ public:
 private:
     struct Sprite
     {
-        ShaderManager::Program program;
+        ShaderManager::ProgramHandle program;
         const AbstractTexture *texture;
         Quad quad;
         RectF texRect;
@@ -84,7 +84,7 @@ private:
     int m_quadCount = 0;
     gl::Buffer m_buffer;
     glm::mat4 m_transformMatrix;
-    ShaderManager::Program m_batchProgram = ShaderManager::Program::Flat;
+    ShaderManager::ProgramHandle m_batchProgram = ShaderManager::InvalidProgram;
     bool m_bufferAllocated = false;
     int m_bufferOffset = 0;
     GLuint m_vao = 0;

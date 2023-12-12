@@ -1,10 +1,10 @@
 #include "shadermanager.h"
 
 #include "log.h"
-#include "system.h"
 
 #include <fmt/core.h>
 
+#include <optional>
 #include <span>
 #include <type_traits>
 
@@ -13,25 +13,19 @@ namespace muui
 
 namespace
 {
-std::unique_ptr<gl::ShaderProgram> loadProgram(const char *vertexShader, const char *fragmentShader)
+std::unique_ptr<gl::ShaderProgram> loadProgram(const ProgramDescription &description)
 {
     auto program = std::make_unique<gl::ShaderProgram>();
-    auto addShaderSource = [&program](GLenum type, const char *shader) {
-        static const std::filesystem::path shaderRootPath{":/assets/shaders"};
-        const auto path = shaderRootPath / shader;
-        if (!program->addShader(type, path))
-        {
-            log_error("Failed to add vertex shader for program %s: %s", path.c_str(), program->log().c_str());
-            return false;
-        }
-        return true;
-    };
-    if (!addShaderSource(GL_VERTEX_SHADER, vertexShader))
+    if (!program->addShader(GL_VERTEX_SHADER, description.vertexShaderPath))
     {
+        log_error("Failed to add vertex shader for program %s: %s", description.vertexShaderPath.c_str(),
+                  program->log().c_str());
         return {};
     }
-    if (!addShaderSource(GL_FRAGMENT_SHADER, fragmentShader))
+    if (!program->addShader(GL_FRAGMENT_SHADER, description.fragmentShaderPath))
     {
+        log_error("Failed to add fragment shader for program %s: %s", description.fragmentShaderPath.c_str(),
+                  program->log().c_str());
         return {};
     }
     if (!program->link())
@@ -42,47 +36,27 @@ std::unique_ptr<gl::ShaderProgram> loadProgram(const char *vertexShader, const c
     return program;
 }
 
-std::unique_ptr<gl::ShaderProgram> loadProgram(ShaderManager::Program id)
-{
-    struct ProgramSource
-    {
-        const char *vertexShader;
-        const char *fragmentShader;
-    };
-    static const ProgramSource programSources[] = {
-        // flat
-        {"flat.vert", "flat.frag"},
-        // text
-        {"text.vert", "text.frag"},
-        // decal
-        {"decal.vert", "decal.frag"},
-        // circle
-        {"circle.vert", "circle.frag"},
-        // rounded rect
-        {"roundedrect.vert", "roundedrect.frag"},
-    };
-    static_assert(std::extent_v<decltype(programSources)> == static_cast<int>(ShaderManager::Program::NumPrograms),
-                  "expected number of programs to match");
-
-    const auto &sources = programSources[static_cast<int>(id)];
-    return loadProgram(sources.vertexShader, sources.fragmentShader);
-}
-
 } // namespace
 
 ShaderManager::ShaderManager() = default;
 ShaderManager::~ShaderManager() = default;
 
-void ShaderManager::useProgram(Program id)
+ShaderManager::ProgramHandle ShaderManager::addProgram(const ProgramDescription &description)
 {
-    auto &cachedProgram = m_cachedPrograms[static_cast<int>(id)];
-    if (!cachedProgram)
-    {
-        cachedProgram.reset(new CachedProgram);
-        cachedProgram->program = loadProgram(id);
-        auto &uniforms = cachedProgram->uniformLocations;
-        std::fill(uniforms.begin(), uniforms.end(), -1);
-    }
+    auto program = loadProgram(description);
+    if (!program)
+        return InvalidProgram;
+    auto cachedProgram = std::make_unique<CachedProgram>();
+    cachedProgram->description = description;
+    cachedProgram->program = std::move(program);
+    m_cachedPrograms.push_back(std::move(cachedProgram));
+    return static_cast<ProgramHandle>(m_cachedPrograms.size() - 1);
+}
+
+void ShaderManager::useProgram(ProgramHandle handle)
+{
+    assert(handle >= 0 && handle < m_cachedPrograms.size());
+    auto &cachedProgram = m_cachedPrograms[handle];
     if (cachedProgram.get() == m_currentProgram)
         return;
     if (cachedProgram->program)
@@ -90,28 +64,18 @@ void ShaderManager::useProgram(Program id)
     m_currentProgram = cachedProgram.get();
 }
 
-int ShaderManager::uniformLocation(Uniform id)
+int ShaderManager::uniformLocation(const std::string &uniform)
 {
     if (!m_currentProgram || !m_currentProgram->program)
-    {
         return -1;
-    }
-    auto location = m_currentProgram->uniformLocations[static_cast<int>(id)];
-    if (location == -1)
+    auto &uniformLocations = m_currentProgram->uniformLocations;
+    auto it = uniformLocations.find(uniform);
+    if (it == uniformLocations.end())
     {
-        static constexpr const char *uniformNames[] = {
-            // clang-format off
-            "mvp",
-            "baseColorTexture",
-            // clang-format on
-        };
-        static_assert(std::extent_v<decltype(uniformNames)> == static_cast<int>(Uniform::NumUniforms),
-                      "expected number of uniforms to match");
-
-        location = m_currentProgram->program->uniformLocation(uniformNames[static_cast<int>(id)]);
-        m_currentProgram->uniformLocations[static_cast<int>(id)] = location;
+        auto location = m_currentProgram->program->uniformLocation(uniform.c_str());
+        it = uniformLocations.insert(it, {uniform, location});
     }
-    return location;
+    return it->second;
 }
 
 } // namespace muui

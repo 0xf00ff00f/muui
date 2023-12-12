@@ -45,4 +45,19 @@ System::System()
 
 System::~System() = default;
 
+ShaderManager *getShaderManager()
+{
+    return System::instance()->shaderManager();
+}
+
+FontCache *getFontCache()
+{
+    return System::instance()->fontCache();
+}
+
+PixmapCache *getPixmapCache()
+{
+    return System::instance()->pixmapCache();
+}
+
 } // namespace muui
