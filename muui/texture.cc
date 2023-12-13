@@ -31,6 +31,7 @@ Texture::Texture(int width, int height, PixelType pixelType, const unsigned char
     , m_height(height)
     , m_pixelType(pixelType)
 {
+    glGenTextures(1, &m_id);
     initialize();
     if (data)
         setData(data);
@@ -38,13 +39,39 @@ Texture::Texture(int width, int height, PixelType pixelType, const unsigned char
 
 Texture::~Texture()
 {
-    glDeleteTextures(1, &m_id);
+    if (m_id)
+        glDeleteTextures(1, &m_id);
+}
+
+Texture::Texture(Texture &&other)
+    : m_width(other.m_width)
+    , m_height(other.m_height)
+    , m_pixelType(other.m_pixelType)
+    , m_id(other.m_id)
+{
+    other.m_width = 0;
+    other.m_height = 0;
+    other.m_pixelType = PixelType::Invalid;
+    other.m_id = 0;
+}
+
+Texture &Texture::operator=(Texture &&other)
+{
+    m_width = other.m_width;
+    m_height = other.m_height;
+    m_pixelType = other.m_pixelType;
+    m_id = other.m_id;
+
+    other.m_width = 0;
+    other.m_height = 0;
+    other.m_pixelType = PixelType::Invalid;
+    other.m_id = 0;
+
+    return *this;
 }
 
 void Texture::initialize()
 {
-    glGenTextures(1, &m_id);
-
     bind();
 
     glTexParameteri(Target, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -58,11 +85,6 @@ void Texture::initialize()
 }
 
 void Texture::setData(const unsigned char *data) const
-{
-    gpuSetData(data);
-}
-
-void Texture::gpuSetData(const unsigned char *data) const
 {
     bind();
     glTexSubImage2D(Target, 0, 0, 0, m_width, m_height, toGLFormat(m_pixelType), GL_UNSIGNED_BYTE, data);

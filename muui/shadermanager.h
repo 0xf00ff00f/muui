@@ -51,13 +51,10 @@ public:
         const auto location = uniformLocation(uniform);
         if (location == -1)
             return;
-        m_currentProgram->program->setUniform(location, std::forward<T>(value));
+        m_currentProgram->program.setUniform(location, std::forward<T>(value));
     }
 
-    const gl::ShaderProgram *currentProgram() const
-    {
-        return m_currentProgram ? m_currentProgram->program.get() : nullptr;
-    }
+    const gl::ShaderProgram *currentProgram() const { return m_currentProgram ? &m_currentProgram->program : nullptr; }
 
 private:
     void addBasicPrograms();
@@ -66,7 +63,7 @@ private:
     struct CachedProgram
     {
         ProgramDescription description;
-        std::unique_ptr<gl::ShaderProgram> program;
+        gl::ShaderProgram program;
         std::unordered_map<std::string, int> uniformLocations;
     };
     std::vector<std::unique_ptr<CachedProgram>> m_cachedPrograms;

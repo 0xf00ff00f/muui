@@ -1,7 +1,5 @@
 #pragma once
 
-#include "noncopyable.h"
-
 #include "gl.h"
 
 #include <glm/glm.hpp>
@@ -16,11 +14,17 @@
 namespace muui::gl
 {
 
-class ShaderProgram : private NonCopyable
+class ShaderProgram
 {
 public:
     ShaderProgram();
     ~ShaderProgram();
+
+    ShaderProgram(const ShaderProgram &) = delete;
+    ShaderProgram &operator=(const ShaderProgram &) = delete;
+
+    ShaderProgram(ShaderProgram &&other);
+    ShaderProgram &operator=(ShaderProgram &&other);
 
     bool addShader(GLenum type, const std::filesystem::path &path);
     bool addShaderSource(GLenum type, std::string_view source);
@@ -49,11 +53,12 @@ public:
 
     GLuint id() const { return m_id; }
 
+    explicit operator bool() const { return m_id != 0; }
+
 private:
-    void initialize();
     bool compileAndAttachShader(GLenum type, std::string_view source);
 
-    GLuint m_id = 0;
+    GLuint m_id{0};
     std::string m_log;
 };
 

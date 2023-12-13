@@ -1,7 +1,5 @@
 #pragma once
 
-#include "noncopyable.h"
-
 #include <span>
 
 #include "gl.h"
@@ -9,7 +7,7 @@
 namespace muui::gl
 {
 
-class Buffer : private NonCopyable
+class Buffer
 {
 public:
     enum class Type
@@ -28,6 +26,12 @@ public:
     explicit Buffer(Type type = Type::Vertex, Usage usage = Usage::StaticDraw);
     ~Buffer();
 
+    Buffer(const Buffer &) = delete;
+    Buffer &operator=(const Buffer &) = delete;
+
+    Buffer(Buffer &&other);
+    Buffer &operator=(Buffer &&other);
+
     void bind() const;
     void allocate(std::size_t size) const;
     void allocate(std::span<const std::byte> data) const;
@@ -43,13 +47,15 @@ public:
 
     GLuint handle() const { return m_handle; }
 
+    explicit operator bool() const { return m_handle != 0; }
+
 private:
     void allocate(std::size_t size, const std::byte *data) const;
     void initialize();
 
-    GLenum m_type;
-    GLenum m_usage;
-    GLuint m_handle = 0;
+    GLenum m_type{0};
+    GLenum m_usage{0};
+    GLuint m_handle{0};
 };
 
 } // namespace muui::gl

@@ -23,6 +23,12 @@ public:
     Texture(int width, int height, PixelType pixelType, const unsigned char *data = nullptr);
     ~Texture() override;
 
+    Texture(Texture &) = delete;
+    Texture &operator=(Texture &) = delete;
+
+    Texture(Texture &&other);
+    Texture &operator=(Texture &&other);
+
     void setData(const unsigned char *data) const;
 
     int width() const { return m_width; }
@@ -32,14 +38,15 @@ public:
 
     GLuint id() const { return m_id; }
 
+    explicit operator bool() const { return m_id != 0; }
+
 private:
     void initialize();
-    void gpuSetData(const unsigned char *data) const;
 
-    int m_width;
-    int m_height;
-    PixelType m_pixelType;
-    GLuint m_id;
+    int m_width{0};
+    int m_height{0};
+    PixelType m_pixelType{PixelType::Invalid};
+    GLuint m_id{0};
 };
 
 } // namespace muui::gl

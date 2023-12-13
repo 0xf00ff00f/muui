@@ -1,11 +1,9 @@
 #pragma once
 
-#include "noncopyable.h"
-
 namespace muui
 {
 
-class AbstractTexture : private NonCopyable
+class AbstractTexture
 {
 public:
     virtual ~AbstractTexture() = default;

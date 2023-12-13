@@ -15,15 +15,33 @@ namespace muui::gl
 {
 
 ShaderProgram::ShaderProgram()
+    : m_id{glCreateProgram()}
 {
-    initialize();
 }
 
-ShaderProgram::~ShaderProgram() = default;
-
-void ShaderProgram::initialize()
+ShaderProgram::~ShaderProgram()
 {
-    m_id = glCreateProgram();
+    if (m_id)
+        glDeleteProgram(m_id);
+}
+
+ShaderProgram::ShaderProgram(ShaderProgram &&other)
+    : m_id(other.m_id)
+    , m_log(std::move(other.m_log))
+{
+    other.m_id = 0;
+    other.m_log.clear();
+}
+
+ShaderProgram &ShaderProgram::operator=(ShaderProgram &&other)
+{
+    m_id = other.m_id;
+    m_log = std::move(other.m_log);
+
+    other.m_id = 0;
+    other.m_log.clear();
+
+    return *this;
 }
 
 bool ShaderProgram::addShader(GLenum type, const std::filesystem::path &path)

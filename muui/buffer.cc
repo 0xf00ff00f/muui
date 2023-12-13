@@ -41,7 +41,31 @@ Buffer::Buffer(Type type, Usage usage)
 
 Buffer::~Buffer()
 {
-    glDeleteBuffers(1, &m_handle);
+    if (m_handle)
+        glDeleteBuffers(1, &m_handle);
+}
+
+Buffer::Buffer(Buffer &&other)
+    : m_type{other.m_type}
+    , m_usage{other.m_usage}
+    , m_handle{other.m_handle}
+{
+    other.m_type = 0;
+    other.m_usage = 0;
+    other.m_handle = 0;
+}
+
+Buffer &Buffer::operator=(Buffer &&other)
+{
+    m_type = other.m_type;
+    m_usage = other.m_usage;
+    m_handle = other.m_handle;
+
+    other.m_type = 0;
+    other.m_usage = 0;
+    other.m_handle = 0;
+
+    return *this;
 }
 
 void Buffer::bind() const
