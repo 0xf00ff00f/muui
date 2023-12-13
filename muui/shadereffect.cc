@@ -31,7 +31,7 @@ void ShaderEffect::render(Item &item, Painter *painter, const glm::vec2 &pos, in
         m_painter.end();
     }
 
-    renderResult(painter->spriteBatcher(), pos, depth);
+    applyEffect(painter->spriteBatcher(), pos, depth);
 }
 
 } // namespace muui

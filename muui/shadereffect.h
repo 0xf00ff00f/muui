@@ -25,7 +25,7 @@ public:
     void render(Item &item, Painter *painter, const glm::vec2 &pos, int depth);
 
 protected:
-    virtual void renderResult(SpriteBatcher *spriteBatcher, const glm::vec2 &pos, int depth) = 0;
+    virtual void applyEffect(SpriteBatcher *spriteBatcher, const glm::vec2 &pos, int depth) = 0;
 
     std::unique_ptr<gl::Framebuffer> m_framebuffer;
 

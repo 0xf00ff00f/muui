@@ -56,12 +56,11 @@ void Item::setSize(Size size)
     if (size == m_size)
         return;
     m_size = size;
-    if (!m_effects.empty())
+    if (m_effect)
     {
         const auto w = static_cast<int>(std::ceil(size.width));
         const auto h = static_cast<int>(std::ceil(size.height));
-        for (auto &effect : m_effects)
-            effect->resize(w, h);
+        m_effect->resize(w, h);
     }
     resizedSignal(m_size);
 }
@@ -73,14 +72,13 @@ void Item::render(Painter *painter, const glm::vec2 &pos, int depth)
     const auto rect = RectF{pos, pos + glm::vec2(width(), height())};
     if (!painter->clipRect().intersects(rect))
         return;
-    if (m_effects.empty())
+    if (!m_effect)
     {
         doRender(painter, pos, depth);
     }
     else
     {
-        auto *effect = m_effects.front().get(); // TODO: multiple effects
-        effect->render(*this, painter, pos, depth);
+        m_effect->render(*this, painter, pos, depth);
     }
 }
 
@@ -100,6 +98,11 @@ Item *Item::mouseEvent(const TouchEvent &event)
 Item *Item::handleMouseEvent(const TouchEvent &)
 {
     return nullptr;
+}
+
+void Item::clearShaderEffect()
+{
+    m_effect.reset();
 }
 
 Rectangle::Rectangle()

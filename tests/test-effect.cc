@@ -34,10 +34,10 @@ static muui::ShaderManager::ProgramHandle tintProgramHandle()
 class TintEffect : public muui::ShaderEffect
 {
 protected:
-    void renderResult(muui::SpriteBatcher *spriteBatcher, const glm::vec2 &pos, int depth) override;
+    void applyEffect(muui::SpriteBatcher *spriteBatcher, const glm::vec2 &pos, int depth) override;
 };
 
-void TintEffect::renderResult(muui::SpriteBatcher *spriteBatcher, const glm::vec2 &pos, int depth)
+void TintEffect::applyEffect(muui::SpriteBatcher *spriteBatcher, const glm::vec2 &pos, int depth)
 {
     const auto size = glm::vec2{m_framebuffer->width(), m_framebuffer->height()};
     const auto rect = muui::RectF{pos, pos + size};
@@ -78,7 +78,7 @@ void EffectTest::initialize()
     label->shape = muui::Item::Shape::RoundedRectangle;
     label->cornerRadius = 12.0f;
     label->color = {1, 1, 1, 1};
-    label->addShaderEffect<TintEffect>();
+    label->setShaderEffect<TintEffect>();
 
     m_rootItem = std::move(label);
 }

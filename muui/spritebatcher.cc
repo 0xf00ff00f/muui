@@ -166,7 +166,6 @@ void SpriteBatcher::flush()
     const AbstractTexture *currentTexture = nullptr;
     ShaderManager::ProgramHandle currentProgram = ShaderManager::InvalidProgram;
     ScissorBox currentScissorBox;
-    int positionLocation = -1, texCoordLocation = -1, colorLocation = -1;
 
     auto batchStart = sortedQuads.begin();
     while (batchStart != sortedQuadsEnd)

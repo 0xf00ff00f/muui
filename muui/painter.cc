@@ -3,7 +3,6 @@
 #include "font.h"
 #include "log.h"
 #include "spritebatcher.h"
-#include "system.h"
 
 #include "gl.h"
 
