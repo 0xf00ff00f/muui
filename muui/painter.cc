@@ -36,8 +36,8 @@ void Painter::updateTransformMatrix()
 void Painter::begin()
 {
     m_font = nullptr;
-    setClipRect({{0, 0}, {m_windowWidth, m_windowHeight}});
     m_spriteBatcher->begin();
+    setClipRect({{0, 0}, {m_windowWidth, m_windowHeight}});
 }
 
 void Painter::end()
@@ -53,12 +53,11 @@ void Painter::setFont(Font *font)
 void Painter::setClipRect(const RectF &rect)
 {
     m_clipRect = rect;
-    m_spriteBatcher->flush();
     const auto x = static_cast<GLint>(rect.min.x);
     const auto y = static_cast<GLint>(rect.min.y);
     const auto w = static_cast<GLint>(rect.width());
     const auto h = static_cast<GLint>(rect.height());
-    // glScissor(x, m_windowHeight - (y + h), w, h); // XXX shouldn't be here
+    m_spriteBatcher->setScissorBox({.position = {x, m_windowHeight - (y + h)}, .size = {w, h}});
 }
 
 void Painter::drawRect(const RectF &rect, const glm::vec4 &color, int depth)

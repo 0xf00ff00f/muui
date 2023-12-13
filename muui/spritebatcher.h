@@ -26,6 +26,15 @@ public:
     void setBatchProgram(ShaderManager::ProgramHandle program);
     ShaderManager::ProgramHandle batchProgram() const { return m_batchProgram; }
 
+    struct ScissorBox
+    {
+        glm::ivec2 position;
+        glm::ivec2 size;
+        bool operator==(const ScissorBox &) const = default;
+    };
+    void setScissorBox(const ScissorBox &scissorBox);
+    ScissorBox scissorBox() const { return m_scissorBox; }
+
     void setClipRect(const RectF &rect);
 
     void begin();
@@ -65,6 +74,7 @@ private:
         glm::vec4 fgColor;
         glm::vec4 bgColor;
         int depth;
+        ScissorBox scissorBox;
     };
 
     struct Vertex
@@ -81,13 +91,14 @@ private:
     static constexpr int MaxQuadsPerBatch = BufferCapacity / GLQuadSize;
 
     std::array<Sprite, MaxQuadsPerBatch> m_sprites;
-    int m_quadCount = 0;
+    int m_quadCount{0};
     gl::Buffer m_buffer;
     glm::mat4 m_transformMatrix;
-    ShaderManager::ProgramHandle m_batchProgram = ShaderManager::InvalidProgram;
-    bool m_bufferAllocated = false;
-    int m_bufferOffset = 0;
-    GLuint m_vao = 0;
+    ShaderManager::ProgramHandle m_batchProgram{ShaderManager::InvalidProgram};
+    ScissorBox m_scissorBox;
+    bool m_bufferAllocated{false};
+    int m_bufferOffset{0};
+    GLuint m_vao{0};
 };
 
 } // namespace muui
