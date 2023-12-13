@@ -1,6 +1,7 @@
 #pragma once
 
 #include "font.h"
+#include "shadereffect.h"
 #include "textureatlas.h"
 #include "touchevent.h"
 #include "tweening.h"
@@ -135,6 +136,18 @@ public:
         return nullptr;
     }
 
+    template<typename EffectT, typename... Args>
+        requires std::is_base_of_v<ShaderEffect, EffectT>
+    EffectT *addShaderEffect(Args &&...args)
+    {
+        auto effect = std::make_unique<EffectT>(std::forward<Args>(args)...);
+        const auto w = static_cast<int>(std::ceil(m_size.width));
+        const auto h = static_cast<int>(std::ceil(m_size.height));
+        effect->resize(w, h);
+        m_effects.push_back(std::move(effect));
+        return static_cast<EffectT *>(m_effects.back().get());
+    }
+
     std::string objectName;
     bool visible = true;
     enum class Shape
@@ -152,13 +165,17 @@ public:
 
     muslots::Signal<Size> resizedSignal;
 
+    void doRender(Painter *painter, const glm::vec2 &pos, int depth);
+
 protected:
     void setSize(Size size);
     void renderBackground(Painter *painter, const glm::vec2 &pos, int depth);
     virtual void renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) = 0;
     virtual Item *handleMouseEvent(const TouchEvent &event);
 
+    std::vector<std::unique_ptr<ShaderEffect>> m_effects;
     Size m_size;
+    friend class ShaderEffect;
 };
 
 class Rectangle : public Item

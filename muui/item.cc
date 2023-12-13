@@ -56,6 +56,13 @@ void Item::setSize(Size size)
     if (size == m_size)
         return;
     m_size = size;
+    if (!m_effects.empty())
+    {
+        const auto w = static_cast<int>(std::ceil(size.width));
+        const auto h = static_cast<int>(std::ceil(size.height));
+        for (auto &effect : m_effects)
+            effect->resize(w, h);
+    }
     resizedSignal(m_size);
 }
 
@@ -66,6 +73,19 @@ void Item::render(Painter *painter, const glm::vec2 &pos, int depth)
     const auto rect = RectF{pos, pos + glm::vec2(width(), height())};
     if (!painter->clipRect().intersects(rect))
         return;
+    if (m_effects.empty())
+    {
+        doRender(painter, pos, depth);
+    }
+    else
+    {
+        auto *effect = m_effects.front().get(); // TODO: multiple effects
+        effect->render(*this, painter, pos, depth);
+    }
+}
+
+void Item::doRender(Painter *painter, const glm::vec2 &pos, int depth)
+{
     renderBackground(painter, pos, depth);
     renderContents(painter, pos, depth);
 }

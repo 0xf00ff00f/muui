@@ -13,3 +13,6 @@ target_link_libraries(test-container PUBLIC test-common)
 
 add_executable(test-leaderboard test-leaderboard.cc)
 target_link_libraries(test-leaderboard PUBLIC test-common)
+
+add_executable(test-effect test-effect.cc)
+target_link_libraries(test-effect PUBLIC test-common)

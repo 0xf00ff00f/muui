@@ -58,7 +58,7 @@ void Painter::setClipRect(const RectF &rect)
     const auto y = static_cast<GLint>(rect.min.y);
     const auto w = static_cast<GLint>(rect.width());
     const auto h = static_cast<GLint>(rect.height());
-    glScissor(x, m_windowHeight - (y + h), w, h); // XXX shouldn't be here
+    // glScissor(x, m_windowHeight - (y + h), w, h); // XXX shouldn't be here
 }
 
 void Painter::drawRect(const RectF &rect, const glm::vec4 &color, int depth)

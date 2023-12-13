@@ -55,7 +55,11 @@ set(MUUI_SOURCES
     resourcefs.h
     resourcefs.cc
     file.h
-    file.cc)
+    file.cc
+    framebuffer.h
+    framebuffer.cc
+    shadereffect.h
+    shadereffect.cc)
 
 if(MUUI_USE_SDL2)
   list(APPEND MUUI_SOURCES sdlfs.h sdlfs.cc)
