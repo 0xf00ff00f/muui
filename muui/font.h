@@ -3,12 +3,8 @@
 #include "textureatlas.h"
 #include "util.h"
 
-#include <glm/glm.hpp>
-#include <stb_truetype.h>
-
 #include <filesystem>
 #include <memory>
-#include <string>
 #include <string_view>
 #include <unordered_map>
 
@@ -16,6 +12,7 @@ struct Pixmap;
 
 namespace muui
 {
+class FontInfo;
 
 class Font
 {
@@ -43,8 +40,7 @@ private:
     std::unique_ptr<Glyph> initializeGlyph(int codepoint);
 
     TextureAtlas *m_textureAtlas;
-    std::vector<std::byte> m_ttfBuffer;
-    stbtt_fontinfo m_font;
+    FontInfo *m_fontInfo = nullptr;
     std::unordered_map<int, std::unique_ptr<Glyph>> m_glyphs;
     int m_pixelHeight;
     float m_scale = 0.0f;
