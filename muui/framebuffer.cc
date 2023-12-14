@@ -11,6 +11,11 @@ Framebuffer::Framebuffer(int width, int height)
     glGenFramebuffers(1, &m_fboId);
     glGenRenderbuffers(1, &m_rboId);
 
+    m_texture.setMinificationFilter(gl::Texture::Filter::Linear);
+    m_texture.setMagnificationFilter(gl::Texture::Filter::Linear);
+    m_texture.setWrapModeS(gl::Texture::WrapMode::ClampToEdge);
+    m_texture.setWrapModeT(gl::Texture::WrapMode::ClampToEdge);
+
     FramebufferBinder binder(*this);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture.id(), 0);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height);

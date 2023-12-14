@@ -10,6 +10,10 @@ LazyTexture::LazyTexture(const Pixmap *pixmap)
     , m_texture(pixmap->width, pixmap->height, pixmap->pixelType)
     , m_dirty(true)
 {
+    m_texture.setMinificationFilter(gl::Texture::Filter::Linear);
+    m_texture.setMagnificationFilter(gl::Texture::Filter::Linear);
+    m_texture.setWrapModeS(gl::Texture::WrapMode::Repeat);
+    m_texture.setWrapModeT(gl::Texture::WrapMode::Repeat);
 }
 
 void LazyTexture::markDirty()

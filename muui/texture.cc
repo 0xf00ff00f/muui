@@ -73,15 +73,33 @@ Texture &Texture::operator=(Texture &&other)
 void Texture::initialize()
 {
     bind();
-
-    glTexParameteri(Target, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(Target, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(Target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(Target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
     glTexImage2D(Target, 0, toGLInternalFormat(m_pixelType), m_width, m_height, 0, toGLFormat(m_pixelType),
                  GL_UNSIGNED_BYTE, nullptr);
+}
+
+void Texture::setMinificationFilter(Filter filter)
+{
+    bind();
+    glTexParameteri(Target, GL_TEXTURE_MIN_FILTER, static_cast<GLint>(filter));
+}
+
+void Texture::setMagnificationFilter(Filter filter)
+{
+    bind();
+    glTexParameteri(Target, GL_TEXTURE_MAG_FILTER, static_cast<GLint>(filter));
+}
+
+void Texture::setWrapModeS(WrapMode mode)
+{
+    bind();
+    glTexParameteri(Target, GL_TEXTURE_WRAP_S, static_cast<GLint>(mode));
+}
+
+void Texture::setWrapModeT(WrapMode mode)
+{
+    bind();
+    glTexParameteri(Target, GL_TEXTURE_WRAP_T, static_cast<GLint>(mode));
 }
 
 void Texture::setData(const unsigned char *data) const

@@ -29,6 +29,22 @@ public:
     Texture(Texture &&other);
     Texture &operator=(Texture &&other);
 
+    enum class Filter
+    {
+        Linear = GL_LINEAR,
+        Nearest = GL_NEAREST
+    };
+    void setMinificationFilter(Filter filter);
+    void setMagnificationFilter(Filter filter);
+
+    enum class WrapMode
+    {
+        Repeat = GL_REPEAT,
+        ClampToEdge = GL_CLAMP_TO_EDGE
+    };
+    void setWrapModeS(WrapMode mode);
+    void setWrapModeT(WrapMode mode);
+
     void setData(const unsigned char *data) const;
 
     int width() const { return m_width; }
