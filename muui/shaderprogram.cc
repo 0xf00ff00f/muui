@@ -7,12 +7,94 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <array>
-#include <fstream>
+#include <cassert>
 #include <memory>
 #include <optional>
+#include <regex>
+#include <streambuf>
 
 namespace muui::gl
 {
+
+namespace
+{
+
+class FileStreamBuf : public std::streambuf
+{
+public:
+    FileStreamBuf(const std::filesystem::path &path)
+        : m_file{File(path)}
+    {
+    }
+
+    explicit operator bool() const { return m_file.operator bool(); }
+
+private:
+    int_type underflow() override
+    {
+        if (gptr() == egptr())
+        {
+            const auto read = m_file.read(reinterpret_cast<std::byte *>(m_buffer.data()), m_buffer.size());
+            if (read > 0)
+                setg(m_buffer.data(), m_buffer.data(), m_buffer.data() + read);
+        }
+        if (gptr() == egptr())
+            return traits_type::eof();
+        return traits_type::to_int_type(*gptr());
+    }
+
+    File m_file;
+    std::array<char, 1024> m_buffer;
+};
+
+class FileStream : public std::istream
+{
+public:
+    FileStream(const std::filesystem::path &path)
+        : m_sb{path}
+        , std::istream{&m_sb}
+    {
+        if (!m_sb)
+            clear(failbit);
+    }
+
+private:
+    FileStreamBuf m_sb;
+};
+
+std::optional<std::string> readShaderSource(const std::filesystem::path &path)
+{
+    FileStream is(path);
+    if (!is)
+        return {};
+
+    static const std::regex includeRegex(R"!(^#include "([^"]+)"$)!");
+
+    std::string source;
+
+    for (std::string line; std::getline(is, line);)
+    {
+        if (std::smatch match; std::regex_match(line, match, includeRegex))
+        {
+            assert(match.size() == 2);
+            const auto includeFile = match[1].str();
+            const auto includePath = path.parent_path() / includeFile;
+            const auto includeSource = readShaderSource(includePath.string());
+            if (!includeSource)
+                return {};
+            source.append(*includeSource);
+        }
+        else
+        {
+            source.append(line);
+            source.push_back('\n');
+        }
+    }
+
+    return source;
+}
+
+} // namespace
 
 ShaderProgram::ShaderProgram()
     : m_id{glCreateProgram()}
@@ -46,16 +128,13 @@ ShaderProgram &ShaderProgram::operator=(ShaderProgram &&other)
 
 bool ShaderProgram::addShader(GLenum type, const std::filesystem::path &path)
 {
-    File file{path};
-    if (!file)
+    const auto source = readShaderSource(path);
+    if (!source)
     {
         m_log = fmt::format("failed to load {}", path.string());
         return false;
     }
-    auto source = file.readAll();
-    const auto *data = reinterpret_cast<const char *>(source.data());
-    const auto size = source.size();
-    return addShaderSource(type, {data, size});
+    return addShaderSource(type, *source);
 }
 
 bool ShaderProgram::addShaderSource(GLenum type, std::string_view source)
