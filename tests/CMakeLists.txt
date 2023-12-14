@@ -5,6 +5,9 @@ target_link_libraries(test-common PUBLIC glfw muui)
 target_compile_definitions(
   test-common PUBLIC ASSETSDIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/")
 
+add_executable(test-spritebatcher test-spritebatcher.cc)
+target_link_libraries(test-spritebatcher PUBLIC test-common)
+
 add_executable(test-painter test-painter.cc)
 target_link_libraries(test-painter PUBLIC test-common)
 

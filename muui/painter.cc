@@ -1,7 +1,6 @@
 #include "painter.h"
 
 #include "font.h"
-#include "log.h"
 #include "spritebatcher.h"
 
 #include "gl.h"
@@ -56,7 +55,7 @@ void Painter::setClipRect(const RectF &rect)
     const auto y = static_cast<GLint>(rect.min.y);
     const auto w = static_cast<GLint>(rect.width());
     const auto h = static_cast<GLint>(rect.height());
-    m_spriteBatcher->setScissorBox({.position = {x, m_windowHeight - (y + h)}, .size = {w, h}});
+    m_spriteBatcher->setBatchScissorBox({.position = {x, m_windowHeight - (y + h)}, .size = {w, h}});
 }
 
 void Painter::drawRect(const RectF &rect, const glm::vec4 &color, int depth)
@@ -64,7 +63,13 @@ void Painter::drawRect(const RectF &rect, const glm::vec4 &color, int depth)
     if (m_clipRect.intersects(rect))
     {
         m_spriteBatcher->setBatchProgram(ShaderManager::ProgramFlat);
-        m_spriteBatcher->addSprite(rect, color, depth);
+        struct Vertex
+        {
+            glm::vec2 position;
+        };
+        const auto topLeftVertex = Vertex{.position = rect.min};
+        const auto bottomRightVertex = Vertex{.position = rect.max};
+        m_spriteBatcher->addSprite(topLeftVertex, bottomRightVertex, color, depth);
     }
 }
 
@@ -73,7 +78,15 @@ void Painter::drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const gl
     if (m_clipRect.intersects(rect))
     {
         m_spriteBatcher->setBatchProgram(ShaderManager::ProgramDecal);
-        m_spriteBatcher->addSprite(pixmap, rect, color, depth);
+        struct Vertex
+        {
+            glm::vec2 position;
+            glm::vec2 texCoord;
+        };
+        const Vertex topLeftVertex = {.position = rect.min, .texCoord = pixmap.texCoord.min};
+        const Vertex bottomRightVertex = {.position = rect.max, .texCoord = pixmap.texCoord.max};
+        m_spriteBatcher->setBatchTexture(pixmap.texture);
+        m_spriteBatcher->addSprite(topLeftVertex, bottomRightVertex, color, depth);
     }
 }
 
@@ -91,19 +104,21 @@ void Painter::drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const Re
             return glm::vec2(x, y);
         };
         const auto spriteRect = rect.intersected(clipRect);
-        const auto texCoord = RectF{texPos(spriteRect.min), texPos(spriteRect.max)};
-        m_spriteBatcher->addSprite(pixmap.texture, spriteRect, texCoord, color, depth);
+        struct Vertex
+        {
+            glm::vec2 position;
+            glm::vec2 texCoord;
+        };
+        const Vertex topLeftVertex = {.position = spriteRect.min, .texCoord = texPos(spriteRect.min)};
+        const Vertex bottomRightVertex = {.position = spriteRect.max, .texCoord = texPos(spriteRect.max)};
+        m_spriteBatcher->setBatchTexture(pixmap.texture);
+        m_spriteBatcher->addSprite(topLeftVertex, bottomRightVertex, color, depth);
     }
 }
 
 void Painter::drawText(std::u32string_view text, const glm::vec2 &pos, const glm::vec4 &color, int depth)
 {
-    if (!m_font)
-    {
-        log_error("Font not set on painter");
-        return;
-    }
-
+    assert(m_font);
     m_spriteBatcher->setBatchProgram(ShaderManager::ProgramText);
 
     auto basePos = glm::vec2(pos.x, pos.y + m_font->ascent());
@@ -115,7 +130,18 @@ void Painter::drawText(std::u32string_view text, const glm::vec2 &pos, const glm
             const auto bottomRight = topLeft + glm::vec2(g->boundingBox.max - g->boundingBox.min);
             const auto rect = RectF{topLeft, bottomRight};
             if (m_clipRect.intersects(rect))
-                m_spriteBatcher->addSprite(g->pixmap, rect, color, depth);
+            {
+                const auto &pixmap = g->pixmap;
+                m_spriteBatcher->setBatchTexture(pixmap.texture);
+                struct Vertex
+                {
+                    glm::vec2 position;
+                    glm::vec2 texCoord;
+                };
+                const auto topLeftVertex = Vertex{.position = topLeft, .texCoord = pixmap.texCoord.min};
+                const auto bottomRightVertex = Vertex{.position = bottomRight, .texCoord = pixmap.texCoord.max};
+                m_spriteBatcher->addSprite(topLeftVertex, bottomRightVertex, color, depth);
+            }
             basePos.x += g->advanceWidth;
         }
     }
@@ -129,7 +155,14 @@ void Painter::drawCircle(const glm::vec2 &center, float radius, const glm::vec4 
     if (m_clipRect.intersects(rect))
     {
         m_spriteBatcher->setBatchProgram(ShaderManager::ProgramCircle);
-        m_spriteBatcher->addSprite(nullptr, rect, {{0, 0}, {1, 1}}, color, depth);
+        struct Vertex
+        {
+            glm::vec2 position;
+            glm::vec2 texCoord;
+        };
+        const auto topLeftVertex = Vertex{.position = topLeft, .texCoord = {0, 0}};
+        const auto bottomRightVertex = Vertex{.position = bottomRight, .texCoord = {1, 1}};
+        m_spriteBatcher->addSprite(topLeftVertex, bottomRightVertex, color, depth);
     }
 }
 
@@ -147,7 +180,14 @@ void Painter::drawRoundedRect(const RectF &rect, float cornerRadius, const glm::
     const auto radius = std::min(std::min(cornerRadius, 0.5f * rect.width()), 0.5f * rect.height());
     const glm::vec2 size(rect.width(), rect.height());
     const RectF texCoords{-0.5f * size, 0.5f * size};
-    m_spriteBatcher->addSprite(nullptr, rect, texCoords, color, glm::vec4(size, radius, 0), depth);
+    struct Vertex
+    {
+        glm::vec2 position;
+        glm::vec2 texCoord;
+    };
+    const auto topLeft = Vertex{.position = rect.min, .texCoord = -0.5f * size};
+    const auto bottomRight = Vertex{.position = rect.max, .texCoord = 0.5f * size};
+    m_spriteBatcher->addSprite(topLeft, bottomRight, color, glm::vec4(size, radius, 0), depth);
 }
 
 } // namespace muui

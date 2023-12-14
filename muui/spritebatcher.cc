@@ -1,7 +1,6 @@
 #include "spritebatcher.h"
 #include "abstracttexture.h"
 #include "system.h"
-#include "textureatlas.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -9,16 +8,6 @@
 
 namespace muui
 {
-
-namespace
-{
-constexpr SpriteBatcher::Quad asQuad(const RectF &rect)
-{
-    const auto &min = rect.min;
-    const auto &max = rect.max;
-    return {{{min.x, min.y}, {max.x, min.y}, {max.x, max.y}, {min.x, max.y}}};
-}
-} // namespace
 
 SpriteBatcher::SpriteBatcher()
     : m_buffer(gl::Buffer::Type::Vertex, gl::Buffer::Usage::DynamicDraw)
@@ -56,94 +45,22 @@ void SpriteBatcher::setBatchProgram(ShaderManager::ProgramHandle program)
     m_batchProgram = program;
 }
 
-void SpriteBatcher::setScissorBox(const ScissorBox &scissorBox)
+void SpriteBatcher::setBatchTexture(const AbstractTexture *texture)
 {
-    m_scissorBox = scissorBox;
+    m_batchTexture = texture;
+}
+
+void SpriteBatcher::setBatchScissorBox(const ScissorBox &scissorBox)
+{
+    m_batchScissorBox = scissorBox;
 }
 
 void SpriteBatcher::begin()
 {
     m_quadCount = 0;
     m_batchProgram = ShaderManager::InvalidProgram;
-    m_scissorBox = ScissorBox{};
-}
-
-void SpriteBatcher::addSprite(const RectF &rect, const glm::vec4 &color, int depth)
-{
-    addSprite(nullptr, asQuad(rect), {}, color, {}, depth);
-}
-
-void SpriteBatcher::addSprite(const PackedPixmap &pixmap, const RectF &rect, const glm::vec4 &color, int depth)
-{
-    addSprite(pixmap.texture, asQuad(rect), pixmap.texCoord, color, {}, depth);
-}
-
-void SpriteBatcher::addSprite(const AbstractTexture *texture, const RectF &rect, const RectF &texRect,
-                              const glm::vec4 &color, int depth)
-{
-    addSprite(texture, asQuad(rect), texRect, color, {}, depth);
-}
-
-void SpriteBatcher::addSprite(const Quad &quad, const glm::vec4 &color, int depth)
-{
-    addSprite(nullptr, quad, {}, color, {}, depth);
-}
-
-void SpriteBatcher::addSprite(const PackedPixmap &pixmap, const Quad &quad, const glm::vec4 &color, int depth)
-{
-    addSprite(pixmap.texture, quad, pixmap.texCoord, color, {}, depth);
-}
-
-void SpriteBatcher::addSprite(const AbstractTexture *texture, const Quad &quad, const RectF &texRect,
-                              const glm::vec4 &color, int depth)
-{
-    addSprite(texture, quad, texRect, color, {}, depth);
-}
-
-void SpriteBatcher::addSprite(const RectF &rect, const glm::vec4 &fgColor, const glm::vec4 &bgColor, int depth)
-{
-    addSprite(nullptr, asQuad(rect), {}, fgColor, bgColor, depth);
-}
-
-void SpriteBatcher::addSprite(const PackedPixmap &pixmap, const RectF &rect, const glm::vec4 &fgColor,
-                              const glm::vec4 &bgColor, int depth)
-{
-    addSprite(pixmap.texture, asQuad(rect), pixmap.texCoord, fgColor, bgColor, depth);
-}
-
-void SpriteBatcher::addSprite(const AbstractTexture *texture, const RectF &rect, const RectF &texRect,
-                              const glm::vec4 &fgColor, const glm::vec4 &bgColor, int depth)
-{
-    addSprite(texture, asQuad(rect), texRect, fgColor, bgColor, depth);
-}
-
-void SpriteBatcher::addSprite(const Quad &quad, const glm::vec4 &fgColor, const glm::vec4 &bgColor, int depth)
-{
-    addSprite(nullptr, quad, {}, fgColor, bgColor, depth);
-}
-
-void SpriteBatcher::addSprite(const PackedPixmap &pixmap, const Quad &quad, const glm::vec4 &fgColor,
-                              const glm::vec4 &bgColor, int depth)
-{
-    addSprite(pixmap.texture, quad, pixmap.texCoord, fgColor, bgColor, depth);
-}
-
-void SpriteBatcher::addSprite(const AbstractTexture *texture, const Quad &quad, const RectF &texRect,
-                              const glm::vec4 &fgColor, const glm::vec4 &bgColor, int depth)
-{
-    if (m_quadCount == MaxQuadsPerBatch)
-        flush();
-
-    assert(m_batchProgram != ShaderManager::InvalidProgram);
-    auto &sprite = m_sprites[m_quadCount++];
-    sprite.texture = texture;
-    sprite.program = m_batchProgram;
-    sprite.quad = quad;
-    sprite.texRect = texRect;
-    sprite.fgColor = fgColor;
-    sprite.bgColor = bgColor;
-    sprite.depth = depth;
-    sprite.scissorBox = m_scissorBox;
+    m_batchTexture = nullptr;
+    m_batchScissorBox = ScissorBox{};
 }
 
 void SpriteBatcher::flush()
@@ -196,40 +113,36 @@ void SpriteBatcher::flush()
         {
             auto *quadPtr = *it;
 
-            const auto emitVertex = [&data, fgColor = quadPtr->fgColor,
-                                     bgColor = quadPtr->bgColor](const glm::vec2 &position, const glm::vec2 &texCoord) {
-                *data++ = position.x;
-                *data++ = position.y;
+            const auto emitVertex = [&data](const Vertex &vertex) {
+                *data++ = vertex.position.x;
+                *data++ = vertex.position.y;
 
-                *data++ = texCoord.x;
-                *data++ = texCoord.y;
+                *data++ = vertex.texCoord.x;
+                *data++ = vertex.texCoord.y;
 
-                *data++ = fgColor.x;
-                *data++ = fgColor.y;
-                *data++ = fgColor.z;
-                *data++ = fgColor.w;
+                *data++ = vertex.fgColor.x;
+                *data++ = vertex.fgColor.y;
+                *data++ = vertex.fgColor.z;
+                *data++ = vertex.fgColor.w;
 
-                *data++ = bgColor.x;
-                *data++ = bgColor.y;
-                *data++ = bgColor.z;
-                *data++ = bgColor.w;
+                *data++ = vertex.bgColor.x;
+                *data++ = vertex.bgColor.y;
+                *data++ = vertex.bgColor.z;
+                *data++ = vertex.bgColor.w;
             };
 
-            const auto &p0 = quadPtr->quad[0];
-            const auto &p1 = quadPtr->quad[1];
-            const auto &p2 = quadPtr->quad[2];
-            const auto &p3 = quadPtr->quad[3];
+            const auto &v0 = quadPtr->vertices[0];
+            const auto &v1 = quadPtr->vertices[1];
+            const auto &v2 = quadPtr->vertices[2];
+            const auto &v3 = quadPtr->vertices[3];
 
-            const auto &t0 = quadPtr->texRect.min;
-            const auto &t1 = quadPtr->texRect.max;
+            emitVertex(v0);
+            emitVertex(v1);
+            emitVertex(v2);
 
-            emitVertex(p0, {t0.x, t0.y});
-            emitVertex(p1, {t1.x, t0.y});
-            emitVertex(p2, {t1.x, t1.y});
-
-            emitVertex(p2, {t1.x, t1.y});
-            emitVertex(p3, {t0.x, t1.y});
-            emitVertex(p0, {t0.x, t0.y});
+            emitVertex(v2);
+            emitVertex(v3);
+            emitVertex(v0);
         }
         m_buffer.unmap();
 

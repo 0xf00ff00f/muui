@@ -40,10 +40,16 @@ protected:
 void TintEffect::applyEffect(muui::SpriteBatcher *spriteBatcher, const glm::vec2 &pos, int depth)
 {
     const auto size = glm::vec2{m_framebuffer->width(), m_framebuffer->height()};
-    const auto rect = muui::RectF{pos, pos + size};
-    const auto texCoords = muui::RectF{{0, 1}, {1, 0}};
     spriteBatcher->setBatchProgram(tintProgramHandle());
-    spriteBatcher->addSprite(m_framebuffer->texture(), rect, texCoords, glm::vec4{0}, depth);
+    spriteBatcher->setBatchTexture(m_framebuffer->texture());
+    struct Vertex
+    {
+        glm::vec2 position;
+        glm::vec2 texCoord;
+    };
+    const Vertex topLeftVertex = {.position = pos, .texCoord = {0, 1}};
+    const Vertex bottomRightVertex = {.position = pos + size, .texCoord = {1, 0}};
+    spriteBatcher->addSprite(topLeftVertex, bottomRightVertex, depth);
 }
 
 class EffectTest : public TestWindow
