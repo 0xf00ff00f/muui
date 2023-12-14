@@ -19,7 +19,7 @@ public:
     {
         assert(m_index <= m_file.size());
         const auto length = std::min(m_file.size() - m_index, size);
-        std::copy(begin() + m_index, end() + m_index + length, data);
+        std::copy(begin() + m_index, begin() + m_index + length, data);
         m_index += length;
         return length;
     }
