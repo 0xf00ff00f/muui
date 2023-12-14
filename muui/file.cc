@@ -37,6 +37,25 @@ File::File(const std::filesystem::path &path)
 
 File::~File() = default;
 
+File::File(File &&other)
+    : m_path(std::move(other.m_path))
+    , m_reader(std::move(other.m_reader))
+{
+    other.m_path.clear();
+    other.m_reader.reset();
+}
+
+File &File::operator=(File &&other)
+{
+    m_path = std::move(other.m_path);
+    m_reader = std::move(other.m_reader);
+
+    other.m_path.clear();
+    other.m_reader.reset();
+
+    return *this;
+}
+
 VFS *File::vfs() const
 {
     if (!m_reader)
