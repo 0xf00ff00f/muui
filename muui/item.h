@@ -11,6 +11,7 @@
 
 #include <glm/glm.hpp>
 
+#include <concepts>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -119,7 +120,7 @@ public:
     virtual std::vector<Item *> children() const;
 
     template<typename ChildT>
-        requires std::is_base_of_v<Item, ChildT>
+        requires std::derived_from<ChildT, Item>
     ChildT *findChild(std::string_view name)
     {
         if (auto *typedItem = dynamic_cast<ChildT *>(this); typedItem)
@@ -137,7 +138,7 @@ public:
     }
 
     template<typename EffectT, typename... Args>
-        requires std::is_base_of_v<ShaderEffect, EffectT>
+        requires std::derived_from<EffectT, ShaderEffect>
     EffectT *setShaderEffect(Args &&...args)
     {
         auto effect = std::make_unique<EffectT>(std::forward<Args>(args)...);
