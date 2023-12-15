@@ -6,6 +6,7 @@
 #include <muui/framebuffer.h>
 #include <muui/item.h>
 #include <muui/painter.h>
+#include <muui/screen.h>
 #include <muui/shadereffect.h>
 #include <muui/shadermanager.h>
 #include <muui/spritebatcher.h>
@@ -58,24 +59,28 @@ public:
     using TestWindow::TestWindow;
 
     void initialize() override;
+    void update(float elapsed) override;
     void render() override;
+    void mouseButtonEvent(int button, int action, int mods) override;
+    void mouseMoveEvent(double x, double y) override;
 
 private:
-    std::unique_ptr<muui::Painter> m_painter;
     std::unique_ptr<muui::TextureAtlas> m_textureAtlas;
     std::unique_ptr<muui::Font> m_font;
     std::unique_ptr<muui::Item> m_rootItem;
+    std::unique_ptr<muui::Screen> m_screen;
 };
 
 void EffectTest::initialize()
 {
-    m_painter = std::make_unique<muui::Painter>();
-    m_painter->setWindowSize(m_width, m_height);
-
     m_textureAtlas = std::make_unique<muui::TextureAtlas>(512, 512, PixelType::Grayscale);
     m_font = std::make_unique<muui::Font>(m_textureAtlas.get());
     if (!m_font->load(AssetsPath / "OpenSans_Bold.ttf", 60))
         panic("Failed to load font\n");
+
+    auto container = std::make_unique<muui::Column>();
+    container->setMargins(muui::Margins{8, 8, 8, 8});
+    container->setSpacing(12);
 
     auto label = std::make_unique<muui::Label>(m_font.get(), U"Sphinx of black quartz"sv);
     label->fillBackground = true;
@@ -86,24 +91,69 @@ void EffectTest::initialize()
     label->color = {1, 1, 1, 1};
     label->setShaderEffect<TintEffect>();
 
-    m_rootItem = std::move(label);
+    auto toggle = std::make_unique<muui::Switch>(60.0f, 30.0f);
+    toggle->setChecked(true);
+    toggle->backgroundColor = glm::vec4(0.5, 0.5, 0.5, 1);
+    toggle->toggledSignal.connect([label = label.get()](bool checked) {
+        if (checked)
+            label->setShaderEffect<TintEffect>();
+        else
+            label->clearShaderEffect();
+    });
+
+    container->append(std::move(label));
+    container->append(std::move(toggle));
+
+    m_rootItem = std::move(container);
+
+    m_screen = std::make_unique<muui::Screen>();
+    m_screen->resize(m_width, m_height);
+    m_screen->setRootItem(m_rootItem.get());
+}
+
+void EffectTest::update(float elapsed)
+{
+    assert(m_rootItem);
+    m_rootItem->update(elapsed);
 }
 
 void EffectTest::render()
 {
-    glClearColor(0, 0, 0, 0);
-    glViewport(0, 0, m_painter->windowWidth(), m_painter->windowHeight());
+    glClearColor(1.0, 0.95, 0.75, 1);
+    glViewport(0, 0, m_screen->width(), m_screen->height());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-    glEnable(GL_SCISSOR_TEST);
+    m_screen->render();
+}
 
-    m_painter->begin();
-    m_rootItem->render(m_painter.get(), {20, 20});
-    m_painter->end();
+void EffectTest::mouseButtonEvent(int button, int action, [[maybe_unused]] int mods)
+{
+    if (button != GLFW_MOUSE_BUTTON_LEFT)
+        return;
+    switch (action)
+    {
+    case GLFW_PRESS: {
+        double x, y;
+        glfwGetCursorPos(m_window, &x, &y);
+        m_screen->handleTouchEvent(TouchAction::Down, x, y);
+        break;
+    }
+    case GLFW_RELEASE: {
+        double x, y;
+        glfwGetCursorPos(m_window, &x, &y);
+        m_screen->handleTouchEvent(TouchAction::Up, x, y);
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+void EffectTest::mouseMoveEvent(double x, double y)
+{
+    int state = glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_LEFT);
+    if (state == GLFW_PRESS)
+        m_screen->handleTouchEvent(TouchAction::Move, x, y);
 }
 
 int main(int argc, char *argv[])
