@@ -38,6 +38,7 @@ public:
     static constexpr ProgramHandle ProgramCircle = 2;
     static constexpr ProgramHandle ProgramRoundedRect = 3;
     static constexpr ProgramHandle ProgramText = 4;
+    static constexpr ProgramHandle ProgramGradient = 5;
 
     ProgramHandle addProgram(const ProgramDescription &description);
 

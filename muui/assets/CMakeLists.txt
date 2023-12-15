@@ -10,7 +10,10 @@ set(ASSET_FILES
     shaders/text.frag
     shaders/text.vert
     shaders/decal.frag
-    shaders/decal.vert)
+    shaders/decal.vert
+    shaders/gradient.frag
+    shaders/gradient.vert
+    shaders/lineargradient.inc.frag)
 
 cmrc_add_resource_library(
   embed-assets

@@ -59,7 +59,9 @@ set(MUUI_SOURCES
     framebuffer.h
     framebuffer.cc
     shadereffect.h
-    shadereffect.cc)
+    shadereffect.cc
+    gradienttexture.h
+    gradienttexture.cc)
 
 if(MUUI_USE_SDL2)
   list(APPEND MUUI_SOURCES sdlfs.h sdlfs.cc)

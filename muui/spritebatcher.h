@@ -101,6 +101,9 @@ public:
     void setBatchTexture(const AbstractTexture *texture);
     const AbstractTexture *batchTexture() const { return m_batchTexture; }
 
+    void setBatchGradientTexture(const AbstractTexture *texture);
+    const AbstractTexture *batchGradientTexture() const { return m_batchGradientTexture; }
+
     struct ScissorBox
     {
         glm::ivec2 position;
@@ -120,6 +123,7 @@ public:
 
         auto &sprite = m_sprites[m_quadCount++];
         sprite.texture = m_batchTexture;
+        sprite.gradientTexture = m_batchGradientTexture;
         sprite.program = m_batchProgram;
         sprite.depth = depth;
         sprite.scissorBox = m_batchScissorBox;
@@ -162,6 +166,7 @@ private:
     {
         ShaderManager::ProgramHandle program;
         const AbstractTexture *texture;
+        const AbstractTexture *gradientTexture;
         std::array<SpriteVertex, 4> vertices;
         int depth;
         ScissorBox scissorBox;
@@ -204,6 +209,7 @@ private:
     glm::mat4 m_transformMatrix;
     ShaderManager::ProgramHandle m_batchProgram{ShaderManager::InvalidProgram};
     const AbstractTexture *m_batchTexture{nullptr};
+    const AbstractTexture *m_batchGradientTexture{nullptr};
     ScissorBox m_batchScissorBox;
     bool m_bufferAllocated{false};
     int m_bufferOffset{0};
