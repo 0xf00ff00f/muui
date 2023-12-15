@@ -14,11 +14,18 @@ struct TextureAtlasPage::Node
         int x, y;
         int width, height;
     };
-    Rect rect;
+    Rect rect{};
     std::unique_ptr<Node> left, right;
-    bool used;
+    bool used{false};
+
+    Node(int x, int y, int width, int height);
     std::optional<Rect> insert(int width, int height);
 };
+
+TextureAtlasPage::Node::Node(int x, int y, int width, int height)
+    : rect{x, y, width, height}
+{
+}
 
 std::optional<TextureAtlasPage::Node::Rect> TextureAtlasPage::Node::insert(int width, int height)
 {
@@ -61,23 +68,23 @@ std::optional<TextureAtlasPage::Node::Rect> TextureAtlasPage::Node::insert(int w
     {
         // split horizontally
 
-        left = std::make_unique<Node>(Node{{rect.x, rect.y, width, rect.height}});
-        right = std::make_unique<Node>(Node{{rect.x + width, rect.y, splitX, rect.height}});
+        left = std::make_unique<Node>(rect.x, rect.y, width, rect.height);
+        right = std::make_unique<Node>(rect.x + width, rect.y, splitX, rect.height);
         return left->insert(width, height);
     }
     else
     {
         // split vertically
 
-        left = std::make_unique<Node>(Node{{rect.x, rect.y, rect.width, height}});
-        right = std::make_unique<Node>(Node{{rect.x, rect.y + height, rect.width, splitY}});
+        left = std::make_unique<Node>(rect.x, rect.y, rect.width, height);
+        right = std::make_unique<Node>(rect.x, rect.y + height, rect.width, splitY);
         return left->insert(width, height);
     }
 }
 
 TextureAtlasPage::TextureAtlasPage(int width, int height, PixelType pixelType)
     : m_pixmap(width, height, pixelType)
-    , m_tree(std::make_unique<Node>(Node{{0, 0, width, height}}))
+    , m_tree(std::make_unique<Node>(0, 0, width, height))
 {
 }
 
