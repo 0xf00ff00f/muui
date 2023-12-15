@@ -21,13 +21,16 @@ SpriteBatcher::SpriteBatcher()
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(SpriteVertex), reinterpret_cast<GLvoid *>(0));
 
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(SpriteVertex), reinterpret_cast<GLvoid *>(2 * sizeof(GLfloat)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(SpriteVertex),
+                          reinterpret_cast<GLvoid *>(2 * sizeof(GLfloat)));
 
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(SpriteVertex), reinterpret_cast<GLvoid *>(4 * sizeof(GLfloat)));
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(SpriteVertex),
+                          reinterpret_cast<GLvoid *>(4 * sizeof(GLfloat)));
 
     glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(SpriteVertex), reinterpret_cast<GLvoid *>(8 * sizeof(GLfloat)));
+    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(SpriteVertex),
+                          reinterpret_cast<GLvoid *>(8 * sizeof(GLfloat)));
 }
 
 SpriteBatcher::~SpriteBatcher()

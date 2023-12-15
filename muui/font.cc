@@ -18,7 +18,8 @@ struct FontInfo
 std::unique_ptr<FontInfo> loadFont(const std::filesystem::path &path)
 {
     File file(path);
-    if (!file) {
+    if (!file)
+    {
         log_error("Failed to load font %s", path.c_str());
         return {};
     }
@@ -26,7 +27,8 @@ std::unique_ptr<FontInfo> loadFont(const std::filesystem::path &path)
     font->buffer = file.readAll();
     auto *ttfData = reinterpret_cast<const unsigned char *>(font->buffer.data());
     int result = stbtt_InitFont(&font->font, ttfData, stbtt_GetFontOffsetForIndex(ttfData, 0));
-    if (result == 0) {
+    if (result == 0)
+    {
         log_error("Failed to parse font %s", path.c_str());
         return {};
     }

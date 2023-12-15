@@ -3,9 +3,9 @@
 #include "panic.h"
 
 #include <muui/font.h>
+#include <muui/item.h>
 #include <muui/painter.h>
 #include <muui/textureatlas.h>
-#include <muui/item.h>
 
 #include <memory>
 
