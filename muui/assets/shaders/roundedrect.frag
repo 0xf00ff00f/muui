@@ -20,5 +20,8 @@ void main(void)
 {
     float dist = sdRoundedRect(vs_texCoord, 0.5 * vs_size - vec2(1.0), vs_cornerRadius);
     float alpha = smoothstep(2.0, 0.0, dist);
-    fragColor = vec4(vs_color.xyz, alpha * vs_color.w);
+    vec4 color = vs_color;
+    color.a *= alpha;
+    color.rgb *= color.a; // premultiply alpha
+    fragColor = color;
 }

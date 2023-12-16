@@ -11,5 +11,7 @@ out vec4 fragColor;
 void main(void)
 {
     vec4 baseColor = texture(baseColorTexture, vs_texCoord);
-    fragColor = baseColor * vs_color;
+    vec4 color = baseColor * vs_color;
+    color.rgb *= color.a; // premultiply alpha
+    fragColor = color;
 }

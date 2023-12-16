@@ -7,5 +7,7 @@ out vec4 fragColor;
 
 void main(void)
 {
-    fragColor = vs_color;
+    vec4 color = vs_color;
+    color.rgb *= color.a; // premultiply alpha
+    fragColor = color;
 }

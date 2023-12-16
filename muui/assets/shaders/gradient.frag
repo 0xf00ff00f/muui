@@ -9,5 +9,7 @@ out vec4 fragColor;
 
 void main(void)
 {
-    fragColor = gradientColor(vs_position);
+    vec4 color = gradientColor(vs_position);
+    color.rgb *= color.a; // premultiply alpha
+    fragColor = color;
 }

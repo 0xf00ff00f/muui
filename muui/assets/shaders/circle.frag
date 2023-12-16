@@ -13,5 +13,8 @@ void main(void)
     float dist = distance(vs_texCoord, vec2(0.5, 0.5));
     float feather = fwidth(dist);
     float alpha = smoothstep(Radius, Radius - feather, dist);
-    fragColor = vec4(vs_color.xyz, alpha * vs_color.w);
+    vec4 color = vs_color;
+    color.a *= alpha;
+    color.rgb *= color.a; // premultiply alpha
+    fragColor = color;
 }

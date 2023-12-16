@@ -75,7 +75,8 @@ void SpriteBatcher::begin()
     m_batchTexture = nullptr;
     m_batchGradientTexture = nullptr;
     m_batchScissorBox = ScissorBox{};
-    m_batchBlendFunc = {BlendFunc::Factor::SourceAlpha, BlendFunc::Factor::OneMinusSourceAlpha};
+    // assume shaders output premultiplied alpha by default
+    m_batchBlendFunc = {BlendFunc::Factor::One, BlendFunc::Factor::OneMinusSourceAlpha};
 }
 
 void SpriteBatcher::flush()

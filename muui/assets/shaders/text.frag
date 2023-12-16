@@ -13,5 +13,6 @@ void main(void)
     float alpha = texture(baseColorTexture, vs_texCoord).r;
     vec4 color = vs_color;
     color.a *= alpha;
+    color.rgb *= color.a; // premultiply alpha
     fragColor = color;
 }
