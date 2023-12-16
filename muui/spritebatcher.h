@@ -86,6 +86,29 @@ struct SpriteVertex
     }
 };
 
+struct ScissorBox
+{
+    glm::ivec2 position;
+    glm::ivec2 size;
+    bool operator==(const ScissorBox &) const = default;
+};
+
+struct BlendFunc
+{
+    enum class Factor
+    {
+        Zero = GL_ZERO,
+        One = GL_ONE,
+        SourceAlpha = GL_SRC_ALPHA,
+        OneMinusSourceAlpha = GL_ONE_MINUS_SRC_ALPHA,
+        DestAlpha = GL_DST_ALPHA,
+        OneMinusDestAlpha = GL_ONE_MINUS_DST_ALPHA
+    };
+    Factor sourceFactor;
+    Factor destFactor;
+    bool operator==(const BlendFunc &) const = default;
+};
+
 class SpriteBatcher : private NonCopyable
 {
 public:
@@ -104,14 +127,11 @@ public:
     void setBatchGradientTexture(const AbstractTexture *texture);
     const AbstractTexture *batchGradientTexture() const { return m_batchGradientTexture; }
 
-    struct ScissorBox
-    {
-        glm::ivec2 position;
-        glm::ivec2 size;
-        bool operator==(const ScissorBox &) const = default;
-    };
     void setBatchScissorBox(const ScissorBox &scissorBox);
     ScissorBox batchScissorBox() const { return m_batchScissorBox; }
+
+    void setBatchBlendFunc(BlendFunc blendFunc);
+    BlendFunc batchBlendFunc() const { return m_batchBlendFunc; }
 
     void begin();
     void flush();
@@ -127,6 +147,7 @@ public:
         sprite.program = m_batchProgram;
         sprite.depth = depth;
         sprite.scissorBox = m_batchScissorBox;
+        sprite.blendFunc = m_batchBlendFunc;
         sprite.vertices = verts;
     }
 
@@ -170,6 +191,7 @@ private:
         std::array<SpriteVertex, 4> vertices;
         int depth;
         ScissorBox scissorBox;
+        BlendFunc blendFunc;
     };
 
     template<typename VertexT>
@@ -211,6 +233,7 @@ private:
     const AbstractTexture *m_batchTexture{nullptr};
     const AbstractTexture *m_batchGradientTexture{nullptr};
     ScissorBox m_batchScissorBox;
+    BlendFunc m_batchBlendFunc{BlendFunc::Factor::SourceAlpha, BlendFunc::Factor::OneMinusSourceAlpha};
     bool m_bufferAllocated{false};
     int m_bufferOffset{0};
     GLuint m_vao{0};

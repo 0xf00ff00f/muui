@@ -43,6 +43,9 @@ void TintEffect::applyEffect(muui::SpriteBatcher *spriteBatcher, const glm::vec2
     const auto size = glm::vec2{m_framebuffer->width(), m_framebuffer->height()};
     spriteBatcher->setBatchProgram(tintProgramHandle());
     spriteBatcher->setBatchTexture(m_framebuffer->texture());
+    const auto prevBlendFunc = spriteBatcher->batchBlendFunc();
+    using muui::BlendFunc;
+    spriteBatcher->setBatchBlendFunc({BlendFunc::Factor::One, BlendFunc::Factor::OneMinusSourceAlpha});
     struct Vertex
     {
         glm::vec2 position;
@@ -51,6 +54,7 @@ void TintEffect::applyEffect(muui::SpriteBatcher *spriteBatcher, const glm::vec2
     const Vertex topLeftVertex = {.position = pos, .texCoord = {0, 1}};
     const Vertex bottomRightVertex = {.position = pos + size, .texCoord = {1, 0}};
     spriteBatcher->addSprite(topLeftVertex, bottomRightVertex, depth);
+    spriteBatcher->setBatchBlendFunc(prevBlendFunc);
 }
 
 class EffectTest : public TestWindow
@@ -84,11 +88,11 @@ void EffectTest::initialize()
 
     auto label = std::make_unique<muui::Label>(m_font.get(), U"Sphinx of black quartz"sv);
     label->fillBackground = true;
-    label->backgroundColor = {0.5, 1, 1, 1};
+    label->backgroundColor = {1, 1, 0, 0.5};
     label->setMargins(muui::Margins{12, 12, 12, 12});
     label->shape = muui::Item::Shape::RoundedRectangle;
     label->cornerRadius = 12.0f;
-    label->color = {1, 1, 1, 1};
+    label->color = {0, 1, 1, 1};
     label->setShaderEffect<TintEffect>();
 
     auto toggle = std::make_unique<muui::Switch>(60.0f, 30.0f);
@@ -119,7 +123,7 @@ void EffectTest::update(float elapsed)
 
 void EffectTest::render()
 {
-    glClearColor(1.0, 0.95, 0.75, 1);
+    glClearColor(0, 0, 0, 1);
     glViewport(0, 0, m_screen->width(), m_screen->height());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
