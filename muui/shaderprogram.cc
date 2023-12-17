@@ -96,6 +96,96 @@ std::optional<std::string> readShaderSource(const std::filesystem::path &path)
 
 } // namespace
 
+Shader::Shader(GLenum type)
+    : m_type{type}
+    , m_id{glCreateShader(type)}
+{
+}
+
+Shader::~Shader()
+{
+    if (m_id)
+        glDeleteShader(m_id);
+}
+
+Shader::Shader(Shader &&other)
+    : m_type{other.m_type}
+    , m_id{other.m_id}
+    , m_sources{std::move(other.m_sources)}
+    , m_log{std::move(other.m_log)}
+{
+    other.m_type = 0;
+    other.m_id = 0;
+    other.m_sources.clear();
+    other.m_log.clear();
+}
+
+Shader &Shader::operator=(Shader &&other)
+{
+    m_type = other.m_type;
+    m_id = other.m_id;
+    m_sources = std::move(other.m_sources);
+    m_log = std::move(other.m_log);
+
+    other.m_type = 0;
+    other.m_id = 0;
+    other.m_sources.clear();
+    other.m_log.clear();
+
+    return *this;
+}
+
+bool Shader::addSourceFromFile(const std::filesystem::path &path)
+{
+    auto source = readShaderSource(path);
+    if (!source)
+    {
+        m_log = fmt::format("Failed to load {}", path.string());
+        return false;
+    }
+    m_sources.push_back(std::move(*source));
+    return true;
+}
+
+void Shader::addSource(std::string_view source)
+{
+    m_sources.emplace_back(source);
+}
+
+bool Shader::compile()
+{
+    static const std::string VersionString{"#version 300 es\n"};
+
+    std::vector<const GLchar *> strings{VersionString.data()};
+    std::transform(m_sources.begin(), m_sources.end(), std::back_inserter(strings),
+                   [](const auto &source) { return static_cast<const GLchar *>(source.data()); });
+
+    std::vector<GLint> lengths{static_cast<GLint>(VersionString.size())};
+    std::transform(m_sources.begin(), m_sources.end(), std::back_inserter(lengths),
+                   [](const auto &source) { return static_cast<GLint>(source.size()); });
+
+    assert(strings.size() == lengths.size());
+    glShaderSource(m_id, strings.size(), strings.data(), lengths.data());
+    glCompileShader(m_id);
+
+    GLint status;
+    glGetShaderiv(m_id, GL_COMPILE_STATUS, &status);
+    if (status == GL_FALSE)
+    {
+        m_log.clear();
+        GLint length = 0;
+        glGetShaderiv(m_id, GL_INFO_LOG_LENGTH, &length);
+        if (length > 1)
+        {
+            m_log.resize(length);
+            glGetShaderInfoLog(m_id, length, nullptr, m_log.data());
+        }
+        return false;
+    }
+
+    return true;
+}
+
 ShaderProgram::ShaderProgram()
     : m_id{glCreateProgram()}
 {
@@ -104,72 +194,70 @@ ShaderProgram::ShaderProgram()
 ShaderProgram::~ShaderProgram()
 {
     if (m_id)
+    {
+        for (auto &shader : m_attachedShaders)
+            glDetachShader(m_id, shader.id());
         glDeleteProgram(m_id);
+    }
 }
 
 ShaderProgram::ShaderProgram(ShaderProgram &&other)
     : m_id(other.m_id)
     , m_log(std::move(other.m_log))
+    , m_attachedShaders(std::move(other.m_attachedShaders))
 {
     other.m_id = 0;
     other.m_log.clear();
+    other.m_attachedShaders.clear();
 }
 
 ShaderProgram &ShaderProgram::operator=(ShaderProgram &&other)
 {
     m_id = other.m_id;
     m_log = std::move(other.m_log);
+    m_attachedShaders = std::move(other.m_attachedShaders);
 
     other.m_id = 0;
     other.m_log.clear();
+    other.m_attachedShaders.clear();
 
     return *this;
 }
 
 bool ShaderProgram::addShader(GLenum type, const std::filesystem::path &path)
 {
-    const auto source = readShaderSource(path);
-    if (!source)
+    Shader shader{type};
+    if (!shader.addSourceFromFile(path))
     {
         m_log = fmt::format("failed to load {}", path.string());
         return false;
     }
-    return addShaderSource(type, *source);
+    if (!shader.compile())
+    {
+        m_log = shader.log();
+        return false;
+    }
+    attach(std::move(shader));
+    return true;
 }
 
 bool ShaderProgram::addShaderSource(GLenum type, std::string_view source)
 {
-    return compileAndAttachShader(type, source);
-}
-
-bool ShaderProgram::compileAndAttachShader(GLenum type, std::string_view source)
-{
-    const auto shader = glCreateShader(type);
-
-    const std::array sources = {source.data()};
-    const std::array lengths = {static_cast<GLint>(source.size())};
-    static_assert(sources.size() == lengths.size());
-    glShaderSource(shader, sources.size(), sources.data(), lengths.data());
-    glCompileShader(shader);
-
-    GLint status;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-    if (status == GL_FALSE)
+    Shader shader{type};
+    shader.addSource(source);
+    if (!shader.compile())
     {
-        m_log.clear();
-        GLint length = 0;
-        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
-        if (length > 1)
-        {
-            m_log.resize(length);
-            glGetShaderInfoLog(shader, length, nullptr, m_log.data());
-        }
+        m_log = shader.log();
         return false;
     }
-
-    glAttachShader(m_id, shader);
-
+    attach(std::move(shader));
     return true;
+}
+
+void ShaderProgram::attach(Shader &&shader)
+{
+    glAttachShader(m_id, shader.id());
+    m_attachedShaders.push_back(std::move(shader));
 }
 
 bool ShaderProgram::link()
