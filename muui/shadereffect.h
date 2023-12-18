@@ -24,6 +24,9 @@ public:
 
     void render(Item &item, Painter *painter, const glm::vec2 &pos, int depth);
 
+    int width() const { return m_painter.windowWidth(); }
+    int height() const { return m_painter.windowHeight(); }
+
 protected:
     virtual void applyEffect(SpriteBatcher *spriteBatcher, const glm::vec2 &pos, int depth) = 0;
 
