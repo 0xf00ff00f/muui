@@ -39,6 +39,8 @@ public:
     static constexpr ProgramHandle ProgramRoundedRect = 3;
     static constexpr ProgramHandle ProgramText = 4;
     static constexpr ProgramHandle ProgramGradient = 5;
+    static constexpr ProgramHandle ProgramRoundedRectGradient = 6;
+    static constexpr ProgramHandle ProgramTextGradient = 7;
 
     ProgramHandle addProgram(const ProgramDescription &description);
 

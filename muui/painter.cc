@@ -1,6 +1,7 @@
 #include "painter.h"
 
 #include "font.h"
+#include "gradienttexture.h"
 #include "spritebatcher.h"
 
 #include "gl.h"
@@ -58,18 +59,20 @@ void Painter::setClipRect(const RectF &rect)
     m_spriteBatcher->setBatchScissorBox({.position = {x, m_windowHeight - (y + h)}, .size = {w, h}});
 }
 
-void Painter::drawRect(const RectF &rect, const glm::vec4 &color, int depth)
+void Painter::drawRect(const RectF &rect, const Brush &brush, int depth)
 {
     if (m_clipRect.intersects(rect))
     {
-        m_spriteBatcher->setBatchProgram(ShaderManager::ProgramFlat);
+        std::visit([this](auto &brush) { setRectProgram(brush); }, brush);
         struct Vertex
         {
             glm::vec2 position;
         };
         const auto topLeftVertex = Vertex{.position = rect.min};
         const auto bottomRightVertex = Vertex{.position = rect.max};
-        m_spriteBatcher->addSprite(topLeftVertex, bottomRightVertex, color, depth);
+        std::visit([this, &topLeftVertex, &bottomRightVertex,
+                    depth](auto &brush) { addSprite(topLeftVertex, bottomRightVertex, brush, depth); },
+                   brush);
     }
 }
 
@@ -116,10 +119,10 @@ void Painter::drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const Re
     }
 }
 
-void Painter::drawText(std::u32string_view text, const glm::vec2 &pos, const glm::vec4 &color, int depth)
+void Painter::drawText(std::u32string_view text, const glm::vec2 &pos, const Brush &brush, int depth)
 {
     assert(m_font);
-    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramText);
+    std::visit([this](auto &brush) { setTextProgram(brush); }, brush);
 
     auto basePos = glm::vec2(pos.x, pos.y + m_font->ascent());
     for (auto ch : text)
@@ -140,7 +143,9 @@ void Painter::drawText(std::u32string_view text, const glm::vec2 &pos, const glm
                 };
                 const auto topLeftVertex = Vertex{.position = topLeft, .texCoord = pixmap.texCoord.min};
                 const auto bottomRightVertex = Vertex{.position = bottomRight, .texCoord = pixmap.texCoord.max};
-                m_spriteBatcher->addSprite(topLeftVertex, bottomRightVertex, color, depth);
+                std::visit([this, &topLeftVertex, &bottomRightVertex,
+                            depth](const auto &brush) { addSprite(topLeftVertex, bottomRightVertex, brush, depth); },
+                           brush);
             }
             basePos.x += g->advanceWidth;
         }
@@ -172,11 +177,11 @@ void Painter::drawCapsule(const RectF &rect, const glm::vec4 &color, int depth)
     drawRoundedRect(rect, cornerRadius, color, depth);
 }
 
-void Painter::drawRoundedRect(const RectF &rect, float cornerRadius, const glm::vec4 &color, int depth)
+void Painter::drawRoundedRect(const RectF &rect, float cornerRadius, const Brush &brush, int depth)
 {
     if (!m_clipRect.intersects(rect))
         return;
-    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramRoundedRect);
+    std::visit([this](auto &brush) { setRoundedRectProgram(brush); }, brush);
     const auto radius = std::min(std::min(cornerRadius, 0.5f * rect.width()), 0.5f * rect.height());
     const glm::vec2 size(rect.width(), rect.height());
     const RectF texCoords{-0.5f * size, 0.5f * size};
@@ -187,7 +192,72 @@ void Painter::drawRoundedRect(const RectF &rect, float cornerRadius, const glm::
     };
     const auto topLeft = Vertex{.position = rect.min, .texCoord = -0.5f * size};
     const auto bottomRight = Vertex{.position = rect.max, .texCoord = 0.5f * size};
+    std::visit([this, &topLeft, &bottomRight, &size, cornerRadius, depth](
+                   const auto &brush) { addRoundedRectSprite(topLeft, bottomRight, brush, size, cornerRadius, depth); },
+               brush);
+}
+
+void Painter::setRectProgram(const Color &)
+{
+    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramFlat);
+}
+
+void Painter::setRectProgram(const LinearGradient &gradient)
+{
+    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramGradient);
+    m_spriteBatcher->setBatchGradientTexture(gradient.texture);
+}
+
+void Painter::setTextProgram(const Color &)
+{
+    const auto program = ShaderManager::ProgramText;
+    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramText);
+}
+
+void Painter::setTextProgram(const LinearGradient &gradient)
+{
+    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramTextGradient);
+    m_spriteBatcher->setBatchGradientTexture(gradient.texture);
+}
+
+void Painter::setRoundedRectProgram(const Color &)
+{
+    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramRoundedRect);
+}
+
+void Painter::setRoundedRectProgram(const LinearGradient &gradient)
+{
+    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramRoundedRectGradient);
+    m_spriteBatcher->setBatchGradientTexture(gradient.texture);
+}
+
+template<typename VertexT>
+void Painter::addSprite(const VertexT &topLeft, const VertexT &bottomRight, const Color &color, int depth)
+{
+    m_spriteBatcher->addSprite(topLeft, bottomRight, color, depth);
+}
+
+template<typename VertexT>
+void Painter::addSprite(const VertexT &topLeft, const VertexT &bottomRight, const LinearGradient &gradient, int depth)
+{
+    m_spriteBatcher->addSprite(topLeft, bottomRight,
+                               glm::vec4(gradient.start.x, gradient.start.y, gradient.end.x, gradient.end.y), depth);
+}
+
+template<typename VertexT>
+void Painter::addRoundedRectSprite(const VertexT &topLeft, const VertexT &bottomRight, const Color &color,
+                                   const glm::vec2 &size, float radius, int depth)
+{
     m_spriteBatcher->addSprite(topLeft, bottomRight, color, glm::vec4(size, radius, 0), depth);
+}
+
+template<typename VertexT>
+void Painter::addRoundedRectSprite(const VertexT &topLeft, const VertexT &bottomRight, const LinearGradient &gradient,
+                                   const glm::vec2 &size, float radius, int depth)
+{
+    m_spriteBatcher->addSprite(topLeft, bottomRight,
+                               glm::vec4(gradient.start.x, gradient.start.y, gradient.end.x, gradient.end.y),
+                               glm::vec4(size, radius, 0), depth);
 }
 
 } // namespace muui

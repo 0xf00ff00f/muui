@@ -2,6 +2,7 @@
 
 #include "noncopyable.h"
 
+#include "brush.h"
 #include "util.h"
 
 #include <glm/glm.hpp>
@@ -38,16 +39,39 @@ public:
 
     SpriteBatcher *spriteBatcher() const { return m_spriteBatcher.get(); }
 
-    void drawRect(const RectF &rect, const glm::vec4 &color, int depth);
+    void drawRect(const RectF &rect, const Brush &brush, int depth);
     void drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const glm::vec4 &color, int depth);
     void drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const RectF &clipRect, const glm::vec4 &color,
                     int depth);
-    void drawText(std::u32string_view text, const glm::vec2 &pos, const glm::vec4 &color, int depth);
+    void drawText(std::u32string_view text, const glm::vec2 &pos, const Brush &brush, int depth);
     void drawCircle(const glm::vec2 &center, float radius, const glm::vec4 &color, int depth);
     void drawCapsule(const RectF &rect, const glm::vec4 &color, int depth);
-    void drawRoundedRect(const RectF &rect, float cornerRadius, const glm::vec4 &color, int depth);
+    void drawRoundedRect(const RectF &rect, float cornerRadius, const Brush &brush, int depth);
 
 private:
+    void setRectProgram(const Color &color);
+    void setRectProgram(const LinearGradient &gradient);
+
+    void setTextProgram(const Color &color);
+    void setTextProgram(const LinearGradient &gradient);
+
+    void setRoundedRectProgram(const Color &color);
+    void setRoundedRectProgram(const LinearGradient &gradient);
+
+    template<typename VertexT>
+    void addSprite(const VertexT &topLeft, const VertexT &bottomRight, const Color &color, int depth);
+
+    template<typename VertexT>
+    void addSprite(const VertexT &topLeft, const VertexT &bottomRight, const LinearGradient &gradient, int depth);
+
+    template<typename VertexT>
+    void addRoundedRectSprite(const VertexT &topLeft, const VertexT &bottomRight, const Color &color,
+                              const glm::vec2 &size, float radius, int depth);
+
+    template<typename VertexT>
+    void addRoundedRectSprite(const VertexT &topLeft, const VertexT &bottomRight, const LinearGradient &gradient,
+                              const glm::vec2 &size, float radius, int depth);
+
     void render();
     void updateTransformMatrix();
 

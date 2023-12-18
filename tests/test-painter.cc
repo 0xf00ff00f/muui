@@ -3,6 +3,7 @@
 #include "panic.h"
 
 #include <muui/font.h>
+#include <muui/gradienttexture.h>
 #include <muui/painter.h>
 #include <muui/textureatlas.h>
 
@@ -23,6 +24,7 @@ private:
     std::unique_ptr<muui::Painter> m_painter;
     std::unique_ptr<muui::TextureAtlas> m_textureAtlas;
     std::unique_ptr<muui::Font> m_font;
+    std::unique_ptr<muui::GradientTexture> m_gradientTexture;
 };
 
 void PainterTest::initialize()
@@ -34,6 +36,11 @@ void PainterTest::initialize()
     m_font = std::make_unique<muui::Font>(m_textureAtlas.get());
     if (!m_font->load(ASSETSDIR "OpenSans_Bold.ttf", 60))
         panic("Failed to load font\n");
+
+    m_gradientTexture = std::make_unique<muui::GradientTexture>();
+    m_gradientTexture->setColorAt(0, glm::vec4(1, 0, 0, 1));
+    m_gradientTexture->setColorAt(1, glm::vec4(0, 0, 1, 1));
+    m_gradientTexture->setColorAt(0.5, glm::vec4(0, 1, 1, 1));
 }
 
 void PainterTest::render()
@@ -48,12 +55,18 @@ void PainterTest::render()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_SCISSOR_TEST);
 
+    const muui::LinearGradient gradient = {
+        .texture = m_gradientTexture.get(), .start = glm::vec2(0, 0), .end = glm::vec2(200, 0)};
+
     m_painter->begin();
     m_painter->drawCircle({40, 40}, 30, glm::vec4(1), 0);
     m_painter->drawRoundedRect({{10, 80}, {100, 140}}, 20, glm::vec4(1), 0);
+    m_painter->drawRoundedRect({{110, 80}, {200, 140}}, 20, gradient, 0);
     m_painter->drawRect({{10, 150}, {100, 210}}, glm::vec4(1), 0);
+    m_painter->drawRect({{110, 150}, {210, 210}}, gradient, 0);
     m_painter->setFont(m_font.get());
     m_painter->drawText(U"Sphinx of black quartz"sv, {10, 220}, glm::vec4(1), 0);
+    m_painter->drawText(U"The quick brown fox"s, {10, 280}, gradient, 0);
     m_painter->end();
 }
 

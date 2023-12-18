@@ -91,9 +91,15 @@ void ShaderManager::addBasicPrograms()
         const char *fragmentShader;
     };
     static const std::vector<Program> programs = {
-        {"flat.vert", "flat.frag"},     {"decal.vert", "decal.frag"},
-        {"circle.vert", "circle.frag"}, {"roundedrect.vert", "roundedrect.frag"},
-        {"text.vert", "text.frag"},     {"gradient.vert", "gradient.frag"}};
+        {"flat.vert", "flat.frag"},
+        {"decal.vert", "decal.frag"},
+        {"circle.vert", "circle.frag"},
+        {"roundedrect.vert", "roundedrect.frag"},
+        {"text.vert", "text.frag"},
+        {"gradient.vert", "gradient.frag"},
+        {"roundedrectgradient.vert", "roundedrectgradient.frag"},
+        {"textgradient.vert", "textgradient.frag"},
+    };
     assert(m_cachedPrograms.empty());
     m_cachedPrograms.reserve(programs.size());
     for (const auto &program : programs)
