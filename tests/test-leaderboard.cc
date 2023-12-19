@@ -70,7 +70,7 @@ std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float
         auto makeSeparator = [&textColor] {
             auto r = std::make_unique<Rectangle>();
             r->fillBackground = true;
-            r->backgroundColor = glm::vec4(textColor, 0.25);
+            r->backgroundBrush = glm::vec4{textColor, 0.25};
             r->setSize(1, 30);
             return r;
         };
@@ -151,7 +151,7 @@ std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float
             row->fillBackground = true;
             row->shape = Item::Shape::RoundedRectangle;
             row->cornerRadius = 8;
-            row->backgroundColor = glm::vec4(1, 1, 1, 0.75);
+            row->backgroundBrush = glm::vec4{1, 1, 1, 0.75};
             row->setMargins(Margins{rowMargin, rowMargin, rowMargin, rowMargin});
             row->setSpacing(1);
 

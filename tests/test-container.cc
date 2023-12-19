@@ -41,7 +41,7 @@ void LayoutTest::initialize()
         auto label = std::make_unique<muui::Label>(m_font.get(), text);
         label->containerAlignment = alignment;
         label->fillBackground = true;
-        label->backgroundColor = {1, 0, 0, 1};
+        label->backgroundBrush = glm::vec4{1, 0, 0, 1};
         label->color = {1, 1, 1, 1};
         container->append(std::move(label));
     };
@@ -54,7 +54,7 @@ void LayoutTest::initialize()
         column->setMinimumWidth(400);
         column->shape = muui::Item::Shape::RoundedRectangle;
         column->fillBackground = true;
-        column->backgroundColor = {0.75, 0.75, 0.75, 1};
+        column->backgroundBrush = glm::vec4{0.75, 0.75, 0.75, 1};
         column->setMargins(muui::Margins{8, 8, 8, 8});
         column->cornerRadius = 8.0f;
         column->setSpacing(4);
@@ -69,7 +69,7 @@ void LayoutTest::initialize()
         row->setMinimumHeight(150);
         row->shape = muui::Item::Shape::RoundedRectangle;
         row->fillBackground = true;
-        row->backgroundColor = {0.75, 0.75, 0.75, 1};
+        row->backgroundBrush = glm::vec4{0.75, 0.75, 0.75, 1};
         row->setMargins(muui::Margins{8, 8, 8, 8});
         row->cornerRadius = 8.0f;
         row->setSpacing(4);

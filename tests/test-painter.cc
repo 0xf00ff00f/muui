@@ -60,6 +60,7 @@ void PainterTest::render()
 
     m_painter->begin();
     m_painter->drawCircle({40, 40}, 30, glm::vec4(1), 0);
+    m_painter->drawCircle({140, 40}, 30, gradient, 0);
     m_painter->drawRoundedRect({{10, 80}, {100, 140}}, 20, glm::vec4(1), 0);
     m_painter->drawRoundedRect({{110, 80}, {200, 140}}, 20, gradient, 0);
     m_painter->drawRect({{10, 150}, {100, 210}}, glm::vec4(1), 0);

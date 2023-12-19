@@ -35,16 +35,16 @@ void Item::renderBackground(Painter *painter, const glm::vec2 &pos, int depth)
     switch (shape)
     {
     case Shape::Rectangle:
-        painter->drawRect(rect, backgroundColor, depth);
+        painter->drawRect(rect, backgroundBrush, depth);
         break;
     case Shape::Capsule:
-        painter->drawCapsule(rect, backgroundColor, depth);
+        painter->drawCapsule(rect, backgroundBrush, depth);
         break;
     case Shape::Circle:
-        painter->drawCircle(rect.center(), 0.5f * std::max(rect.width(), rect.height()), backgroundColor, depth);
+        painter->drawCircle(rect.center(), 0.5f * std::max(rect.width(), rect.height()), backgroundBrush, depth);
         break;
     case Shape::RoundedRectangle:
-        painter->drawRoundedRect(rect, cornerRadius, backgroundColor, depth);
+        painter->drawRoundedRect(rect, cornerRadius, backgroundBrush, depth);
         break;
     default:
         break;
@@ -721,7 +721,7 @@ Switch::Switch(Size size)
 
     fillBackground = true;
     shape = Shape::Capsule;
-    backgroundColor = glm::vec4(0, 0, 0, 1);
+    backgroundBrush = glm::vec4(0, 0, 0, 1);
 
     m_animation.valueChangedSignal.connect([this](float value) { m_indicatorPosition = value; });
     m_animation.duration = 0.2f;

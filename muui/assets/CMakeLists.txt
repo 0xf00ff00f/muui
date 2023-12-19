@@ -16,6 +16,8 @@ set(ASSET_FILES
     shaders/lineargradient.inc.frag
     shaders/textgradient.vert
     shaders/textgradient.frag
+    shaders/circlegradient.vert
+    shaders/circlegradient.frag
     shaders/roundedrectgradient.vert
     shaders/roundedrectgradient.frag)
 

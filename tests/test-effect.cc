@@ -88,7 +88,7 @@ void EffectTest::initialize()
 
     auto label = std::make_unique<muui::Label>(m_font.get(), U"Sphinx of black quartz"sv);
     label->fillBackground = true;
-    label->backgroundColor = {1, 1, 0, 0.5};
+    label->backgroundBrush = glm::vec4{1, 1, 0, 0.5};
     label->setMargins(muui::Margins{12, 12, 12, 12});
     label->shape = muui::Item::Shape::RoundedRectangle;
     label->cornerRadius = 12.0f;
@@ -97,7 +97,7 @@ void EffectTest::initialize()
 
     auto toggle = std::make_unique<muui::Switch>(60.0f, 30.0f);
     toggle->setChecked(true);
-    toggle->backgroundColor = glm::vec4(0.5, 0.5, 0.5, 1);
+    toggle->backgroundBrush = glm::vec4{0.5, 0.5, 0.5, 1};
     toggle->toggledSignal.connect([label = label.get()](bool checked) {
         if (checked)
             label->setShaderEffect<TintEffect>();

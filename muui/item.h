@@ -1,5 +1,6 @@
 #pragma once
 
+#include "brush.h"
 #include "font.h"
 #include "shadereffect.h"
 #include "textureatlas.h"
@@ -162,7 +163,7 @@ public:
     };
     Shape shape = Shape::Rectangle;
     bool fillBackground = false;
-    glm::vec4 backgroundColor;
+    Brush backgroundBrush;
     float cornerRadius = 0.0f;
     Alignment containerAlignment = Alignment::VCenter | Alignment::Left;
 

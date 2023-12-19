@@ -152,14 +152,14 @@ void Painter::drawText(std::u32string_view text, const glm::vec2 &pos, const Bru
     }
 }
 
-void Painter::drawCircle(const glm::vec2 &center, float radius, const glm::vec4 &color, int depth)
+void Painter::drawCircle(const glm::vec2 &center, float radius, const Brush &brush, int depth)
 {
     const auto topLeft = center - glm::vec2(radius, radius);
     const auto bottomRight = center + glm::vec2(radius, radius);
     const auto rect = RectF{topLeft, bottomRight};
     if (m_clipRect.intersects(rect))
     {
-        m_spriteBatcher->setBatchProgram(ShaderManager::ProgramCircle);
+        std::visit([this](auto &brush) { setCircleProgram(brush); }, brush);
         struct Vertex
         {
             glm::vec2 position;
@@ -167,14 +167,16 @@ void Painter::drawCircle(const glm::vec2 &center, float radius, const glm::vec4 
         };
         const auto topLeftVertex = Vertex{.position = topLeft, .texCoord = {0, 0}};
         const auto bottomRightVertex = Vertex{.position = bottomRight, .texCoord = {1, 1}};
-        m_spriteBatcher->addSprite(topLeftVertex, bottomRightVertex, color, depth);
+        std::visit([this, &topLeftVertex, &bottomRightVertex,
+                    depth](const auto &brush) { addSprite(topLeftVertex, bottomRightVertex, brush, depth); },
+                   brush);
     }
 }
 
-void Painter::drawCapsule(const RectF &rect, const glm::vec4 &color, int depth)
+void Painter::drawCapsule(const RectF &rect, const Brush &brush, int depth)
 {
     const auto cornerRadius = std::min(0.5f * rect.height(), 0.5f * rect.width());
-    drawRoundedRect(rect, cornerRadius, color, depth);
+    drawRoundedRect(rect, cornerRadius, brush, depth);
 }
 
 void Painter::drawRoundedRect(const RectF &rect, float cornerRadius, const Brush &brush, int depth)
@@ -217,6 +219,18 @@ void Painter::setTextProgram(const Color &)
 void Painter::setTextProgram(const LinearGradient &gradient)
 {
     m_spriteBatcher->setBatchProgram(ShaderManager::ProgramTextGradient);
+    m_spriteBatcher->setBatchGradientTexture(gradient.texture);
+}
+
+void Painter::setCircleProgram(const Color &)
+{
+    const auto program = ShaderManager::ProgramText;
+    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramCircle);
+}
+
+void Painter::setCircleProgram(const LinearGradient &gradient)
+{
+    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramCircleGradient);
     m_spriteBatcher->setBatchGradientTexture(gradient.texture);
 }
 

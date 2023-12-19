@@ -97,6 +97,7 @@ void ShaderManager::addBasicPrograms()
         {"roundedrect.vert", "roundedrect.frag"},
         {"text.vert", "text.frag"},
         {"gradient.vert", "gradient.frag"},
+        {"circlegradient.vert", "circlegradient.frag"},
         {"roundedrectgradient.vert", "roundedrectgradient.frag"},
         {"textgradient.vert", "textgradient.frag"},
     };
