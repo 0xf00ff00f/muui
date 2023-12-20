@@ -19,7 +19,9 @@ set(ASSET_FILES
     shaders/circlegradient.vert
     shaders/circlegradient.frag
     shaders/roundedrectgradient.vert
-    shaders/roundedrectgradient.frag)
+    shaders/roundedrectgradient.frag
+    shaders/decalgradient.vert
+    shaders/decalgradient.frag)
 
 cmrc_add_resource_library(
   embed-assets

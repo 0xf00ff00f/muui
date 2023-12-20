@@ -40,8 +40,8 @@ public:
     SpriteBatcher *spriteBatcher() const { return m_spriteBatcher.get(); }
 
     void drawRect(const RectF &rect, const Brush &brush, int depth);
-    void drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const glm::vec4 &color, int depth);
-    void drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const RectF &clipRect, const glm::vec4 &color,
+    void drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const Brush &color, int depth);
+    void drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const RectF &clipRect, const Brush &color,
                     int depth);
     void drawText(std::u32string_view text, const glm::vec2 &pos, const Brush &brush, int depth);
     void drawCircle(const glm::vec2 &center, float radius, const Brush &brush, int depth);
@@ -51,6 +51,9 @@ public:
 private:
     void setRectProgram(const Color &color);
     void setRectProgram(const LinearGradient &gradient);
+
+    void setDecalProgram(const Color &color);
+    void setDecalProgram(const LinearGradient &gradient);
 
     void setTextProgram(const Color &color);
     void setTextProgram(const LinearGradient &gradient);

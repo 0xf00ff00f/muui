@@ -76,11 +76,11 @@ void Painter::drawRect(const RectF &rect, const Brush &brush, int depth)
     }
 }
 
-void Painter::drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const glm::vec4 &color, int depth)
+void Painter::drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const Brush &brush, int depth)
 {
     if (m_clipRect.intersects(rect))
     {
-        m_spriteBatcher->setBatchProgram(ShaderManager::ProgramDecal);
+        std::visit([this](auto &brush) { setDecalProgram(brush); }, brush);
         struct Vertex
         {
             glm::vec2 position;
@@ -89,16 +89,18 @@ void Painter::drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const gl
         const Vertex topLeftVertex = {.position = rect.min, .texCoord = pixmap.texCoord.min};
         const Vertex bottomRightVertex = {.position = rect.max, .texCoord = pixmap.texCoord.max};
         m_spriteBatcher->setBatchTexture(pixmap.texture);
-        m_spriteBatcher->addSprite(topLeftVertex, bottomRightVertex, color, depth);
+        std::visit([this, &topLeftVertex, &bottomRightVertex,
+                    depth](auto &brush) { addSprite(topLeftVertex, bottomRightVertex, brush, depth); },
+                   brush);
     }
 }
 
-void Painter::drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const RectF &clipRect, const glm::vec4 &color,
+void Painter::drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const RectF &clipRect, const Brush &brush,
                          int depth)
 {
     if (m_clipRect.intersects(rect) && m_clipRect.intersects(rect))
     {
-        m_spriteBatcher->setBatchProgram(ShaderManager::ProgramDecal);
+        std::visit([this](auto &brush) { setDecalProgram(brush); }, brush);
         const auto texPos = [&rect, &texCoord = pixmap.texCoord](const glm::vec2 &p) {
             const float x =
                 (p.x - rect.min.x) * (texCoord.max.x - texCoord.min.x) / (rect.max.x - rect.min.x) + texCoord.min.x;
@@ -115,7 +117,9 @@ void Painter::drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const Re
         const Vertex topLeftVertex = {.position = spriteRect.min, .texCoord = texPos(spriteRect.min)};
         const Vertex bottomRightVertex = {.position = spriteRect.max, .texCoord = texPos(spriteRect.max)};
         m_spriteBatcher->setBatchTexture(pixmap.texture);
-        m_spriteBatcher->addSprite(topLeftVertex, bottomRightVertex, color, depth);
+        std::visit([this, &topLeftVertex, &bottomRightVertex,
+                    depth](auto &brush) { addSprite(topLeftVertex, bottomRightVertex, brush, depth); },
+                   brush);
     }
 }
 
@@ -207,6 +211,17 @@ void Painter::setRectProgram(const Color &)
 void Painter::setRectProgram(const LinearGradient &gradient)
 {
     m_spriteBatcher->setBatchProgram(ShaderManager::ProgramGradient);
+    m_spriteBatcher->setBatchGradientTexture(gradient.texture);
+}
+
+void Painter::setDecalProgram(const Color &)
+{
+    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramDecal);
+}
+
+void Painter::setDecalProgram(const LinearGradient &gradient)
+{
+    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramDecalGradient);
     m_spriteBatcher->setBatchGradientTexture(gradient.texture);
 }
 

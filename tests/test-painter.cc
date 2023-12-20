@@ -56,7 +56,7 @@ void PainterTest::render()
     glEnable(GL_SCISSOR_TEST);
 
     const muui::LinearGradient gradient = {
-        .texture = m_gradientTexture.get(), .start = glm::vec2(0, 0), .end = glm::vec2(200, 0)};
+        .texture = m_gradientTexture.get(), .start = glm::vec2(0, 0), .end = glm::vec2(500, 0)};
 
     m_painter->begin();
     m_painter->drawCircle({40, 40}, 30, glm::vec4(1), 0);
@@ -68,6 +68,11 @@ void PainterTest::render()
     m_painter->setFont(m_font.get());
     m_painter->drawText(U"Sphinx of black quartz"sv, {10, 220}, glm::vec4(1), 0);
     m_painter->drawText(U"The quick brown fox"s, {10, 280}, gradient, 0);
+
+    const auto *glyph = m_font->glyph('@');
+    m_painter->drawPixmap(glyph->pixmap, {{250, 10}, {350, 110}}, glm::vec4(1), 0);
+    m_painter->drawPixmap(glyph->pixmap, {{250, 120}, {350, 220}}, gradient, 0);
+
     m_painter->end();
 }
 
