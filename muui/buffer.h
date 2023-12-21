@@ -12,15 +12,15 @@ class Buffer
 public:
     enum class Type
     {
-        Vertex,
-        Index
+        Vertex = GL_ARRAY_BUFFER,
+        Index = GL_ELEMENT_ARRAY_BUFFER
     };
 
     enum class Usage
     {
-        StaticDraw,
-        DynamicDraw,
-        StreamDraw,
+        StaticDraw = GL_STATIC_DRAW,
+        DynamicDraw = GL_DYNAMIC_DRAW,
+        StreamDraw = GL_STREAM_DRAW
     };
 
     explicit Buffer(Type type = Type::Vertex, Usage usage = Usage::StaticDraw);

@@ -3,38 +3,9 @@
 namespace muui::gl
 {
 
-namespace
-{
-GLenum toGLTarget(Buffer::Type type)
-{
-    switch (type)
-    {
-    case Buffer::Type::Vertex:
-    default:
-        return GL_ARRAY_BUFFER;
-    case Buffer::Type::Index:
-        return GL_ELEMENT_ARRAY_BUFFER;
-    }
-}
-
-GLenum toGLUsage(Buffer::Usage usage)
-{
-    switch (usage)
-    {
-    case Buffer::Usage::StaticDraw:
-    default:
-        return GL_STATIC_DRAW;
-    case Buffer::Usage::DynamicDraw:
-        return GL_DYNAMIC_DRAW;
-    case Buffer::Usage::StreamDraw:
-        return GL_STREAM_DRAW;
-    }
-}
-} // namespace
-
 Buffer::Buffer(Type type, Usage usage)
-    : m_type(toGLTarget(type))
-    , m_usage(toGLUsage(usage))
+    : m_type(static_cast<GLenum>(type))
+    , m_usage(static_cast<GLenum>(usage))
 {
     glGenBuffers(1, &m_handle);
 }
