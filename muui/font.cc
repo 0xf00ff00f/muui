@@ -93,7 +93,7 @@ const Font::Glyph *Font::glyph(int codepoint)
 {
     auto it = m_glyphs.find(codepoint);
     if (it == m_glyphs.end())
-        it = m_glyphs.insert(it, {codepoint, initializeGlyph(codepoint)});
+        it = m_glyphs.emplace(codepoint, initializeGlyph(codepoint)).first;
     return it->second.get();
 }
 

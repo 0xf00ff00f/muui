@@ -78,7 +78,7 @@ int ShaderManager::uniformLocation(const std::string &uniform)
     if (it == uniformLocations.end())
     {
         auto location = m_currentProgram->program.uniformLocation(uniform.c_str());
-        it = uniformLocations.insert(it, {uniform, location});
+        it = uniformLocations.emplace(uniform, location).first;
     }
     return it->second;
 }
