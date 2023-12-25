@@ -130,8 +130,8 @@ void SpriteBatcher::flush()
             m_bufferAllocated = true;
         }
 
-        auto *data =
-            m_buffer.mapRange<GLfloat>(m_bufferOffset, bufferRangeSize, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
+        auto *data = m_buffer.mapRange<GLfloat>(m_bufferOffset, bufferRangeSize,
+                                                gl::Buffer::Access::Write | gl::Buffer::Access::Unsynchronized);
         for (auto it = batchStart; it != batchEnd; ++it)
         {
             auto *quadPtr = *it;
