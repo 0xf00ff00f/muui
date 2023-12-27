@@ -5,15 +5,15 @@ layout(location=2) in vec4 parameters;
 uniform mat4 mvp;
 
 out vec2 vs_texCoord;
-out vec2 vs_viewportSize;
 out float vs_spacing;
-out float vs_transitionFactor;
+out float vs_slope;
+out float vs_progress;
 
 void main(void)
 {
     vs_texCoord = texCoord;
-    vs_viewportSize = vec2(parameters.x, parameters.y);
-    vs_spacing = parameters.z;
-    vs_transitionFactor = parameters.w;
+    vs_spacing = parameters.x;
+    vs_slope = parameters.y;
+    vs_progress = parameters.z;
     gl_Position = mvp * vec4(position, 0.0, 1.0);
 }

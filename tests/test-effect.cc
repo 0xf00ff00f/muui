@@ -44,20 +44,15 @@ static muui::ShaderManager::ProgramHandle transitionProgramHandle()
 class TransitionEffect : public muui::ShaderEffect
 {
 public:
-    explicit TransitionEffect(float spacing);
     ~TransitionEffect() override = default;
 
-    float transitionFactor{0.0f};
+    float progress{0.0f};
     float spacing{30.0f};
+    float slope{3.0f};
 
 private:
     void applyEffect(muui::SpriteBatcher *spriteBatcher, const glm::vec2 &pos, int depth) override;
 };
-
-TransitionEffect::TransitionEffect(float spacing)
-    : spacing{spacing}
-{
-}
 
 void TransitionEffect::applyEffect(muui::SpriteBatcher *spriteBatcher, const glm::vec2 &pos, int depth)
 {
@@ -75,7 +70,7 @@ void TransitionEffect::applyEffect(muui::SpriteBatcher *spriteBatcher, const glm
     const Vertex topLeftVertex{.position = pos, .texCoord = {0, 1}};
     const Vertex bottomRightVertex{.position = pos + size, .texCoord = {1, 0}};
 
-    const glm::vec4 parameters{width(), height(), spacing, transitionFactor};
+    const glm::vec4 parameters{spacing, slope, progress, 0.0f};
     spriteBatcher->addSprite(topLeftVertex, bottomRightVertex, parameters, depth);
     spriteBatcher->setBatchBlendFunc(prevBlendFunc);
 }
@@ -146,7 +141,7 @@ void EffectTest::initialize()
     innerColumn->append(std::move(bottomRow));
 
     innerContainer->append(std::move(innerColumn));
-    innerContainer->setShaderEffect(std::make_unique<TransitionEffect>(30.0f));
+    innerContainer->setShaderEffect(std::make_unique<TransitionEffect>());
 
     auto direction = std::make_unique<muui::Switch>(60.0f, 30.0f);
     direction->setChecked(true);
@@ -164,7 +159,7 @@ void EffectTest::initialize()
     enableEffect->toggledSignal.connect([this, item = innerContainer.get()](bool checked) {
         if (checked)
         {
-            item->setShaderEffect(std::make_unique<TransitionEffect>(30.0f));
+            item->setShaderEffect(std::make_unique<TransitionEffect>());
         }
         else
         {
@@ -188,10 +183,10 @@ void EffectTest::update(float elapsed)
     assert(m_rootItem);
     if (auto *effect = static_cast<TransitionEffect *>(m_innerContainer->shaderEffect()))
     {
-        float t = effect->transitionFactor;
+        float t = effect->progress;
         t += 0.5f * elapsed * m_direction;
         t = std::clamp(t, 0.0f, 1.0f);
-        effect->transitionFactor = t;
+        effect->progress = t;
     }
     m_rootItem->update(elapsed);
 }
