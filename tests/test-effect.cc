@@ -29,7 +29,7 @@ constexpr glm::vec3 rgbToColor(unsigned color)
     return (1.0f / 255.0f) * glm::vec3(r, g, b);
 }
 
-static muui::ShaderManager::ProgramHandle tintProgramHandle()
+static muui::ShaderManager::ProgramHandle transitionProgramHandle()
 {
     static auto handle = [] {
         auto *shaderManager = muui::getShaderManager();
@@ -44,6 +44,7 @@ static muui::ShaderManager::ProgramHandle tintProgramHandle()
 class TransitionEffect : public muui::ShaderEffect
 {
 public:
+    explicit TransitionEffect(float spacing);
     ~TransitionEffect() override = default;
 
     float transitionFactor{0.0f};
@@ -53,10 +54,15 @@ private:
     void applyEffect(muui::SpriteBatcher *spriteBatcher, const glm::vec2 &pos, int depth) override;
 };
 
+TransitionEffect::TransitionEffect(float spacing)
+    : spacing{spacing}
+{
+}
+
 void TransitionEffect::applyEffect(muui::SpriteBatcher *spriteBatcher, const glm::vec2 &pos, int depth)
 {
     const auto size = glm::vec2{m_framebuffer->width(), m_framebuffer->height()};
-    spriteBatcher->setBatchProgram(tintProgramHandle());
+    spriteBatcher->setBatchProgram(transitionProgramHandle());
     spriteBatcher->setBatchTexture(m_framebuffer->texture());
     const auto prevBlendFunc = spriteBatcher->batchBlendFunc();
     using muui::BlendFunc;
@@ -91,7 +97,7 @@ private:
     std::unique_ptr<muui::Font> m_smallFont;
     std::unique_ptr<muui::Item> m_rootItem;
     std::unique_ptr<muui::Screen> m_screen;
-    TransitionEffect *m_effect{nullptr};
+    muui::Item *m_innerContainer{nullptr};
     float m_direction{1.0f};
 };
 
@@ -110,6 +116,7 @@ void EffectTest::initialize()
     outerContainer->setSpacing(12);
 
     auto innerContainer = std::make_unique<muui::Column>();
+    m_innerContainer = innerContainer.get();
     innerContainer->setMargins(muui::Margins{1, 1, 1, 1});
 
     auto innerColumn = std::make_unique<muui::Column>();
@@ -139,7 +146,7 @@ void EffectTest::initialize()
     innerColumn->append(std::move(bottomRow));
 
     innerContainer->append(std::move(innerColumn));
-    m_effect = innerContainer->setShaderEffect<TransitionEffect>();
+    innerContainer->setShaderEffect(std::make_unique<TransitionEffect>(30.0f));
 
     auto direction = std::make_unique<muui::Switch>(60.0f, 30.0f);
     direction->setChecked(true);
@@ -157,12 +164,11 @@ void EffectTest::initialize()
     enableEffect->toggledSignal.connect([this, item = innerContainer.get()](bool checked) {
         if (checked)
         {
-            m_effect = item->setShaderEffect<TransitionEffect>();
+            item->setShaderEffect(std::make_unique<TransitionEffect>(30.0f));
         }
         else
         {
             item->clearShaderEffect();
-            m_effect = nullptr;
         }
     });
 
@@ -180,12 +186,12 @@ void EffectTest::initialize()
 void EffectTest::update(float elapsed)
 {
     assert(m_rootItem);
-    if (m_effect)
+    if (auto *effect = static_cast<TransitionEffect *>(m_innerContainer->shaderEffect()))
     {
-        float t = m_effect->transitionFactor;
+        float t = effect->transitionFactor;
         t += 0.5f * elapsed * m_direction;
         t = std::clamp(t, 0.0f, 1.0f);
-        m_effect->transitionFactor = t;
+        effect->transitionFactor = t;
     }
     m_rootItem->update(elapsed);
 }

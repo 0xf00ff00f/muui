@@ -2,7 +2,6 @@
 
 #include "brush.h"
 #include "font.h"
-#include "shadereffect.h"
 #include "textureatlas.h"
 #include "touchevent.h"
 #include "tweening.h"
@@ -21,6 +20,7 @@
 namespace muui
 {
 class Painter;
+class ShaderEffect;
 
 enum class Alignment : unsigned
 {
@@ -107,6 +107,7 @@ inline Size operator*(float s, const Size &size)
 class Item
 {
 public:
+    Item();
     virtual ~Item();
 
     Size size() const { return m_size; }
@@ -138,19 +139,9 @@ public:
         return nullptr;
     }
 
-    template<typename EffectT, typename... Args>
-        requires std::derived_from<EffectT, ShaderEffect>
-    EffectT *setShaderEffect(Args &&...args)
-    {
-        auto effect = std::make_unique<EffectT>(std::forward<Args>(args)...);
-        const auto w = static_cast<int>(std::ceil(m_size.width));
-        const auto h = static_cast<int>(std::ceil(m_size.height));
-        effect->resize(w, h);
-        m_effect = std::move(effect);
-        return static_cast<EffectT *>(m_effect.get());
-    }
-
+    void setShaderEffect(std::unique_ptr<ShaderEffect> effect);
     void clearShaderEffect();
+    ShaderEffect *shaderEffect() const;
 
     std::string objectName;
     bool visible = true;

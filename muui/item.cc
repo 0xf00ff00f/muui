@@ -3,6 +3,7 @@
 #include "fontcache.h"
 #include "painter.h"
 #include "pixmapcache.h"
+#include "shadereffect.h"
 #include "system.h"
 
 #include <algorithm>
@@ -18,6 +19,7 @@ Font *defaultFont()
 }
 } // namespace
 
+Item::Item() = default;
 Item::~Item() = default;
 
 void Item::update(float) {}
@@ -56,12 +58,6 @@ void Item::setSize(Size size)
     if (size == m_size)
         return;
     m_size = size;
-    if (m_effect)
-    {
-        const auto w = static_cast<int>(std::ceil(size.width));
-        const auto h = static_cast<int>(std::ceil(size.height));
-        m_effect->resize(w, h);
-    }
     resizedSignal(m_size);
 }
 
@@ -78,7 +74,7 @@ void Item::render(Painter *painter, const glm::vec2 &pos, int depth)
     }
     else
     {
-        m_effect->render(*this, painter, pos, depth);
+        m_effect->render(painter, pos, depth);
     }
 }
 
@@ -98,6 +94,17 @@ Item *Item::mouseEvent(const TouchEvent &event)
 Item *Item::handleMouseEvent(const TouchEvent &)
 {
     return nullptr;
+}
+
+void Item::setShaderEffect(std::unique_ptr<ShaderEffect> effect)
+{
+    m_effect = std::move(effect);
+    m_effect->setSource(this);
+}
+
+ShaderEffect *Item::shaderEffect() const
+{
+    return m_effect.get();
 }
 
 void Item::clearShaderEffect()
@@ -469,7 +476,7 @@ std::vector<Item *> Container::children() const
 void Container::insert(std::size_t index, std::unique_ptr<Item> item)
 {
     auto resizedConnection = item->resizedSignal.connect([this](Size size) { updateLayout(); });
-    auto layoutItem = std::make_unique<LayoutItem>(LayoutItem{{}, std::move(item), resizedConnection});
+    auto layoutItem = std::make_unique<LayoutItem>(LayoutItem{{}, std::move(item), std::move(resizedConnection)});
     m_layoutItems.insert(std::next(m_layoutItems.begin(), index), std::move(layoutItem));
     updateLayout();
 }
