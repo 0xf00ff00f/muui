@@ -12,6 +12,8 @@ set(MUUI_SOURCES
     abstracttexture.h
     buffer.cc
     buffer.h
+    vertexarray.cc
+    vertexarray.h
     fontcache.cc
     fontcache.h
     font.cc

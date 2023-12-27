@@ -12,10 +12,8 @@ namespace muui
 SpriteBatcher::SpriteBatcher()
     : m_buffer(gl::Buffer::Type::Vertex, gl::Buffer::Usage::DynamicDraw)
 {
-    glGenVertexArrays(1, &m_vao);
-
     m_buffer.bind();
-    glBindVertexArray(m_vao);
+    gl::VertexArray::Binder binder(&m_vao);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(SpriteVertex), reinterpret_cast<GLvoid *>(0));
@@ -33,10 +31,7 @@ SpriteBatcher::SpriteBatcher()
                           reinterpret_cast<GLvoid *>(8 * sizeof(GLfloat)));
 }
 
-SpriteBatcher::~SpriteBatcher()
-{
-    glDeleteVertexArrays(1, &m_vao);
-}
+SpriteBatcher::~SpriteBatcher() = default;
 
 void SpriteBatcher::setTransformMatrix(const glm::mat4 &matrix)
 {
@@ -95,7 +90,7 @@ void SpriteBatcher::flush()
     });
 
     m_buffer.bind();
-    glBindVertexArray(m_vao);
+    gl::VertexArray::Binder binder(&m_vao);
 
     const AbstractTexture *currentTexture = nullptr;
     const AbstractTexture *currentGradientTexture = nullptr;

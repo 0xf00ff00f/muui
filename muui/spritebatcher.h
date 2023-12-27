@@ -3,6 +3,7 @@
 #include "buffer.h"
 #include "noncopyable.h"
 #include "shadermanager.h"
+#include "vertexarray.h"
 
 #include <glm/vec2.hpp>
 
@@ -228,6 +229,7 @@ private:
     std::array<Sprite, MaxQuadsPerBatch> m_sprites;
     int m_quadCount{0};
     gl::Buffer m_buffer;
+    gl::VertexArray m_vao;
     glm::mat4 m_transformMatrix;
     ShaderManager::ProgramHandle m_batchProgram{ShaderManager::InvalidProgram};
     const AbstractTexture *m_batchTexture{nullptr};
@@ -236,7 +238,6 @@ private:
     BlendFunc m_batchBlendFunc{BlendFunc::Factor::SourceAlpha, BlendFunc::Factor::OneMinusSourceAlpha};
     bool m_bufferAllocated{false};
     int m_bufferOffset{0};
-    GLuint m_vao{0};
 };
 
 } // namespace muui
