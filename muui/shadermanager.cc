@@ -14,24 +14,24 @@ namespace muui
 
 namespace
 {
-gl::ShaderProgram loadProgram(const ProgramDescription &description)
+std::unique_ptr<gl::ShaderProgram> loadProgram(const ProgramDescription &description)
 {
-    gl::ShaderProgram program;
-    if (!program.addShader(GL_VERTEX_SHADER, description.vertexShaderPath))
+    auto program = std::make_unique<gl::ShaderProgram>();
+    if (!program->addShader(GL_VERTEX_SHADER, description.vertexShaderPath))
     {
         log_error("Failed to add vertex shader for program %s: %s", description.vertexShaderPath.c_str(),
-                  program.log().c_str());
+                  program->log().c_str());
         return {};
     }
-    if (!program.addShader(GL_FRAGMENT_SHADER, description.fragmentShaderPath))
+    if (!program->addShader(GL_FRAGMENT_SHADER, description.fragmentShaderPath))
     {
         log_error("Failed to add fragment shader for program %s: %s", description.fragmentShaderPath.c_str(),
-                  program.log().c_str());
+                  program->log().c_str());
         return {};
     }
-    if (!program.link())
+    if (!program->link())
     {
-        log_error("Failed to link program: %s", program.log().c_str());
+        log_error("Failed to link program: %s", program->log().c_str());
         return {};
     }
     return program;
@@ -65,7 +65,7 @@ void ShaderManager::useProgram(ProgramHandle handle)
     if (cachedProgram.get() == m_currentProgram)
         return;
     if (cachedProgram->program)
-        cachedProgram->program.bind();
+        cachedProgram->program->bind();
     m_currentProgram = cachedProgram.get();
 }
 
@@ -77,7 +77,7 @@ int ShaderManager::uniformLocation(const std::string &uniform)
     auto it = uniformLocations.find(uniform);
     if (it == uniformLocations.end())
     {
-        auto location = m_currentProgram->program.uniformLocation(uniform.c_str());
+        auto location = m_currentProgram->program->uniformLocation(uniform.c_str());
         it = uniformLocations.emplace(uniform, location).first;
     }
     return it->second;
