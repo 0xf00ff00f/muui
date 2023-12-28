@@ -57,7 +57,7 @@ void ShaderEffect::render(Painter *painter, const glm::vec2 &pos, int depth)
         m_painter.end();
     }
 
-    applyEffect(painter->spriteBatcher(), pos, depth);
+    applyEffect(painter, pos, depth);
 }
 
 } // namespace muui

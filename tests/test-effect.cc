@@ -51,11 +51,12 @@ public:
     float slope{3.0f};
 
 private:
-    void applyEffect(muui::SpriteBatcher *spriteBatcher, const glm::vec2 &pos, int depth) override;
+    void applyEffect(muui::Painter *painter, const glm::vec2 &pos, int depth) override;
 };
 
-void TransitionEffect::applyEffect(muui::SpriteBatcher *spriteBatcher, const glm::vec2 &pos, int depth)
+void TransitionEffect::applyEffect(muui::Painter *painter, const glm::vec2 &pos, int depth)
 {
+    auto *spriteBatcher = painter->spriteBatcher();
     const auto size = glm::vec2{m_framebuffer->width(), m_framebuffer->height()};
     spriteBatcher->setBatchProgram(transitionProgramHandle());
     spriteBatcher->setBatchTexture(m_framebuffer->texture());

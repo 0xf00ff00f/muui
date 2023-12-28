@@ -12,8 +12,8 @@ namespace muui
 SpriteBatcher::SpriteBatcher()
     : m_buffer(gl::Buffer::Type::Vertex, gl::Buffer::Usage::DynamicDraw)
 {
-    m_buffer.bind();
     gl::VertexArray::Binder binder(&m_vao);
+    m_buffer.bind();
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(SpriteVertex), reinterpret_cast<GLvoid *>(0));

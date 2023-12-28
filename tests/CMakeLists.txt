@@ -22,3 +22,6 @@ target_link_libraries(test-effect PUBLIC test-common)
 
 add_executable(test-gradient test-gradient.cc)
 target_link_libraries(test-gradient PUBLIC test-common)
+
+add_executable(test-dropshadow test-dropshadow.cc)
+target_link_libraries(test-dropshadow PUBLIC test-common)

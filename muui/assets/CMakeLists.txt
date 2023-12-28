@@ -21,7 +21,9 @@ set(ASSET_FILES
     shaders/roundedrectgradient.vert
     shaders/roundedrectgradient.frag
     shaders/decalgradient.vert
-    shaders/decalgradient.frag)
+    shaders/decalgradient.frag
+    shaders/gaussianblur.vert
+    shaders/gaussianblur.frag)
 
 cmrc_add_resource_library(
   embed-assets

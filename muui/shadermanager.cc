@@ -101,6 +101,7 @@ void ShaderManager::addBasicPrograms()
         {"circlegradient.vert", "circlegradient.frag"},
         {"roundedrectgradient.vert", "roundedrectgradient.frag"},
         {"textgradient.vert", "textgradient.frag"},
+        {"gaussianblur.vert", "gaussianblur.frag"},
     };
     assert(m_cachedPrograms.empty());
     m_cachedPrograms.reserve(programs.size());

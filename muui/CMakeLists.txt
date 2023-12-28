@@ -63,7 +63,10 @@ set(MUUI_SOURCES
     shadereffect.h
     shadereffect.cc
     gradienttexture.h
-    gradienttexture.cc)
+    gradienttexture.cc
+    mesh.h
+    dropshadow.h
+    dropshadow.cc)
 
 if(MUUI_USE_SDL2)
   list(APPEND MUUI_SOURCES sdlfs.h sdlfs.cc)
