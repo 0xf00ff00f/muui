@@ -9,6 +9,7 @@ namespace muui
 {
 
 DropShadow::DropShadow()
+    : ShaderEffect{8}
 {
     static const std::array<Vertex, 4> verts = {
         Vertex{{-1, -1}, {0, 0}},
@@ -53,7 +54,6 @@ void DropShadow::applyEffect(Painter *painter, const glm::vec2 &pos, int depth)
     glEnable(GL_BLEND);
 
     auto *spriteBatcher = painter->spriteBatcher();
-    spriteBatcher->setBatchProgram(ShaderManager::ProgramDecal);
     auto blitResult = [this, spriteBatcher, &pos](const gl::Texture *source, const glm::vec2 &offset,
                                                   const glm::vec4 &color, int depth) {
         struct Vertex
@@ -63,12 +63,16 @@ void DropShadow::applyEffect(Painter *painter, const glm::vec2 &pos, int depth)
         };
         const auto size = glm::vec2{width(), height()};
         spriteBatcher->setBatchTexture(source);
-        const Vertex topLeftVertex{.position = pos + offset, .texCoord = {0, 1}};
+        const Vertex topLeftVertex{.position = pos - glm::vec2(m_padding) + offset, .texCoord = {0, 1}};
         const Vertex bottomRightVertex{.position = topLeftVertex.position + size, .texCoord = {1, 0}};
         spriteBatcher->addSprite(topLeftVertex, bottomRightVertex, color, depth);
     };
-    blitResult(m_pingPongBuffers[1]->texture(), glm::vec2(0), color, depth);
-    blitResult(m_framebuffer->texture(), offset, glm::vec4(1), depth + 1);
+
+    spriteBatcher->setBatchProgram(ShaderManager::ProgramDecal);
+    blitResult(m_pingPongBuffers[1]->texture(), offset, color, depth);
+
+    spriteBatcher->setBatchProgram(ShaderManager::ProgramCopy);
+    blitResult(m_framebuffer->texture(), glm::vec2(0), glm::vec4(1), depth + 1);
 }
 
 } // namespace muui

@@ -68,8 +68,8 @@ void TransitionEffect::applyEffect(muui::Painter *painter, const glm::vec2 &pos,
         glm::vec2 position;
         glm::vec2 texCoord;
     };
-    const Vertex topLeftVertex{.position = pos, .texCoord = {0, 1}};
-    const Vertex bottomRightVertex{.position = pos + size, .texCoord = {1, 0}};
+    const Vertex topLeftVertex{.position = pos - glm::vec2(m_padding), .texCoord = {0, 1}};
+    const Vertex bottomRightVertex{.position = topLeftVertex.position + size, .texCoord = {1, 0}};
 
     const glm::vec4 parameters{spacing, slope, progress, 0.0f};
     spriteBatcher->addSprite(topLeftVertex, bottomRightVertex, parameters, depth);

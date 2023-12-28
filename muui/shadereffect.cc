@@ -3,11 +3,13 @@
 #include "framebuffer.h"
 #include "item.h"
 #include "painter.h"
-#include "spritebatcher.h"
 
 namespace muui
 {
-ShaderEffect::ShaderEffect() = default;
+ShaderEffect::ShaderEffect(int padding)
+    : m_padding{padding}
+{
+}
 
 ShaderEffect::~ShaderEffect()
 {
@@ -27,8 +29,8 @@ void ShaderEffect::setSource(Item *source)
     {
         auto resize = [this] {
             assert(m_source);
-            const auto w = static_cast<int>(std::ceil(m_source->width()));
-            const auto h = static_cast<int>(std::ceil(m_source->height()));
+            const auto w = static_cast<int>(std::ceil(m_source->width())) + 2 * m_padding;
+            const auto h = static_cast<int>(std::ceil(m_source->height())) + 2 * m_padding;
             m_painter.setWindowSize(w, h);
         };
         resize();
@@ -53,7 +55,7 @@ void ShaderEffect::render(Painter *painter, const glm::vec2 &pos, int depth)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         m_painter.begin();
-        m_source->doRender(&m_painter, glm::vec2{0, 0}, 0);
+        m_source->doRender(&m_painter, glm::vec2{m_padding, m_padding}, 0);
         m_painter.end();
     }
 

@@ -91,6 +91,7 @@ void ShaderManager::addBasicPrograms()
         const char *fragmentShader;
     };
     static const std::vector<Program> programs = {
+        {"copy.vert", "copy.frag"},
         {"flat.vert", "flat.frag"},
         {"decal.vert", "decal.frag"},
         {"circle.vert", "circle.frag"},

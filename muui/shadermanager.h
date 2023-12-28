@@ -33,17 +33,18 @@ public:
 
     static constexpr ProgramHandle InvalidProgram = -1;
 
-    static constexpr ProgramHandle ProgramFlat = 0;
-    static constexpr ProgramHandle ProgramDecal = 1;
-    static constexpr ProgramHandle ProgramCircle = 2;
-    static constexpr ProgramHandle ProgramRoundedRect = 3;
-    static constexpr ProgramHandle ProgramText = 4;
-    static constexpr ProgramHandle ProgramGradient = 5;
-    static constexpr ProgramHandle ProgramDecalGradient = 6;
-    static constexpr ProgramHandle ProgramCircleGradient = 7;
-    static constexpr ProgramHandle ProgramRoundedRectGradient = 8;
-    static constexpr ProgramHandle ProgramTextGradient = 9;
-    static constexpr ProgramHandle ProgramGaussianBlur = 10;
+    static constexpr ProgramHandle ProgramCopy = 0;
+    static constexpr ProgramHandle ProgramFlat = 1;
+    static constexpr ProgramHandle ProgramDecal = 2;
+    static constexpr ProgramHandle ProgramCircle = 3;
+    static constexpr ProgramHandle ProgramRoundedRect = 4;
+    static constexpr ProgramHandle ProgramText = 5;
+    static constexpr ProgramHandle ProgramGradient = 6;
+    static constexpr ProgramHandle ProgramDecalGradient = 7;
+    static constexpr ProgramHandle ProgramCircleGradient = 8;
+    static constexpr ProgramHandle ProgramRoundedRectGradient = 9;
+    static constexpr ProgramHandle ProgramTextGradient = 10;
+    static constexpr ProgramHandle ProgramGaussianBlur = 11;
 
     ProgramHandle addProgram(const ProgramDescription &description);
 

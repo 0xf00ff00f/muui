@@ -23,7 +23,9 @@ set(ASSET_FILES
     shaders/decalgradient.vert
     shaders/decalgradient.frag
     shaders/gaussianblur.vert
-    shaders/gaussianblur.frag)
+    shaders/gaussianblur.frag
+    shaders/copy.vert
+    shaders/copy.frag)
 
 cmrc_add_resource_library(
   embed-assets

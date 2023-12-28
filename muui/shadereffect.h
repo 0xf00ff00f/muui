@@ -20,7 +20,7 @@ class Framebuffer;
 class ShaderEffect
 {
 public:
-    ShaderEffect();
+    explicit ShaderEffect(int padding = 0);
     virtual ~ShaderEffect();
 
     Item *source() const { return m_source; }
@@ -34,6 +34,7 @@ public:
 protected:
     virtual void applyEffect(Painter *painter, const glm::vec2 &pos, int depth) = 0;
 
+    int m_padding{0};
     std::unique_ptr<gl::Framebuffer> m_framebuffer;
 
 private:
