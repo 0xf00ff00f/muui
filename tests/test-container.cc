@@ -42,7 +42,7 @@ void LayoutTest::initialize()
         label->containerAlignment = alignment;
         label->fillBackground = true;
         label->backgroundBrush = glm::vec4{1, 0, 0, 1};
-        label->color = {1, 1, 1, 1};
+        label->brush = glm::vec4{1, 1, 1, 1};
         container->append(std::move(label));
     };
 

@@ -216,7 +216,7 @@ public:
     void setAlignment(Alignment alignment);
     Alignment alignment() { return m_alignment; }
 
-    glm::vec4 color = glm::vec4(0, 0, 0, 1);
+    Brush brush = glm::vec4(0, 0, 0, 1);
     bool shadowEnabled = false;
     glm::vec2 shadowOffset = glm::vec2(4, 4);
     glm::vec4 shadowColor = glm::vec4(0.5, 0.5, 0.5, 1);

@@ -291,7 +291,7 @@ void Label::renderContents(Painter *painter, const glm::vec2 &pos, int depth)
     painter->setFont(m_font);
     if (shadowEnabled)
         painter->drawText(m_text, textPos + shadowOffset, shadowColor, depth + 1);
-    painter->drawText(m_text, textPos, color, depth + 2);
+    painter->drawText(m_text, textPos, brush, depth + 2);
 
     if (clipped)
         painter->setClipRect(prevClipRect);

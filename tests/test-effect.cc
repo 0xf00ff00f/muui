@@ -123,7 +123,7 @@ void EffectTest::initialize()
     innerColumn->cornerRadius = 12.0f;
 
     auto label = std::make_unique<muui::Label>(m_bigFont.get(), U"Sphinx of black quartz"sv);
-    label->color = glm::vec4(rgbToColor(0x040a18), 1);
+    label->brush = glm::vec4(rgbToColor(0x040a18), 1);
 
     auto bottomRow = std::make_unique<muui::Row>();
 

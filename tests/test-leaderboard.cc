@@ -39,7 +39,7 @@ std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float
 
     auto makeLabel = [](std::u32string_view text, Font *font, const glm::vec3 &color) {
         auto l = std::make_unique<Label>(font, text);
-        l->color = glm::vec4(color, 1);
+        l->brush = glm::vec4(color, 1);
         return l;
     };
 

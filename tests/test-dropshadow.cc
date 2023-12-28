@@ -22,14 +22,6 @@ using namespace std::string_view_literals;
 
 static const std::filesystem::path AssetsPath{ASSETSDIR};
 
-constexpr glm::vec3 rgbToColor(unsigned color)
-{
-    const auto r = static_cast<float>((color >> 16) & 0xff);
-    const auto g = static_cast<float>((color >> 8) & 0xff);
-    const auto b = static_cast<float>(color & 0xff);
-    return (1.0f / 255.0f) * glm::vec3(r, g, b);
-}
-
 class DropShadowTest : public TestWindow
 {
 public:
@@ -43,49 +35,39 @@ public:
 
 private:
     std::unique_ptr<muui::TextureAtlas> m_textureAtlas;
-    std::unique_ptr<muui::Font> m_bigFont;
-    std::unique_ptr<muui::Font> m_smallFont;
+    std::unique_ptr<muui::Font> m_font;
     std::unique_ptr<muui::Item> m_rootItem;
     std::unique_ptr<muui::Screen> m_screen;
-    muui::Item *m_innerContainer{nullptr};
+    muui::Item *m_item{nullptr};
     float m_direction{1.0f};
 };
 
 void DropShadowTest::initialize()
 {
     m_textureAtlas = std::make_unique<muui::TextureAtlas>(512, 512, PixelType::Grayscale);
-    m_bigFont = std::make_unique<muui::Font>(m_textureAtlas.get());
-    if (!m_bigFont->load(AssetsPath / "OpenSans_Bold.ttf", 80))
-        panic("Failed to load font\n");
-    m_smallFont = std::make_unique<muui::Font>(m_textureAtlas.get());
-    if (!m_smallFont->load(AssetsPath / "OpenSans-Light.ttf", 18))
+    m_font = std::make_unique<muui::Font>(m_textureAtlas.get());
+    if (!m_font->load(AssetsPath / "OpenSans_Bold.ttf", 80))
         panic("Failed to load font\n");
 
     auto outerContainer = std::make_unique<muui::Column>();
     outerContainer->setMargins(muui::Margins{8, 8, 8, 8});
     outerContainer->setSpacing(12);
 
-    auto innerContainer = std::make_unique<muui::Column>();
-    m_innerContainer = innerContainer.get();
-    innerContainer->setMargins(muui::Margins{12, 12, 12, 12});
-
-    auto label = std::make_unique<muui::Label>(m_bigFont.get(), U"Sphinx of black quartz"sv);
-    label->color = glm::vec4(rgbToColor(0x040a18), 1);
-
-    innerContainer->append(std::move(label));
+    auto item = std::make_unique<muui::Label>(m_font.get(), U"Sphinx of black quartz"sv);
+    item->brush = glm::vec4(1);
 
     auto applyDropShadow = [](auto *item) {
         auto dropShadow = std::make_unique<muui::DropShadow>();
-        dropShadow->offset = glm::vec2{0, 0};
-        dropShadow->color = glm::vec4{1, 0, 0, 1};
+        dropShadow->offset = glm::vec2{2, 2};
+        dropShadow->color = glm::vec4{1, 0, 0, 0.5};
         item->setShaderEffect(std::move(dropShadow));
     };
-    applyDropShadow(innerContainer.get());
+    applyDropShadow(item.get());
 
     auto enableEffect = std::make_unique<muui::Switch>(60.0f, 30.0f);
     enableEffect->setChecked(true);
     enableEffect->backgroundBrush = glm::vec4{0.5, 0.5, 0.5, 1};
-    enableEffect->toggledSignal.connect([this, applyDropShadow, item = innerContainer.get()](bool checked) {
+    enableEffect->toggledSignal.connect([this, applyDropShadow, item = item.get()](bool checked) {
         if (checked)
         {
             applyDropShadow(item);
@@ -96,7 +78,7 @@ void DropShadowTest::initialize()
         }
     });
 
-    outerContainer->append(std::move(innerContainer));
+    outerContainer->append(std::move(item));
     outerContainer->append(std::move(enableEffect));
 
     m_rootItem = std::move(outerContainer);
