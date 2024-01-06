@@ -286,7 +286,7 @@ public:
     void remove(std::size_t index);
     std::unique_ptr<Item> takeAt(std::size_t index);
     Item *at(std::size_t index) const;
-    std::size_t size() const { return m_layoutItems.size(); }
+    std::size_t count() const { return m_layoutItems.size(); }
 
     void setMargins(Margins margins);
     Margins margins() const { return m_margins; }
