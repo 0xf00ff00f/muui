@@ -494,6 +494,7 @@ std::unique_ptr<Item> Container::takeAt(std::size_t index)
     (*it)->resizedConnection.disconnect();
     auto item = std::move((*it)->item);
     m_layoutItems.erase(it);
+    updateLayout();
     return item;
 }
 
