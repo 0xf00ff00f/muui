@@ -104,6 +104,22 @@ inline Size operator*(float s, const Size &size)
     return size * s;
 }
 
+struct Length
+{
+    static Length pixels(float value) { return {Type::Pixels, value}; }
+    static Length percent(float value) { return {Type::Percent, value * 0.01f}; }
+
+    enum class Type
+    {
+        Pixels,
+        Percent,
+    };
+    Type type{Type::Pixels};
+    float value{0.0f};
+
+    bool operator==(const Length &other) const = default;
+};
+
 class Item
 {
 public:
@@ -127,6 +143,7 @@ public:
     Item *childAt(std::size_t index) const;
     std::size_t childCount() const { return m_layoutItems.size(); }
     virtual std::vector<Item *> children() const;
+    RectF childRect(std::size_t index);
 
     template<typename ChildT>
         requires std::derived_from<ChildT, Item>
@@ -145,6 +162,14 @@ public:
         }
         return nullptr;
     }
+
+    void setLeft(const Length &position);
+    void setHorizontalCenter(const Length &position);
+    void setRight(const Length &position);
+
+    void setTop(const Length &position);
+    void setVerticalCenter(const Length &position);
+    void setBottom(const Length &position);
 
     void setShaderEffect(std::unique_ptr<ShaderEffect> effect);
     void clearShaderEffect();
@@ -166,22 +191,58 @@ public:
     Alignment containerAlignment = Alignment::VCenter | Alignment::Left;
 
     muslots::Signal<Size> resizedSignal;
+    muslots::Signal<> positionChangedSignal;
 
 protected:
+    struct HorizontalAnchor
+    {
+        enum class Type
+        {
+            Left,
+            Center,
+            Right
+        };
+        Type type{Type::Left};
+        Length position{Length::pixels(0.0f)};
+
+        bool operator==(const HorizontalAnchor &) const = default;
+    };
+
+    struct VerticalAnchor
+    {
+        enum class Type
+        {
+            Top,
+            Center,
+            Bottom
+        };
+        Type type{Type::Top};
+        Length position{Length::pixels(0.0f)};
+
+        bool operator==(const VerticalAnchor &) const = default;
+    };
+
     void setSize(Size size);
+    void setHorizontalAnchor(const HorizontalAnchor &anchor);
+    void setVerticalAnchor(const VerticalAnchor &anchor);
     virtual void updateLayout();
     void renderBackground(Painter *painter, const glm::vec2 &pos, int depth);
     virtual void renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) = 0;
     virtual Item *handleMouseEvent(const TouchEvent &event);
+    virtual void handleChildUpdated();
 
     struct LayoutItem
     {
         glm::vec2 offset;
         std::unique_ptr<Item> item;
         muslots::Connection resizedConnection;
+        muslots::Connection positionChangedConnection;
     };
+
     Size m_size;
     std::vector<std::unique_ptr<LayoutItem>> m_layoutItems;
+    HorizontalAnchor m_horizontalAnchor{};
+    VerticalAnchor m_verticalAnchor{};
 
 private:
     void doRender(Painter *painter, const glm::vec2 &pos, int depth);
@@ -301,6 +362,8 @@ public:
     float spacing() const { return m_spacing; }
 
 protected:
+    void handleChildUpdated() override;
+    virtual void updateSize() = 0;
     void renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
 
     Margins m_margins;
@@ -314,6 +377,7 @@ public:
     float minimumWidth() const { return m_minimumWidth; }
 
 private:
+    void updateSize() override;
     void updateLayout() override;
 
     float m_minimumWidth = 0;
@@ -326,6 +390,7 @@ public:
     float minimumHeight() const { return m_minimumHeight; }
 
 private:
+    void updateSize() override;
     void updateLayout() override;
 
     float m_minimumHeight = 0;

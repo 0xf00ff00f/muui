@@ -11,7 +11,7 @@ TEST_CASE("Column layout", "[layouts]")
 
     // add a rectangle
     {
-        auto r1 = std::make_unique<muui::Rectangle>(80, 20);
+        auto r1 = std::make_unique<Rectangle>(80, 20);
         REQUIRE(r1->size() == Size{80, 20});
         column.appendChild(std::move(r1));
     }
@@ -20,7 +20,7 @@ TEST_CASE("Column layout", "[layouts]")
 
     // add another rectangle
     {
-        auto r2 = std::make_unique<muui::Rectangle>(100, 10);
+        auto r2 = std::make_unique<Rectangle>(100, 10);
         REQUIRE(r2->size() == Size{100, 10});
         column.appendChild(std::move(r2));
     }
@@ -51,7 +51,7 @@ TEST_CASE("Row layout", "[layouts]")
 
     // add a rectangle
     {
-        auto r1 = std::make_unique<muui::Rectangle>(80, 20);
+        auto r1 = std::make_unique<Rectangle>(80, 20);
         REQUIRE(r1->size() == Size{80, 20});
         row.appendChild(std::move(r1));
     }
@@ -60,7 +60,7 @@ TEST_CASE("Row layout", "[layouts]")
 
     // add another rectangle
     {
-        auto r2 = std::make_unique<muui::Rectangle>(100, 10);
+        auto r2 = std::make_unique<Rectangle>(100, 10);
         REQUIRE(r2->size() == Size{100, 10});
         row.appendChild(std::move(r2));
     }

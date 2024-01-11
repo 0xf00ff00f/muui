@@ -35,10 +35,12 @@ void Item::appendChild(std::unique_ptr<Item> item)
 
 void Item::insertChild(std::size_t index, std::unique_ptr<Item> item)
 {
-    auto resizedConnection = item->resizedSignal.connect([this](Size size) { updateLayout(); });
-    auto layoutItem = std::make_unique<LayoutItem>(LayoutItem{{}, std::move(item), std::move(resizedConnection)});
+    auto resizedConnection = item->resizedSignal.connect([this](Size size) { handleChildUpdated(); });
+    auto positionChangedConnection = item->positionChangedSignal.connect([this] { updateLayout(); });
+    auto layoutItem = std::make_unique<LayoutItem>(
+        LayoutItem{{}, std::move(item), std::move(resizedConnection), std::move(positionChangedConnection)});
     m_layoutItems.insert(std::next(m_layoutItems.begin(), index), std::move(layoutItem));
-    updateLayout();
+    handleChildUpdated();
 }
 
 void Item::removeChild(std::size_t index)
@@ -46,7 +48,7 @@ void Item::removeChild(std::size_t index)
     if (index >= m_layoutItems.size())
         return;
     m_layoutItems.erase(std::next(m_layoutItems.begin(), index));
-    updateLayout();
+    handleChildUpdated();
 }
 
 std::unique_ptr<Item> Item::takeChildAt(std::size_t index)
@@ -55,15 +57,25 @@ std::unique_ptr<Item> Item::takeChildAt(std::size_t index)
         return {};
     auto it = std::next(m_layoutItems.begin(), index);
     (*it)->resizedConnection.disconnect();
+    (*it)->positionChangedConnection.disconnect();
     auto item = std::move((*it)->item);
     m_layoutItems.erase(it);
-    updateLayout();
+    handleChildUpdated();
     return item;
 }
 
 Item *Item::childAt(std::size_t index) const
 {
     return index < m_layoutItems.size() ? m_layoutItems[index]->item.get() : nullptr;
+}
+
+RectF Item::childRect(std::size_t index)
+{
+    if (index >= m_layoutItems.size())
+        return {};
+    const auto &layoutItem = m_layoutItems[index];
+    const auto &size = layoutItem->item->m_size;
+    return RectF{layoutItem->offset, layoutItem->offset + glm::vec2{size.width, size.height}};
 }
 
 std::vector<Item *> Item::children() const
@@ -104,12 +116,70 @@ void Item::setSize(Size size)
     if (size == m_size)
         return;
     m_size = size;
+    updateLayout();
     resizedSignal(m_size);
+}
+
+void Item::handleChildUpdated()
+{
+    updateLayout();
 }
 
 void Item::updateLayout()
 {
-    // XXX
+    for (auto &layoutItem : m_layoutItems)
+    {
+        const auto &item = layoutItem->item;
+        const auto anchorX = [this, &item]() -> float {
+            const auto &position = item->m_horizontalAnchor.position;
+            switch (position.type)
+            {
+            case Length::Type::Pixels:
+            default:
+                return position.value;
+            case Length::Type::Percent:
+                return position.value * m_size.width;
+            }
+        }();
+        const auto offsetX = [this, &item, anchorX]() -> float {
+            const auto &anchor = item->m_horizontalAnchor;
+            switch (anchor.type)
+            {
+            case HorizontalAnchor::Type::Left:
+            default:
+                return anchorX;
+            case HorizontalAnchor::Type::Center:
+                return anchorX - 0.5f * item->m_size.width;
+            case HorizontalAnchor::Type::Right:
+                return anchorX - item->m_size.width;
+            }
+        }();
+        const auto anchorY = [this, &item]() -> float {
+            const auto &position = item->m_verticalAnchor.position;
+            switch (position.type)
+            {
+            case Length::Type::Pixels:
+            default:
+                return position.value;
+            case Length::Type::Percent:
+                return position.value * m_size.height;
+            }
+        }();
+        const auto offsetY = [this, &item, anchorY]() -> float {
+            const auto &anchor = item->m_verticalAnchor;
+            switch (anchor.type)
+            {
+            case VerticalAnchor::Type::Top:
+            default:
+                return anchorY;
+            case VerticalAnchor::Type::Center:
+                return anchorY - 0.5f * item->m_size.height;
+            case VerticalAnchor::Type::Bottom:
+                return anchorY - item->m_size.height;
+            }
+        }();
+        layoutItem->offset = glm::vec2{offsetX, offsetY};
+    }
 }
 
 void Item::render(Painter *painter, const glm::vec2 &pos, int depth)
@@ -174,6 +244,52 @@ Item *Item::mouseEvent(const TouchEvent &event)
 Item *Item::handleMouseEvent(const TouchEvent &)
 {
     return nullptr;
+}
+
+void Item::setLeft(const Length &position)
+{
+    setHorizontalAnchor({HorizontalAnchor::Type::Left, position});
+}
+
+void Item::setHorizontalCenter(const Length &position)
+{
+    setHorizontalAnchor({HorizontalAnchor::Type::Center, position});
+}
+
+void Item::setRight(const Length &position)
+{
+    setHorizontalAnchor({HorizontalAnchor::Type::Right, position});
+}
+
+void Item::setHorizontalAnchor(const HorizontalAnchor &anchor)
+{
+    if (anchor == m_horizontalAnchor)
+        return;
+    m_horizontalAnchor = anchor;
+    positionChangedSignal();
+}
+
+void Item::setTop(const Length &position)
+{
+    setVerticalAnchor({VerticalAnchor::Type::Top, position});
+}
+
+void Item::setVerticalCenter(const Length &position)
+{
+    setVerticalAnchor({VerticalAnchor::Type::Center, position});
+}
+
+void Item::setBottom(const Length &position)
+{
+    setVerticalAnchor({VerticalAnchor::Type::Bottom, position});
+}
+
+void Item::setVerticalAnchor(const VerticalAnchor &anchor)
+{
+    if (anchor == m_verticalAnchor)
+        return;
+    m_verticalAnchor = anchor;
+    positionChangedSignal();
 }
 
 void Item::setShaderEffect(std::unique_ptr<ShaderEffect> effect)
@@ -512,7 +628,7 @@ void Container::setMargins(Margins margins)
     if (margins == m_margins)
         return;
     m_margins = margins;
-    updateLayout();
+    updateSize();
 }
 
 void Container::setSpacing(float spacing)
@@ -520,7 +636,13 @@ void Container::setSpacing(float spacing)
     if (spacing == m_spacing)
         return;
     m_spacing = spacing;
-    updateLayout();
+    updateSize();
+}
+
+void Container::handleChildUpdated()
+{
+    updateSize();
+    Item::handleChildUpdated();
 }
 
 void Container::renderContents(Painter *, const glm::vec2 &, int) {}
@@ -530,12 +652,11 @@ void Column::setMinimumWidth(float width)
     if (width == m_minimumWidth)
         return;
     m_minimumWidth = width;
-    updateLayout();
+    updateSize();
 }
 
-void Column::updateLayout()
+void Column::updateSize()
 {
-    // update size
     float width = std::max(m_minimumWidth - (m_margins.left + m_margins.right), 0.0f);
     float height = 0;
     for (auto &layoutItem : m_layoutItems)
@@ -549,8 +670,10 @@ void Column::updateLayout()
     width += m_margins.left + m_margins.right;
     height += m_margins.top + m_margins.bottom;
     setSize({width, height});
+}
 
-    // update item offsets
+void Column::updateLayout()
+{
     auto p = glm::vec2(m_margins.left, m_margins.top);
     for (auto &layoutItem : m_layoutItems)
     {
@@ -578,12 +701,11 @@ void Row::setMinimumHeight(float height)
     if (height == m_minimumHeight)
         return;
     m_minimumHeight = height;
-    updateLayout();
+    updateSize();
 }
 
-void Row::updateLayout()
+void Row::updateSize()
 {
-    // update size
     float width = 0;
     float height = std::max(m_minimumHeight - (m_margins.top + m_margins.bottom), 0.0f);
     for (auto &layoutItem : m_layoutItems)
@@ -597,8 +719,10 @@ void Row::updateLayout()
     width += m_margins.left + m_margins.right;
     height += m_margins.top + m_margins.bottom;
     setSize({width, height});
+}
 
-    // update item offsets
+void Row::updateLayout()
+{
     auto p = glm::vec2(m_margins.left, m_margins.top);
     for (auto &layoutItem : m_layoutItems)
     {
