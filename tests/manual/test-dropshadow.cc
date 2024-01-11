@@ -78,8 +78,8 @@ void DropShadowTest::initialize()
         }
     });
 
-    outerContainer->append(std::move(item));
-    outerContainer->append(std::move(enableEffect));
+    outerContainer->appendChild(std::move(item));
+    outerContainer->appendChild(std::move(enableEffect));
 
     m_rootItem = std::move(outerContainer);
 

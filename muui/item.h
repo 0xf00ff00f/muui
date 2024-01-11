@@ -119,6 +119,13 @@ public:
 
     Item *mouseEvent(const TouchEvent &event);
     virtual void update(float elapsed);
+
+    void appendChild(std::unique_ptr<Item> item);
+    void insertChild(std::size_t index, std::unique_ptr<Item> item);
+    void removeChild(std::size_t index);
+    std::unique_ptr<Item> takeChildAt(std::size_t index);
+    Item *childAt(std::size_t index) const;
+    std::size_t childCount() const { return m_layoutItems.size(); }
     virtual std::vector<Item *> children() const;
 
     template<typename ChildT>
@@ -162,11 +169,19 @@ public:
 
 protected:
     void setSize(Size size);
+    virtual void updateLayout();
     void renderBackground(Painter *painter, const glm::vec2 &pos, int depth);
     virtual void renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) = 0;
     virtual Item *handleMouseEvent(const TouchEvent &event);
 
+    struct LayoutItem
+    {
+        glm::vec2 offset;
+        std::unique_ptr<Item> item;
+        muslots::Connection resizedConnection;
+    };
     Size m_size;
+    std::vector<std::unique_ptr<LayoutItem>> m_layoutItems;
 
 private:
     void doRender(Painter *painter, const glm::vec2 &pos, int depth);
@@ -279,15 +294,6 @@ protected:
 class Container : public Item
 {
 public:
-    std::vector<Item *> children() const override;
-
-    void append(std::unique_ptr<Item> item);
-    void insert(std::size_t index, std::unique_ptr<Item> item);
-    void remove(std::size_t index);
-    std::unique_ptr<Item> takeAt(std::size_t index);
-    Item *at(std::size_t index) const;
-    std::size_t count() const { return m_layoutItems.size(); }
-
     void setMargins(Margins margins);
     Margins margins() const { return m_margins; }
 
@@ -295,19 +301,8 @@ public:
     float spacing() const { return m_spacing; }
 
 protected:
-    void update(float elapsed) override;
-    virtual void updateLayout() = 0;
-    Item *handleMouseEvent(const TouchEvent &event) override;
-
     void renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
 
-    struct LayoutItem
-    {
-        glm::vec2 offset;
-        std::unique_ptr<Item> item;
-        muslots::Connection resizedConnection;
-    };
-    std::vector<std::unique_ptr<LayoutItem>> m_layoutItems;
     Margins m_margins;
     float m_spacing = 0.0f;
 };

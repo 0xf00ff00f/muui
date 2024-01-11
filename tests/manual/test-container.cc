@@ -43,7 +43,7 @@ void LayoutTest::initialize()
         label->fillBackground = true;
         label->backgroundBrush = glm::vec4{1, 0, 0, 1};
         label->brush = glm::vec4{1, 1, 1, 1};
-        container->append(std::move(label));
+        container->appendChild(std::move(label));
     };
 
     auto root = std::make_unique<muui::Column>();
@@ -61,7 +61,7 @@ void LayoutTest::initialize()
         addLabel(column.get(), U"label 1"sv, muui::Alignment::VCenter | muui::Alignment::Left);
         addLabel(column.get(), U"label 2"sv, muui::Alignment::VCenter | muui::Alignment::HCenter);
         addLabel(column.get(), U"label 3"sv, muui::Alignment::VCenter | muui::Alignment::Right);
-        root->append(std::move(column));
+        root->appendChild(std::move(column));
     }
 
     {
@@ -76,7 +76,7 @@ void LayoutTest::initialize()
         addLabel(row.get(), U"label 1"sv, muui::Alignment::Top | muui::Alignment::Left);
         addLabel(row.get(), U"label 2"sv, muui::Alignment::VCenter | muui::Alignment::Left);
         addLabel(row.get(), U"label 3"sv, muui::Alignment::Bottom | muui::Alignment::Left);
-        root->append(std::move(row));
+        root->appendChild(std::move(row));
     }
 
     m_rootItem = std::move(root);

@@ -22,11 +22,57 @@ Font *defaultFont()
 Item::Item() = default;
 Item::~Item() = default;
 
-void Item::update(float) {}
+void Item::update(float elapsed)
+{
+    for (auto &layoutItem : m_layoutItems)
+        layoutItem->item->update(elapsed);
+}
+
+void Item::appendChild(std::unique_ptr<Item> item)
+{
+    insertChild(m_layoutItems.size(), std::move(item));
+}
+
+void Item::insertChild(std::size_t index, std::unique_ptr<Item> item)
+{
+    auto resizedConnection = item->resizedSignal.connect([this](Size size) { updateLayout(); });
+    auto layoutItem = std::make_unique<LayoutItem>(LayoutItem{{}, std::move(item), std::move(resizedConnection)});
+    m_layoutItems.insert(std::next(m_layoutItems.begin(), index), std::move(layoutItem));
+    updateLayout();
+}
+
+void Item::removeChild(std::size_t index)
+{
+    if (index >= m_layoutItems.size())
+        return;
+    m_layoutItems.erase(std::next(m_layoutItems.begin(), index));
+    updateLayout();
+}
+
+std::unique_ptr<Item> Item::takeChildAt(std::size_t index)
+{
+    if (index >= m_layoutItems.size())
+        return {};
+    auto it = std::next(m_layoutItems.begin(), index);
+    (*it)->resizedConnection.disconnect();
+    auto item = std::move((*it)->item);
+    m_layoutItems.erase(it);
+    updateLayout();
+    return item;
+}
+
+Item *Item::childAt(std::size_t index) const
+{
+    return index < m_layoutItems.size() ? m_layoutItems[index]->item.get() : nullptr;
+}
 
 std::vector<Item *> Item::children() const
 {
-    return {};
+    std::vector<Item *> children;
+    children.reserve(m_layoutItems.size());
+    std::transform(m_layoutItems.begin(), m_layoutItems.end(), std::back_inserter(children),
+                   [](auto &layoutItem) { return layoutItem->item.get(); });
+    return children;
 }
 
 void Item::renderBackground(Painter *painter, const glm::vec2 &pos, int depth)
@@ -61,6 +107,11 @@ void Item::setSize(Size size)
     resizedSignal(m_size);
 }
 
+void Item::updateLayout()
+{
+    // XXX
+}
+
 void Item::render(Painter *painter, const glm::vec2 &pos, int depth)
 {
     if (!visible)
@@ -82,12 +133,41 @@ void Item::doRender(Painter *painter, const glm::vec2 &pos, int depth)
 {
     renderBackground(painter, pos, depth);
     renderContents(painter, pos, depth);
+    for (auto &layoutItem : m_layoutItems)
+        layoutItem->item->render(painter, pos + layoutItem->offset, depth + 1);
 }
 
 Item *Item::mouseEvent(const TouchEvent &event)
 {
     if (!visible)
         return nullptr;
+    switch (event.type)
+    {
+    case TouchEvent::Type::Press:
+    case TouchEvent::Type::Release:
+    case TouchEvent::Type::DragBegin: {
+        const auto &pos = event.position;
+        if (!rect().contains(pos))
+            return nullptr;
+        // back to front, we want items that are drawn last to be tested first
+        for (auto it = m_layoutItems.rbegin(); it != m_layoutItems.rend(); ++it)
+        {
+            const auto &item = (*it)->item;
+            const auto &offset = (*it)->offset;
+            const auto childRect = RectF{offset, offset + glm::vec2(item->width(), item->height())};
+            if (childRect.contains(pos))
+            {
+                TouchEvent childEvent = event;
+                childEvent.position -= offset;
+                if (auto *handler = item->mouseEvent(childEvent); handler)
+                    return handler;
+            }
+        }
+        break;
+    }
+    default:
+        break;
+    }
     return handleMouseEvent(event);
 }
 
@@ -427,90 +507,6 @@ void Image::renderContents(Painter *painter, const glm::vec2 &pos, int depth)
     }
 }
 
-void Container::update(float elapsed)
-{
-    for (auto &layoutItem : m_layoutItems)
-        layoutItem->item->update(elapsed);
-}
-
-Item *Container::handleMouseEvent(const TouchEvent &event)
-{
-    switch (event.type)
-    {
-    case TouchEvent::Type::Press:
-    case TouchEvent::Type::Release:
-    case TouchEvent::Type::DragBegin: {
-        const auto &pos = event.position;
-        if (!rect().contains(pos))
-            return nullptr;
-        // back to front, we want items that are drawn last to be tested first
-        for (auto it = m_layoutItems.rbegin(); it != m_layoutItems.rend(); ++it)
-        {
-            const auto &item = (*it)->item;
-            const auto &offset = (*it)->offset;
-            const auto childRect = RectF{offset, offset + glm::vec2(item->width(), item->height())};
-            if (childRect.contains(pos))
-            {
-                TouchEvent childEvent = event;
-                childEvent.position -= offset;
-                if (auto *handler = item->mouseEvent(childEvent); handler)
-                    return handler;
-            }
-        }
-        return nullptr;
-    }
-    default:
-        return nullptr;
-    }
-}
-
-std::vector<Item *> Container::children() const
-{
-    std::vector<Item *> children;
-    children.reserve(m_layoutItems.size());
-    std::transform(m_layoutItems.begin(), m_layoutItems.end(), std::back_inserter(children),
-                   [](auto &layoutItem) { return layoutItem->item.get(); });
-    return children;
-}
-
-void Container::insert(std::size_t index, std::unique_ptr<Item> item)
-{
-    auto resizedConnection = item->resizedSignal.connect([this](Size size) { updateLayout(); });
-    auto layoutItem = std::make_unique<LayoutItem>(LayoutItem{{}, std::move(item), std::move(resizedConnection)});
-    m_layoutItems.insert(std::next(m_layoutItems.begin(), index), std::move(layoutItem));
-    updateLayout();
-}
-
-void Container::append(std::unique_ptr<Item> item)
-{
-    insert(m_layoutItems.size(), std::move(item));
-}
-
-std::unique_ptr<Item> Container::takeAt(std::size_t index)
-{
-    if (index >= m_layoutItems.size())
-        return {};
-    auto it = std::next(m_layoutItems.begin(), index);
-    (*it)->resizedConnection.disconnect();
-    auto item = std::move((*it)->item);
-    m_layoutItems.erase(it);
-    updateLayout();
-    return item;
-}
-
-Item *Container::at(std::size_t index) const
-{
-    return index < m_layoutItems.size() ? m_layoutItems[index]->item.get() : nullptr;
-}
-
-void Container::remove(std::size_t index)
-{
-    if (index >= m_layoutItems.size())
-        return;
-    m_layoutItems.erase(std::next(m_layoutItems.begin(), index));
-    updateLayout();
-}
-
 void Container::setMargins(Margins margins)
 {
     if (margins == m_margins)
@@ -527,11 +523,7 @@ void Container::setSpacing(float spacing)
     updateLayout();
 }
 
-void Container::renderContents(Painter *painter, const glm::vec2 &pos, int depth)
-{
-    for (auto &layoutItem : m_layoutItems)
-        layoutItem->item->render(painter, pos + layoutItem->offset, depth + 1);
-}
+void Container::renderContents(Painter *, const glm::vec2 &, int) {}
 
 void Column::setMinimumWidth(float width)
 {
@@ -642,6 +634,7 @@ ScrollArea::ScrollArea(std::unique_ptr<Item> contentItem)
 
 void ScrollArea::update(float elapsed)
 {
+    Item::update(elapsed);
     m_contentItem->update(elapsed);
 }
 
@@ -687,7 +680,9 @@ Item *ScrollArea::handleMouseEvent(const TouchEvent &event)
 
 std::vector<Item *> ScrollArea::children() const
 {
-    return {m_contentItem.get()};
+    auto children = Item::children();
+    children.insert(children.begin(), m_contentItem.get());
+    return children;
 }
 
 void ScrollArea::setMargins(Margins margins)
@@ -777,6 +772,7 @@ void Switch::setChecked(bool checked)
 
 void Switch::update(float elapsed)
 {
+    Item::update(elapsed);
     m_animation.update(elapsed);
 }
 

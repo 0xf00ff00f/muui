@@ -135,13 +135,13 @@ void EffectTest::initialize()
 
     auto image = std::make_unique<muui::Image>((AssetsPath / "vim.png").string());
 
-    bottomRow->append(std::move(text));
-    bottomRow->append(std::move(image));
+    bottomRow->appendChild(std::move(text));
+    bottomRow->appendChild(std::move(image));
 
-    innerColumn->append(std::move(label));
-    innerColumn->append(std::move(bottomRow));
+    innerColumn->appendChild(std::move(label));
+    innerColumn->appendChild(std::move(bottomRow));
 
-    innerContainer->append(std::move(innerColumn));
+    innerContainer->appendChild(std::move(innerColumn));
     innerContainer->setShaderEffect(std::make_unique<TransitionEffect>());
 
     auto direction = std::make_unique<muui::Switch>(60.0f, 30.0f);
@@ -168,9 +168,9 @@ void EffectTest::initialize()
         }
     });
 
-    outerContainer->append(std::move(innerContainer));
-    outerContainer->append(std::move(direction));
-    outerContainer->append(std::move(enableEffect));
+    outerContainer->appendChild(std::move(innerContainer));
+    outerContainer->appendChild(std::move(direction));
+    outerContainer->appendChild(std::move(enableEffect));
 
     m_rootItem = std::move(outerContainer);
 

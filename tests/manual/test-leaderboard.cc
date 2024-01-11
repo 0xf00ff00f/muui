@@ -80,38 +80,38 @@ std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float
         {
             auto r = std::make_unique<Rectangle>();
             r->setSize(rowMargin + indexColumnWidth + 1, 1);
-            headerRow->append(std::move(r));
+            headerRow->appendChild(std::move(r));
         }
 
         {
             auto l = makeLabel(U"NAME"sv, smallFont, textColor);
             l->setAlignment(Alignment::Left);
             l->setFixedWidth(nameColumnWidth);
-            headerRow->append(std::move(l));
+            headerRow->appendChild(std::move(l));
         }
 
-        headerRow->append(makeSeparator());
+        headerRow->appendChild(makeSeparator());
 
         {
             auto l = makeLabel(U"SCORE"sv, smallFont, textColor);
             l->setAlignment(Alignment::HCenter);
             l->setFixedWidth(scoreColumnWidth);
-            headerRow->append(std::move(l));
+            headerRow->appendChild(std::move(l));
         }
 
-        headerRow->append(makeSeparator());
+        headerRow->appendChild(makeSeparator());
 
         {
             auto l = makeLabel(U"ACCURACY"sv, smallFont, textColor);
             l->setAlignment(Alignment::Right);
             l->setFixedWidth(accuracyColumnWidth);
-            headerRow->append(std::move(l));
+            headerRow->appendChild(std::move(l));
         }
 
         {
             auto r = std::make_unique<Rectangle>();
             r->setSize(rowMargin, 1);
-            headerRow->append(std::move(r));
+            headerRow->appendChild(std::move(r));
         }
 
         assert(headerRow->width() == width - 2 * outerMargin);
@@ -157,11 +157,11 @@ std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float
 
             auto index = makeLabel(fmt::format(U"{}.", i + 1), smallFont, textColor);
             index->setFixedWidth(indexColumnWidth);
-            row->append(std::move(index));
+            row->appendChild(std::move(index));
 
             auto nameLabel = makeLabel(entry.name, smallFont, headingColor);
             nameLabel->setFixedWidth(nameColumnWidth);
-            row->append(std::move(nameLabel));
+            row->appendChild(std::move(nameLabel));
 
             auto formatThousands = [](int value) -> std::u32string {
                 std::u32string text;
@@ -180,14 +180,14 @@ std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float
             auto scoreLabel = makeLabel(formatThousands(entry.score), smallFont, textColor);
             scoreLabel->setFixedWidth(scoreColumnWidth);
             scoreLabel->setAlignment(Alignment::HCenter);
-            row->append(std::move(scoreLabel));
+            row->appendChild(std::move(scoreLabel));
 
             auto accuracyLabel = makeLabel(fmt::format(U"{:.2f}%", entry.accuracy), smallFont, textColor);
             accuracyLabel->setFixedWidth(accuracyColumnWidth);
             accuracyLabel->setAlignment(Alignment::Right);
-            row->append(std::move(accuracyLabel));
+            row->appendChild(std::move(accuracyLabel));
 
-            entryColumn->append(std::move(row));
+            entryColumn->appendChild(std::move(row));
         }
 
         assert(entryColumn->width() == width - 2 * outerMargin);
@@ -200,15 +200,15 @@ std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float
         auto scrollArea = std::make_unique<ScrollArea>(std::move(entryColumn));
         scrollArea->setViewportSize({viewportWidth, viewportHeight});
 
-        innerContainer->append(std::move(headerRow));
-        innerContainer->append(std::move(scrollArea));
+        innerContainer->appendChild(std::move(headerRow));
+        innerContainer->appendChild(std::move(scrollArea));
 
         assert(innerContainer->width() == viewportWidth);
         assert(innerContainer->height() == containerHeight);
     }
 
-    outerContainer->append(std::move(title));
-    outerContainer->append(std::move(innerContainer));
+    outerContainer->appendChild(std::move(title));
+    outerContainer->appendChild(std::move(innerContainer));
     assert(outerContainer->width() == width);
     assert(outerContainer->height() == height);
 
