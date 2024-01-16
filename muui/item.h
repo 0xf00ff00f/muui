@@ -136,8 +136,23 @@ public:
     Item *mouseEvent(const TouchEvent &event);
     virtual void update(float elapsed);
 
-    void appendChild(std::unique_ptr<Item> item);
-    void insertChild(std::size_t index, std::unique_ptr<Item> item);
+    template<typename ChildT, typename... Args>
+        requires std::derived_from<ChildT, Item>
+    ChildT *appendChild(Args &&...args)
+    {
+        return insertChild<ChildT>(m_layoutItems.size(), std::forward<Args>(args)...);
+    }
+
+    template<typename ChildT, typename... Args>
+        requires std::derived_from<ChildT, Item>
+    ChildT *insertChild(std::size_t index, Args &&...args)
+    {
+        auto it = m_layoutItems.emplace(std::next(m_layoutItems.begin(), index),
+                                        std::make_unique<ChildT>(std::forward<Args>(args)...), this);
+        handleChildUpdated();
+        return static_cast<ChildT *>(it->item());
+    }
+
     void removeChild(std::size_t index);
     std::unique_ptr<Item> takeChildAt(std::size_t index);
     Item *childAt(std::size_t index) const;

@@ -41,18 +41,6 @@ void Item::update(float elapsed)
         layoutItem.item()->update(elapsed);
 }
 
-void Item::appendChild(std::unique_ptr<Item> item)
-{
-    insertChild(m_layoutItems.size(), std::move(item));
-}
-
-void Item::insertChild(std::size_t index, std::unique_ptr<Item> item)
-{
-    auto it = std::next(m_layoutItems.begin(), index);
-    m_layoutItems.emplace(it, std::move(item), this);
-    handleChildUpdated();
-}
-
 void Item::removeChild(std::size_t index)
 {
     if (index >= m_layoutItems.size())

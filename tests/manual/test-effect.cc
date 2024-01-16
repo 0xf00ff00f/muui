@@ -91,9 +91,9 @@ private:
     std::unique_ptr<muui::TextureAtlas> m_textureAtlas;
     std::unique_ptr<muui::Font> m_bigFont;
     std::unique_ptr<muui::Font> m_smallFont;
-    std::unique_ptr<muui::Item> m_rootItem;
+    std::unique_ptr<muui::Container> m_rootItem;
     std::unique_ptr<muui::Screen> m_screen;
-    muui::Item *m_innerContainer{nullptr};
+    muui::Container *m_innerContainer{nullptr};
     float m_direction{1.0f};
 };
 
@@ -107,44 +107,36 @@ void EffectTest::initialize()
     if (!m_smallFont->load(AssetsPath / "OpenSans-Light.ttf", 18))
         panic("Failed to load font\n");
 
-    auto outerContainer = std::make_unique<muui::Column>();
-    outerContainer->setMargins(muui::Margins{8, 8, 8, 8});
-    outerContainer->setSpacing(12);
+    m_rootItem = std::make_unique<muui::Column>();
+    m_rootItem->setMargins(muui::Margins{8, 8, 8, 8});
+    m_rootItem->setSpacing(12);
 
-    auto innerContainer = std::make_unique<muui::Column>();
-    m_innerContainer = innerContainer.get();
-    innerContainer->setMargins(muui::Margins{1, 1, 1, 1});
+    m_innerContainer = m_rootItem->appendChild<muui::Column>();
+    m_innerContainer->setMargins(muui::Margins{1, 1, 1, 1});
 
-    auto innerColumn = std::make_unique<muui::Column>();
+    auto *innerColumn = m_innerContainer->appendChild<muui::Column>();
     innerColumn->fillBackground = true;
     innerColumn->backgroundBrush = glm::vec4{1, 1, 1, 0.75};
     innerColumn->setMargins(muui::Margins{12, 12, 12, 12});
     innerColumn->shape = muui::Item::Shape::RoundedRectangle;
     innerColumn->cornerRadius = 12.0f;
 
-    auto label = std::make_unique<muui::Label>(m_bigFont.get(), U"Sphinx of black quartz"sv);
+    auto *label = innerColumn->appendChild<muui::Label>(m_bigFont.get(), U"Sphinx of black quartz"sv);
     label->brush = glm::vec4(rgbToColor(0x040a18), 1);
 
-    auto bottomRow = std::make_unique<muui::Row>();
+    auto *bottomRow = innerColumn->appendChild<muui::Row>();
 
-    auto text = std::make_unique<muui::MultiLineText>(m_smallFont.get());
+    auto *text = bottomRow->appendChild<muui::MultiLineText>(m_smallFont.get());
     text->setFixedWidth(500);
     text->setText(
         U"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a semper quam. Donec tempor bibendum nulla a viverra. Aenean non urna sit amet dolor hendrerit efficitur vitae dapibus ante. Vestibulum et hendrerit metus. Integer ornare, purus vel ultricies porta, nisl ligula vehicula quam, faucibus malesuada diam risus id lacus. Donec velit nisl, cursus id enim at, sagittis bibendum enim. Phasellus elementum quam eu ultrices rhoncus. Pellentesque vel dui id turpis euismod consequat. Fusce ac aliquam nibh. Mauris laoreet tincidunt sem eget varius."sv);
     text->color = glm::vec4(rgbToColor(0x040a18), 1);
 
-    auto image = std::make_unique<muui::Image>((AssetsPath / "vim.png").string());
+    auto *image = bottomRow->appendChild<muui::Image>((AssetsPath / "vim.png").string());
 
-    bottomRow->appendChild(std::move(text));
-    bottomRow->appendChild(std::move(image));
+    m_innerContainer->setShaderEffect(std::make_unique<TransitionEffect>());
 
-    innerColumn->appendChild(std::move(label));
-    innerColumn->appendChild(std::move(bottomRow));
-
-    innerContainer->appendChild(std::move(innerColumn));
-    innerContainer->setShaderEffect(std::make_unique<TransitionEffect>());
-
-    auto direction = std::make_unique<muui::Switch>(60.0f, 30.0f);
+    auto *direction = m_rootItem->appendChild<muui::Switch>(60.0f, 30.0f);
     direction->setChecked(true);
     direction->backgroundBrush = glm::vec4{0.5, 0.5, 0.5, 1};
     direction->toggledSignal.connect([this](bool checked) {
@@ -154,25 +146,19 @@ void EffectTest::initialize()
             m_direction = -1.0f;
     });
 
-    auto enableEffect = std::make_unique<muui::Switch>(60.0f, 30.0f);
+    auto *enableEffect = m_rootItem->appendChild<muui::Switch>(60.0f, 30.0f);
     enableEffect->setChecked(true);
     enableEffect->backgroundBrush = glm::vec4{0.5, 0.5, 0.5, 1};
-    enableEffect->toggledSignal.connect([this, item = innerContainer.get()](bool checked) {
+    enableEffect->toggledSignal.connect([this](bool checked) {
         if (checked)
         {
-            item->setShaderEffect(std::make_unique<TransitionEffect>());
+            m_innerContainer->setShaderEffect(std::make_unique<TransitionEffect>());
         }
         else
         {
-            item->clearShaderEffect();
+            m_innerContainer->clearShaderEffect();
         }
     });
-
-    outerContainer->appendChild(std::move(innerContainer));
-    outerContainer->appendChild(std::move(direction));
-    outerContainer->appendChild(std::move(enableEffect));
-
-    m_rootItem = std::move(outerContainer);
 
     m_screen = std::make_unique<muui::Screen>();
     m_screen->resize(m_width, m_height);

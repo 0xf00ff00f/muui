@@ -36,9 +36,8 @@ public:
 private:
     std::unique_ptr<muui::TextureAtlas> m_textureAtlas;
     std::unique_ptr<muui::Font> m_font;
-    std::unique_ptr<muui::Item> m_rootItem;
+    std::unique_ptr<muui::Container> m_rootItem;
     std::unique_ptr<muui::Screen> m_screen;
-    muui::Item *m_item{nullptr};
     float m_direction{1.0f};
 };
 
@@ -49,11 +48,11 @@ void DropShadowTest::initialize()
     if (!m_font->load(AssetsPath / "OpenSans_Bold.ttf", 80))
         panic("Failed to load font\n");
 
-    auto outerContainer = std::make_unique<muui::Column>();
-    outerContainer->setMargins(muui::Margins{8, 8, 8, 8});
-    outerContainer->setSpacing(12);
+    m_rootItem = std::make_unique<muui::Column>();
+    m_rootItem->setMargins(muui::Margins{8, 8, 8, 8});
+    m_rootItem->setSpacing(12);
 
-    auto item = std::make_unique<muui::Label>(m_font.get(), U"Sphinx of black quartz"sv);
+    auto *item = m_rootItem->appendChild<muui::Label>(m_font.get(), U"Sphinx of black quartz"sv);
     item->brush = glm::vec4(1);
 
     auto applyDropShadow = [](auto *item) {
@@ -62,12 +61,12 @@ void DropShadowTest::initialize()
         dropShadow->color = glm::vec4{1, 0, 0, 0.5};
         item->setShaderEffect(std::move(dropShadow));
     };
-    applyDropShadow(item.get());
+    applyDropShadow(item);
 
-    auto enableEffect = std::make_unique<muui::Switch>(60.0f, 30.0f);
+    auto *enableEffect = m_rootItem->appendChild<muui::Switch>(60.0f, 30.0f);
     enableEffect->setChecked(true);
     enableEffect->backgroundBrush = glm::vec4{0.5, 0.5, 0.5, 1};
-    enableEffect->toggledSignal.connect([this, applyDropShadow, item = item.get()](bool checked) {
+    enableEffect->toggledSignal.connect([this, applyDropShadow, item](bool checked) {
         if (checked)
         {
             applyDropShadow(item);
@@ -77,11 +76,6 @@ void DropShadowTest::initialize()
             item->clearShaderEffect();
         }
     });
-
-    outerContainer->appendChild(std::move(item));
-    outerContainer->appendChild(std::move(enableEffect));
-
-    m_rootItem = std::move(outerContainer);
 
     m_screen = std::make_unique<muui::Screen>();
     m_screen->resize(m_width, m_height);

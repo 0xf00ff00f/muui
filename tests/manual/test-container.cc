@@ -38,19 +38,18 @@ void LayoutTest::initialize()
         panic("Failed to load font\n");
 
     auto addLabel = [this](muui::Container *container, std::u32string_view text, muui::Alignment alignment) {
-        auto label = std::make_unique<muui::Label>(m_font.get(), text);
+        auto *label = container->appendChild<muui::Label>(m_font.get(), text);
         label->containerAlignment = alignment;
         label->fillBackground = true;
         label->backgroundBrush = glm::vec4{1, 0, 0, 1};
         label->brush = glm::vec4{1, 1, 1, 1};
-        container->appendChild(std::move(label));
     };
 
     auto root = std::make_unique<muui::Column>();
     root->setSpacing(8);
 
     {
-        auto column = std::make_unique<muui::Column>();
+        auto *column = root->appendChild<muui::Column>();
         column->setMinimumWidth(400);
         column->shape = muui::Item::Shape::RoundedRectangle;
         column->fillBackground = true;
@@ -58,14 +57,13 @@ void LayoutTest::initialize()
         column->setMargins(muui::Margins{8, 8, 8, 8});
         column->cornerRadius = 8.0f;
         column->setSpacing(4);
-        addLabel(column.get(), U"label 1"sv, muui::Alignment::VCenter | muui::Alignment::Left);
-        addLabel(column.get(), U"label 2"sv, muui::Alignment::VCenter | muui::Alignment::HCenter);
-        addLabel(column.get(), U"label 3"sv, muui::Alignment::VCenter | muui::Alignment::Right);
-        root->appendChild(std::move(column));
+        addLabel(column, U"label 1"sv, muui::Alignment::VCenter | muui::Alignment::Left);
+        addLabel(column, U"label 2"sv, muui::Alignment::VCenter | muui::Alignment::HCenter);
+        addLabel(column, U"label 3"sv, muui::Alignment::VCenter | muui::Alignment::Right);
     }
 
     {
-        auto row = std::make_unique<muui::Row>();
+        auto *row = root->appendChild<muui::Row>();
         row->setMinimumHeight(150);
         row->shape = muui::Item::Shape::RoundedRectangle;
         row->fillBackground = true;
@@ -73,10 +71,9 @@ void LayoutTest::initialize()
         row->setMargins(muui::Margins{8, 8, 8, 8});
         row->cornerRadius = 8.0f;
         row->setSpacing(4);
-        addLabel(row.get(), U"label 1"sv, muui::Alignment::Top | muui::Alignment::Left);
-        addLabel(row.get(), U"label 2"sv, muui::Alignment::VCenter | muui::Alignment::Left);
-        addLabel(row.get(), U"label 3"sv, muui::Alignment::Bottom | muui::Alignment::Left);
-        root->appendChild(std::move(row));
+        addLabel(row, U"label 1"sv, muui::Alignment::Top | muui::Alignment::Left);
+        addLabel(row, U"label 2"sv, muui::Alignment::VCenter | muui::Alignment::Left);
+        addLabel(row, U"label 3"sv, muui::Alignment::Bottom | muui::Alignment::Left);
     }
 
     m_rootItem = std::move(root);

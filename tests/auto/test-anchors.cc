@@ -10,11 +10,9 @@ TEST_CASE("Anchors", "[anchors]")
     REQUIRE(parent.childCount() == 0);
 
     // add a rectangle
-    parent.appendChild(std::make_unique<Rectangle>(100.0f, 50.0f));
+    auto *child = parent.appendChild<Rectangle>(100.0f, 50.0f);
     REQUIRE(parent.childCount() == 1);
     REQUIRE(parent.childRect(0).min == glm::vec2{0.0f});
-
-    auto *child = parent.childAt(0);
 
     child->setLeft(Length::pixels(100.0f));
     REQUIRE(parent.childRect(0).min == glm::vec2{100.0f, 0.0f});

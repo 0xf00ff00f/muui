@@ -11,18 +11,16 @@ TEST_CASE("Column layout", "[layouts]")
 
     // add a rectangle
     {
-        auto r1 = std::make_unique<Rectangle>(80, 20);
+        auto *r1 = column.appendChild<Rectangle>(80, 20);
         REQUIRE(r1->size() == Size{80, 20});
-        column.appendChild(std::move(r1));
     }
     REQUIRE(column.childCount() == 1);
     REQUIRE(column.size() == Size{80, 20});
 
     // add another rectangle
     {
-        auto r2 = std::make_unique<Rectangle>(100, 10);
+        auto *r2 = column.appendChild<Rectangle>(100, 10);
         REQUIRE(r2->size() == Size{100, 10});
-        column.appendChild(std::move(r2));
     }
     REQUIRE(column.childCount() == 2);
     REQUIRE(column.size() == Size{100, 30});
@@ -51,18 +49,16 @@ TEST_CASE("Row layout", "[layouts]")
 
     // add a rectangle
     {
-        auto r1 = std::make_unique<Rectangle>(80, 20);
+        auto *r1 = row.appendChild<Rectangle>(80, 20);
         REQUIRE(r1->size() == Size{80, 20});
-        row.appendChild(std::move(r1));
     }
     REQUIRE(row.childCount() == 1);
     REQUIRE(row.size() == Size{80, 20});
 
     // add another rectangle
     {
-        auto r2 = std::make_unique<Rectangle>(100, 10);
+        auto *r2 = row.appendChild<Rectangle>(100, 10);
         REQUIRE(r2->size() == Size{100, 10});
-        row.appendChild(std::move(r2));
     }
     REQUIRE(row.childCount() == 2);
     REQUIRE(row.size() == Size{180, 20});

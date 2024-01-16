@@ -37,20 +37,15 @@ std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float
     constexpr auto textColor = rgbToColor(0x040a18);
     constexpr auto outerMargin = 40;
 
-    auto makeLabel = [](std::u32string_view text, Font *font, const glm::vec3 &color) {
-        auto l = std::make_unique<Label>(font, text);
-        l->brush = glm::vec4(color, 1);
-        return l;
-    };
-
     auto outerContainer = std::make_unique<Column>();
     outerContainer->setMargins(Margins{outerMargin, outerMargin, outerMargin, outerMargin});
     outerContainer->setSpacing(5);
 
-    auto title = makeLabel(U"TODAY'S HEROES"sv, bigFont, headingColor);
+    auto *title = outerContainer->appendChild<Label>(bigFont, U"TODAY'S HEROES"sv);
+    title->brush = glm::vec4{headingColor, 1};
     title->containerAlignment = Alignment::VCenter | Alignment::HCenter;
 
-    auto innerContainer = std::make_unique<Column>();
+    auto *innerContainer = outerContainer->appendChild<Column>();
     innerContainer->containerAlignment = Alignment::VCenter | Alignment::HCenter;
     innerContainer->setSpacing(5);
 
@@ -67,51 +62,48 @@ std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float
             return width - usedWidth;
         }();
 
-        auto makeSeparator = [&textColor] {
-            auto r = std::make_unique<Rectangle>();
+        auto appendSeparator = [&textColor](Item *parent) {
+            auto *r = parent->appendChild<Rectangle>();
             r->fillBackground = true;
             r->backgroundBrush = glm::vec4{textColor, 0.25};
             r->setSize(1, 30);
-            return r;
         };
 
-        auto headerRow = std::make_unique<Row>();
+        auto *headerRow = innerContainer->appendChild<Row>();
 
         {
-            auto r = std::make_unique<Rectangle>();
+            auto *r = headerRow->appendChild<Rectangle>();
             r->setSize(rowMargin + indexColumnWidth + 1, 1);
-            headerRow->appendChild(std::move(r));
         }
 
         {
-            auto l = makeLabel(U"NAME"sv, smallFont, textColor);
+            auto *l = headerRow->appendChild<Label>(smallFont, U"NAME"sv);
+            l->brush = glm::vec4{textColor, 1.0f};
             l->setAlignment(Alignment::Left);
             l->setFixedWidth(nameColumnWidth);
-            headerRow->appendChild(std::move(l));
         }
 
-        headerRow->appendChild(makeSeparator());
+        appendSeparator(headerRow);
 
         {
-            auto l = makeLabel(U"SCORE"sv, smallFont, textColor);
+            auto *l = headerRow->appendChild<Label>(smallFont, U"SCORE"sv);
+            l->brush = glm::vec4{textColor, 1.0f};
             l->setAlignment(Alignment::HCenter);
             l->setFixedWidth(scoreColumnWidth);
-            headerRow->appendChild(std::move(l));
         }
 
-        headerRow->appendChild(makeSeparator());
+        appendSeparator(headerRow);
 
         {
-            auto l = makeLabel(U"ACCURACY"sv, smallFont, textColor);
+            auto *l = headerRow->appendChild<Label>(smallFont, U"ACCURACY"sv);
+            l->brush = glm::vec4{textColor, 1.0f};
             l->setAlignment(Alignment::Right);
             l->setFixedWidth(accuracyColumnWidth);
-            headerRow->appendChild(std::move(l));
         }
 
         {
-            auto r = std::make_unique<Rectangle>();
+            auto *r = headerRow->appendChild<Rectangle>();
             r->setSize(rowMargin, 1);
-            headerRow->appendChild(std::move(r));
         }
 
         assert(headerRow->width() == width - 2 * outerMargin);
@@ -147,7 +139,7 @@ std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float
         {
             const auto &entry = entries[i];
 
-            auto row = std::make_unique<Row>();
+            auto *row = entryColumn->appendChild<Row>();
             row->fillBackground = true;
             row->shape = Item::Shape::RoundedRectangle;
             row->cornerRadius = 8;
@@ -155,13 +147,13 @@ std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float
             row->setMargins(Margins{rowMargin, rowMargin, rowMargin, rowMargin});
             row->setSpacing(1);
 
-            auto index = makeLabel(fmt::format(U"{}.", i + 1), smallFont, textColor);
+            auto *index = row->appendChild<Label>(smallFont, fmt::format(U"{}.", i + 1));
+            index->brush = glm::vec4{textColor, 1.0f};
             index->setFixedWidth(indexColumnWidth);
-            row->appendChild(std::move(index));
 
-            auto nameLabel = makeLabel(entry.name, smallFont, headingColor);
+            auto *nameLabel = row->appendChild<Label>(smallFont, entry.name);
+            nameLabel->brush = glm::vec4{headingColor, 1.0f};
             nameLabel->setFixedWidth(nameColumnWidth);
-            row->appendChild(std::move(nameLabel));
 
             auto formatThousands = [](int value) -> std::u32string {
                 std::u32string text;
@@ -177,17 +169,15 @@ std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float
                 return text;
             };
 
-            auto scoreLabel = makeLabel(formatThousands(entry.score), smallFont, textColor);
+            auto *scoreLabel = row->appendChild<Label>(smallFont, formatThousands(entry.score));
+            scoreLabel->brush = glm::vec4{textColor, 1.0f};
             scoreLabel->setFixedWidth(scoreColumnWidth);
             scoreLabel->setAlignment(Alignment::HCenter);
-            row->appendChild(std::move(scoreLabel));
 
-            auto accuracyLabel = makeLabel(fmt::format(U"{:.2f}%", entry.accuracy), smallFont, textColor);
+            auto *accuracyLabel = row->appendChild<Label>(smallFont, fmt::format(U"{:.2f}%", entry.accuracy));
+            accuracyLabel->brush = glm::vec4{textColor, 1.0f};
             accuracyLabel->setFixedWidth(accuracyColumnWidth);
             accuracyLabel->setAlignment(Alignment::Right);
-            row->appendChild(std::move(accuracyLabel));
-
-            entryColumn->appendChild(std::move(row));
         }
 
         assert(entryColumn->width() == width - 2 * outerMargin);
@@ -197,18 +187,13 @@ std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float
         const auto viewportWidth = entryColumn->width();
         const auto viewportHeight = containerHeight - (headerRow->height() + innerContainer->spacing());
 
-        auto scrollArea = std::make_unique<ScrollArea>(std::move(entryColumn));
+        auto *scrollArea = innerContainer->appendChild<ScrollArea>(std::move(entryColumn));
         scrollArea->setViewportSize({viewportWidth, viewportHeight});
-
-        innerContainer->appendChild(std::move(headerRow));
-        innerContainer->appendChild(std::move(scrollArea));
 
         assert(innerContainer->width() == viewportWidth);
         assert(innerContainer->height() == containerHeight);
     }
 
-    outerContainer->appendChild(std::move(title));
-    outerContainer->appendChild(std::move(innerContainer));
     assert(outerContainer->width() == width);
     assert(outerContainer->height() == height);
 
