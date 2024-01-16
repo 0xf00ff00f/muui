@@ -231,16 +231,31 @@ protected:
     virtual Item *handleMouseEvent(const TouchEvent &event);
     virtual void handleChildUpdated();
 
-    struct LayoutItem
+    class LayoutItem
     {
-        glm::vec2 offset;
-        std::unique_ptr<Item> item;
-        muslots::Connection resizedConnection;
-        muslots::Connection positionChangedConnection;
+    public:
+        LayoutItem(std::unique_ptr<Item> item, Item *parent);
+        ~LayoutItem();
+
+        LayoutItem(LayoutItem &) = delete;
+        LayoutItem &operator=(LayoutItem &) = delete;
+
+        LayoutItem(LayoutItem &&other) = default;
+        LayoutItem &operator=(LayoutItem &&other) = default;
+
+        glm::vec2 offset{0.0f};
+
+        Item *item() const { return m_item.get(); }
+        std::unique_ptr<Item> takeItem() { return std::move(m_item); }
+
+    private:
+        std::unique_ptr<Item> m_item;
+        muslots::Connection m_resizedConnection;
+        muslots::Connection m_positionChangedConnection;
     };
 
     Size m_size;
-    std::vector<std::unique_ptr<LayoutItem>> m_layoutItems;
+    std::vector<LayoutItem> m_layoutItems;
     HorizontalAnchor m_horizontalAnchor{};
     VerticalAnchor m_verticalAnchor{};
 

@@ -19,13 +19,26 @@ Font *defaultFont()
 }
 } // namespace
 
+Item::LayoutItem::LayoutItem(std::unique_ptr<Item> item, Item *parent)
+    : m_item(std::move(item))
+    , m_resizedConnection{m_item->resizedSignal.connect([parent](Size) { parent->handleChildUpdated(); })}
+    , m_positionChangedConnection{m_item->positionChangedSignal.connect([parent] { parent->updateLayout(); })}
+{
+}
+
+Item::LayoutItem::~LayoutItem()
+{
+    m_resizedConnection.disconnect();
+    m_positionChangedConnection.disconnect();
+}
+
 Item::Item() = default;
 Item::~Item() = default;
 
 void Item::update(float elapsed)
 {
     for (auto &layoutItem : m_layoutItems)
-        layoutItem->item->update(elapsed);
+        layoutItem.item()->update(elapsed);
 }
 
 void Item::appendChild(std::unique_ptr<Item> item)
@@ -35,11 +48,8 @@ void Item::appendChild(std::unique_ptr<Item> item)
 
 void Item::insertChild(std::size_t index, std::unique_ptr<Item> item)
 {
-    auto resizedConnection = item->resizedSignal.connect([this](Size size) { handleChildUpdated(); });
-    auto positionChangedConnection = item->positionChangedSignal.connect([this] { updateLayout(); });
-    auto layoutItem = std::make_unique<LayoutItem>(
-        LayoutItem{{}, std::move(item), std::move(resizedConnection), std::move(positionChangedConnection)});
-    m_layoutItems.insert(std::next(m_layoutItems.begin(), index), std::move(layoutItem));
+    auto it = std::next(m_layoutItems.begin(), index);
+    m_layoutItems.emplace(it, std::move(item), this);
     handleChildUpdated();
 }
 
@@ -56,9 +66,7 @@ std::unique_ptr<Item> Item::takeChildAt(std::size_t index)
     if (index >= m_layoutItems.size())
         return {};
     auto it = std::next(m_layoutItems.begin(), index);
-    (*it)->resizedConnection.disconnect();
-    (*it)->positionChangedConnection.disconnect();
-    auto item = std::move((*it)->item);
+    auto item = it->takeItem();
     m_layoutItems.erase(it);
     handleChildUpdated();
     return item;
@@ -66,7 +74,7 @@ std::unique_ptr<Item> Item::takeChildAt(std::size_t index)
 
 Item *Item::childAt(std::size_t index) const
 {
-    return index < m_layoutItems.size() ? m_layoutItems[index]->item.get() : nullptr;
+    return index < m_layoutItems.size() ? m_layoutItems[index].item() : nullptr;
 }
 
 RectF Item::childRect(std::size_t index)
@@ -74,8 +82,8 @@ RectF Item::childRect(std::size_t index)
     if (index >= m_layoutItems.size())
         return {};
     const auto &layoutItem = m_layoutItems[index];
-    const auto &size = layoutItem->item->m_size;
-    return RectF{layoutItem->offset, layoutItem->offset + glm::vec2{size.width, size.height}};
+    const auto &size = layoutItem.item()->m_size;
+    return RectF{layoutItem.offset, layoutItem.offset + glm::vec2{size.width, size.height}};
 }
 
 std::vector<Item *> Item::children() const
@@ -83,7 +91,7 @@ std::vector<Item *> Item::children() const
     std::vector<Item *> children;
     children.reserve(m_layoutItems.size());
     std::transform(m_layoutItems.begin(), m_layoutItems.end(), std::back_inserter(children),
-                   [](auto &layoutItem) { return layoutItem->item.get(); });
+                   [](auto &layoutItem) { return layoutItem.item(); });
     return children;
 }
 
@@ -129,7 +137,7 @@ void Item::updateLayout()
 {
     for (auto &layoutItem : m_layoutItems)
     {
-        const auto &item = layoutItem->item;
+        const auto *item = layoutItem.item();
         const auto anchorX = [this, &item]() -> float {
             const auto &position = item->m_horizontalAnchor.position;
             switch (position.type)
@@ -178,7 +186,7 @@ void Item::updateLayout()
                 return anchorY - item->m_size.height;
             }
         }();
-        layoutItem->offset = glm::vec2{offsetX, offsetY};
+        layoutItem.offset = glm::vec2{offsetX, offsetY};
     }
 }
 
@@ -204,7 +212,7 @@ void Item::doRender(Painter *painter, const glm::vec2 &pos, int depth)
     renderBackground(painter, pos, depth);
     renderContents(painter, pos, depth);
     for (auto &layoutItem : m_layoutItems)
-        layoutItem->item->render(painter, pos + layoutItem->offset, depth + 1);
+        layoutItem.item()->render(painter, pos + layoutItem.offset, depth + 1);
 }
 
 Item *Item::mouseEvent(const TouchEvent &event)
@@ -222,8 +230,8 @@ Item *Item::mouseEvent(const TouchEvent &event)
         // back to front, we want items that are drawn last to be tested first
         for (auto it = m_layoutItems.rbegin(); it != m_layoutItems.rend(); ++it)
         {
-            const auto &item = (*it)->item;
-            const auto &offset = (*it)->offset;
+            auto *item = it->item();
+            const auto &offset = it->offset;
             const auto childRect = RectF{offset, offset + glm::vec2(item->width(), item->height())};
             if (childRect.contains(pos))
             {
@@ -661,7 +669,7 @@ void Column::updateSize()
     float height = 0;
     for (auto &layoutItem : m_layoutItems)
     {
-        auto &item = layoutItem->item;
+        auto *item = layoutItem.item();
         width = std::max(width, item->width());
         height += item->height();
     }
@@ -677,7 +685,7 @@ void Column::updateLayout()
     auto p = glm::vec2(m_margins.left, m_margins.top);
     for (auto &layoutItem : m_layoutItems)
     {
-        const float offset = [this, &item = layoutItem->item] {
+        const float offset = [this, item = layoutItem.item()] {
             const auto alignment = item->containerAlignment & (Alignment::Left | Alignment::HCenter | Alignment::Right);
             const auto availableWidth = m_size.width - (m_margins.left + m_margins.right);
             switch (alignment)
@@ -691,8 +699,8 @@ void Column::updateLayout()
                 return availableWidth - item->width();
             }
         }();
-        layoutItem->offset = p + glm::vec2(offset, 0.0f);
-        p.y += layoutItem->item->height() + m_spacing;
+        layoutItem.offset = p + glm::vec2(offset, 0.0f);
+        p.y += layoutItem.item()->height() + m_spacing;
     }
 }
 
@@ -710,7 +718,7 @@ void Row::updateSize()
     float height = std::max(m_minimumHeight - (m_margins.top + m_margins.bottom), 0.0f);
     for (auto &layoutItem : m_layoutItems)
     {
-        auto &item = layoutItem->item;
+        auto *item = layoutItem.item();
         width += item->width();
         height = std::max(height, item->height());
     }
@@ -726,7 +734,7 @@ void Row::updateLayout()
     auto p = glm::vec2(m_margins.left, m_margins.top);
     for (auto &layoutItem : m_layoutItems)
     {
-        const float offset = [this, &item = layoutItem->item] {
+        const float offset = [this, item = layoutItem.item()] {
             const auto availableHeight = m_size.height - (m_margins.top + m_margins.bottom);
             const auto alignment = item->containerAlignment & (Alignment::Top | Alignment::VCenter | Alignment::Bottom);
             switch (alignment)
@@ -740,8 +748,8 @@ void Row::updateLayout()
                 return availableHeight - item->height();
             }
         }();
-        layoutItem->offset = p + glm::vec2(0.0f, offset);
-        p.x += layoutItem->item->width() + m_spacing;
+        layoutItem.offset = p + glm::vec2(0.0f, offset);
+        p.x += layoutItem.item()->width() + m_spacing;
     }
 }
 
