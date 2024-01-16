@@ -43,10 +43,10 @@ std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float
 
     auto *title = outerContainer->appendChild<Label>(bigFont, U"TODAY'S HEROES"sv);
     title->brush = glm::vec4{headingColor, 1};
-    title->containerAlignment = Alignment::VCenter | Alignment::HCenter;
+    title->setContainerAlignment(Alignment::VCenter | Alignment::HCenter);
 
     auto *innerContainer = outerContainer->appendChild<Column>();
-    innerContainer->containerAlignment = Alignment::VCenter | Alignment::HCenter;
+    innerContainer->setContainerAlignment(Alignment::VCenter | Alignment::HCenter);
     innerContainer->setSpacing(5);
 
     {

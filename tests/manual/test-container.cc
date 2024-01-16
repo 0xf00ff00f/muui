@@ -39,7 +39,7 @@ void LayoutTest::initialize()
 
     auto addLabel = [this](muui::Container *container, std::u32string_view text, muui::Alignment alignment) {
         auto *label = container->appendChild<muui::Label>(m_font.get(), text);
-        label->containerAlignment = alignment;
+        label->setContainerAlignment(alignment);
         label->fillBackground = true;
         label->backgroundBrush = glm::vec4{1, 0, 0, 1};
         label->brush = glm::vec4{1, 1, 1, 1};

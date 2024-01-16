@@ -22,14 +22,16 @@ Font *defaultFont()
 Item::LayoutItem::LayoutItem(std::unique_ptr<Item> item, Item *parent)
     : m_item(std::move(item))
     , m_resizedConnection{m_item->resizedSignal.connect([parent](Size) { parent->handleChildUpdated(); })}
-    , m_positionChangedConnection{m_item->positionChangedSignal.connect([parent] { parent->updateLayout(); })}
+    , m_anchorChangedConnection{m_item->anchorChangedSignal.connect([parent] { parent->updateLayout(); })}
+    , m_alignmentChangedConnection{m_item->alignmentChangedSignal.connect([parent] { parent->updateLayout(); })}
 {
 }
 
 Item::LayoutItem::~LayoutItem()
 {
     m_resizedConnection.disconnect();
-    m_positionChangedConnection.disconnect();
+    m_anchorChangedConnection.disconnect();
+    m_alignmentChangedConnection.disconnect();
 }
 
 Item::Item() = default;
@@ -242,6 +244,14 @@ Item *Item::handleMouseEvent(const TouchEvent &)
     return nullptr;
 }
 
+void Item::setContainerAlignment(Alignment alignment)
+{
+    if (alignment == m_containerAlignment)
+        return;
+    m_containerAlignment = alignment;
+    alignmentChangedSignal();
+}
+
 void Item::setLeft(const Length &position)
 {
     setHorizontalAnchor({HorizontalAnchor::Type::Left, position});
@@ -262,7 +272,7 @@ void Item::setHorizontalAnchor(const HorizontalAnchor &anchor)
     if (anchor == m_horizontalAnchor)
         return;
     m_horizontalAnchor = anchor;
-    positionChangedSignal();
+    anchorChangedSignal();
 }
 
 void Item::setTop(const Length &position)
@@ -285,7 +295,7 @@ void Item::setVerticalAnchor(const VerticalAnchor &anchor)
     if (anchor == m_verticalAnchor)
         return;
     m_verticalAnchor = anchor;
-    positionChangedSignal();
+    anchorChangedSignal();
 }
 
 void Item::setShaderEffect(std::unique_ptr<ShaderEffect> effect)
@@ -674,7 +684,8 @@ void Column::updateLayout()
     for (auto &layoutItem : m_layoutItems)
     {
         const float offset = [this, item = layoutItem.item()] {
-            const auto alignment = item->containerAlignment & (Alignment::Left | Alignment::HCenter | Alignment::Right);
+            const auto alignment =
+                item->containerAlignment() & (Alignment::Left | Alignment::HCenter | Alignment::Right);
             const auto availableWidth = m_size.width - (m_margins.left + m_margins.right);
             switch (alignment)
             {
@@ -724,7 +735,8 @@ void Row::updateLayout()
     {
         const float offset = [this, item = layoutItem.item()] {
             const auto availableHeight = m_size.height - (m_margins.top + m_margins.bottom);
-            const auto alignment = item->containerAlignment & (Alignment::Top | Alignment::VCenter | Alignment::Bottom);
+            const auto alignment =
+                item->containerAlignment() & (Alignment::Top | Alignment::VCenter | Alignment::Bottom);
             switch (alignment)
             {
             case Alignment::Top:

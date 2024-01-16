@@ -178,6 +178,9 @@ public:
         return nullptr;
     }
 
+    void setContainerAlignment(Alignment alignment);
+    Alignment containerAlignment() const { return m_containerAlignment; }
+
     void setLeft(const Length &position);
     void setHorizontalCenter(const Length &position);
     void setRight(const Length &position);
@@ -203,10 +206,10 @@ public:
     bool fillBackground = false;
     Brush backgroundBrush;
     float cornerRadius = 0.0f;
-    Alignment containerAlignment = Alignment::VCenter | Alignment::Left;
 
     muslots::Signal<Size> resizedSignal;
-    muslots::Signal<> positionChangedSignal;
+    muslots::Signal<> anchorChangedSignal;
+    muslots::Signal<> alignmentChangedSignal;
 
 protected:
     struct HorizontalAnchor
@@ -266,10 +269,12 @@ protected:
     private:
         std::unique_ptr<Item> m_item;
         muslots::Connection m_resizedConnection;
-        muslots::Connection m_positionChangedConnection;
+        muslots::Connection m_anchorChangedConnection;
+        muslots::Connection m_alignmentChangedConnection;
     };
 
     Size m_size;
+    Alignment m_containerAlignment{Alignment::VCenter | Alignment::Left};
     std::vector<LayoutItem> m_layoutItems;
     HorizontalAnchor m_horizontalAnchor{};
     VerticalAnchor m_verticalAnchor{};
