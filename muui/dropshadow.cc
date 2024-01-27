@@ -23,7 +23,7 @@ DropShadow::DropShadow()
 void DropShadow::applyEffect(Painter *painter, const glm::vec2 &pos, int depth)
 {
     auto *shaderManager = getShaderManager();
-    shaderManager->useProgram(ShaderManager::ProgramGaussianBlur);
+    shaderManager->useProgram(ShaderManager::ProgramHandle::GaussianBlur);
     shaderManager->setUniform("baseColorTexture", 0);
 
     glDisable(GL_BLEND);
@@ -68,10 +68,10 @@ void DropShadow::applyEffect(Painter *painter, const glm::vec2 &pos, int depth)
         spriteBatcher->addSprite(topLeftVertex, bottomRightVertex, color, depth);
     };
 
-    spriteBatcher->setBatchProgram(ShaderManager::ProgramDecal);
+    spriteBatcher->setBatchProgram(ShaderManager::ProgramHandle::Decal);
     blitResult(m_pingPongBuffers[1]->texture(), offset, color, depth);
 
-    spriteBatcher->setBatchProgram(ShaderManager::ProgramCopy);
+    spriteBatcher->setBatchProgram(ShaderManager::ProgramHandle::Copy);
     blitResult(m_framebuffer->texture(), glm::vec2(0), glm::vec4(1), depth + 1);
 }
 

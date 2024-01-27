@@ -29,22 +29,25 @@ public:
     ShaderManager();
     ~ShaderManager();
 
-    using ProgramHandle = int;
+    enum class ProgramHandle : int
+    {
+        Invalid = -1,
 
-    static constexpr ProgramHandle InvalidProgram = -1;
+        Copy = 0,
+        Flat,
+        Decal,
+        Circle,
+        RoundedRect,
+        Text,
+        Gradient,
+        DecalGradient,
+        CircleGradient,
+        RoundedRectGradient,
+        TextGradient,
+        GaussianBlur,
 
-    static constexpr ProgramHandle ProgramCopy = 0;
-    static constexpr ProgramHandle ProgramFlat = 1;
-    static constexpr ProgramHandle ProgramDecal = 2;
-    static constexpr ProgramHandle ProgramCircle = 3;
-    static constexpr ProgramHandle ProgramRoundedRect = 4;
-    static constexpr ProgramHandle ProgramText = 5;
-    static constexpr ProgramHandle ProgramGradient = 6;
-    static constexpr ProgramHandle ProgramDecalGradient = 7;
-    static constexpr ProgramHandle ProgramCircleGradient = 8;
-    static constexpr ProgramHandle ProgramRoundedRectGradient = 9;
-    static constexpr ProgramHandle ProgramTextGradient = 10;
-    static constexpr ProgramHandle ProgramGaussianBlur = 11;
+        NumDefaultPrograms,
+    };
 
     ProgramHandle addProgram(const ProgramDescription &description);
 

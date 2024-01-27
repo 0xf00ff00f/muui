@@ -205,58 +205,58 @@ void Painter::drawRoundedRect(const RectF &rect, float cornerRadius, const Brush
 
 void Painter::setRectProgram(const Color &)
 {
-    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramFlat);
+    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramHandle::Flat);
 }
 
 void Painter::setRectProgram(const LinearGradient &gradient)
 {
-    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramGradient);
+    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramHandle::Gradient);
     m_spriteBatcher->setBatchGradientTexture(gradient.texture);
 }
 
 void Painter::setDecalProgram(const Color &)
 {
-    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramDecal);
+    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramHandle::Decal);
 }
 
 void Painter::setDecalProgram(const LinearGradient &gradient)
 {
-    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramDecalGradient);
+    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramHandle::DecalGradient);
     m_spriteBatcher->setBatchGradientTexture(gradient.texture);
 }
 
 void Painter::setTextProgram(const Color &)
 {
-    const auto program = ShaderManager::ProgramText;
-    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramText);
+    const auto program = ShaderManager::ProgramHandle::Text;
+    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramHandle::Text);
 }
 
 void Painter::setTextProgram(const LinearGradient &gradient)
 {
-    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramTextGradient);
+    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramHandle::TextGradient);
     m_spriteBatcher->setBatchGradientTexture(gradient.texture);
 }
 
 void Painter::setCircleProgram(const Color &)
 {
-    const auto program = ShaderManager::ProgramText;
-    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramCircle);
+    const auto program = ShaderManager::ProgramHandle::Text;
+    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramHandle::Circle);
 }
 
 void Painter::setCircleProgram(const LinearGradient &gradient)
 {
-    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramCircleGradient);
+    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramHandle::CircleGradient);
     m_spriteBatcher->setBatchGradientTexture(gradient.texture);
 }
 
 void Painter::setRoundedRectProgram(const Color &)
 {
-    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramRoundedRect);
+    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramHandle::RoundedRect);
 }
 
 void Painter::setRoundedRectProgram(const LinearGradient &gradient)
 {
-    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramRoundedRectGradient);
+    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramHandle::RoundedRectGradient);
     m_spriteBatcher->setBatchGradientTexture(gradient.texture);
 }
 

@@ -66,7 +66,7 @@ void SpriteBatcher::setBatchBlendFunc(BlendFunc blendFunc)
 void SpriteBatcher::begin()
 {
     m_quadCount = 0;
-    m_batchProgram = ShaderManager::InvalidProgram;
+    m_batchProgram = ShaderManager::ProgramHandle::Invalid;
     m_batchTexture = nullptr;
     m_batchGradientTexture = nullptr;
     m_batchScissorBox = ScissorBox{};
@@ -94,7 +94,7 @@ void SpriteBatcher::flush()
 
     const AbstractTexture *currentTexture = nullptr;
     const AbstractTexture *currentGradientTexture = nullptr;
-    ShaderManager::ProgramHandle currentProgram = ShaderManager::InvalidProgram;
+    ShaderManager::ProgramHandle currentProgram = ShaderManager::ProgramHandle::Invalid;
     ScissorBox currentScissorBox;
     std::optional<BlendFunc> currentBlendMode;
 

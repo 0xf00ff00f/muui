@@ -231,7 +231,7 @@ private:
     gl::Buffer m_buffer;
     gl::VertexArray m_vao;
     glm::mat4 m_transformMatrix;
-    ShaderManager::ProgramHandle m_batchProgram{ShaderManager::InvalidProgram};
+    ShaderManager::ProgramHandle m_batchProgram{ShaderManager::ProgramHandle::Invalid};
     const AbstractTexture *m_batchTexture{nullptr};
     const AbstractTexture *m_batchGradientTexture{nullptr};
     ScissorBox m_batchScissorBox;

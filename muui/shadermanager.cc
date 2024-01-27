@@ -50,18 +50,19 @@ ShaderManager::ProgramHandle ShaderManager::addProgram(const ProgramDescription 
 {
     auto program = loadProgram(description);
     if (!program)
-        return InvalidProgram;
+        return ProgramHandle::Invalid;
     auto cachedProgram = std::make_unique<CachedProgram>();
     cachedProgram->description = description;
     cachedProgram->program = std::move(program);
     m_cachedPrograms.push_back(std::move(cachedProgram));
-    return static_cast<ProgramHandle>(m_cachedPrograms.size() - 1);
+    return ProgramHandle{static_cast<int>(m_cachedPrograms.size()) - 1};
 }
 
 void ShaderManager::useProgram(ProgramHandle handle)
 {
-    assert(handle >= 0 && handle < m_cachedPrograms.size());
-    auto &cachedProgram = m_cachedPrograms[handle];
+    const auto index = static_cast<int>(handle);
+    assert(index >= 0 && index < m_cachedPrograms.size());
+    auto &cachedProgram = m_cachedPrograms[index];
     if (cachedProgram.get() == m_currentProgram)
         return;
     if (cachedProgram->program)
@@ -90,7 +91,7 @@ void ShaderManager::addBasicPrograms()
         const char *vertexShader;
         const char *fragmentShader;
     };
-    static const std::vector<Program> programs = {
+    static const Program programSources[] = {
         {"copy.vert", "copy.frag"},
         {"flat.vert", "flat.frag"},
         {"decal.vert", "decal.frag"},
@@ -104,9 +105,11 @@ void ShaderManager::addBasicPrograms()
         {"textgradient.vert", "textgradient.frag"},
         {"gaussianblur.vert", "gaussianblur.frag"},
     };
+    static_assert(std::extent_v<decltype(programSources)> == static_cast<int>(ProgramHandle::NumDefaultPrograms));
+
     assert(m_cachedPrograms.empty());
-    m_cachedPrograms.reserve(programs.size());
-    for (const auto &program : programs)
+    m_cachedPrograms.reserve(std::size(programSources));
+    for (const auto &program : programSources)
     {
         static const std::filesystem::path shaderRootPath{":/assets/shaders"};
         auto cachedProgram = std::make_unique<CachedProgram>();

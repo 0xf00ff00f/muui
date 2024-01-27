@@ -43,7 +43,7 @@ void SpriteBatcherTest::render()
     glEnable(GL_SCISSOR_TEST);
 
     m_spriteBatcher->begin();
-    m_spriteBatcher->setBatchProgram(muui::ShaderManager::ProgramFlat);
+    m_spriteBatcher->setBatchProgram(muui::ShaderManager::ProgramHandle::Flat);
     m_spriteBatcher->setBatchScissorBox({.position = {0, 0}, .size = {m_width, m_height}});
     {
         struct Vertex
