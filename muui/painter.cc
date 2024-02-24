@@ -11,6 +11,22 @@
 namespace muui
 {
 
+namespace
+{
+
+struct Vertex
+{
+    glm::vec2 position;
+};
+
+struct VertexUV
+{
+    glm::vec2 position;
+    glm::vec2 texCoord;
+};
+
+} // namespace
+
 Painter::Painter()
     : m_spriteBatcher(std::make_unique<SpriteBatcher>())
 {
@@ -64,10 +80,6 @@ void Painter::drawRect(const RectF &rect, const Brush &brush, int depth)
     if (m_clipRect.intersects(rect))
     {
         std::visit([this](auto &brush) { setRectProgram(brush); }, brush);
-        struct Vertex
-        {
-            glm::vec2 position;
-        };
         const auto topLeftVertex = Vertex{.position = rect.min};
         const auto bottomRightVertex = Vertex{.position = rect.max};
         std::visit([this, &topLeftVertex, &bottomRightVertex,
@@ -109,13 +121,8 @@ void Painter::drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const Re
             return glm::vec2(x, y);
         };
         const auto spriteRect = rect.intersected(clipRect);
-        struct Vertex
-        {
-            glm::vec2 position;
-            glm::vec2 texCoord;
-        };
-        const Vertex topLeftVertex = {.position = spriteRect.min, .texCoord = texPos(spriteRect.min)};
-        const Vertex bottomRightVertex = {.position = spriteRect.max, .texCoord = texPos(spriteRect.max)};
+        const VertexUV topLeftVertex = {.position = spriteRect.min, .texCoord = texPos(spriteRect.min)};
+        const VertexUV bottomRightVertex = {.position = spriteRect.max, .texCoord = texPos(spriteRect.max)};
         m_spriteBatcher->setBatchTexture(pixmap.texture);
         std::visit([this, &topLeftVertex, &bottomRightVertex,
                     depth](auto &brush) { addSprite(topLeftVertex, bottomRightVertex, brush, depth); },
@@ -152,13 +159,8 @@ void Painter::drawText(std::u32string_view text, const glm::vec2 &pos, const Bru
             {
                 const auto &pixmap = g->pixmap;
                 m_spriteBatcher->setBatchTexture(pixmap.texture);
-                struct Vertex
-                {
-                    glm::vec2 position;
-                    glm::vec2 texCoord;
-                };
-                const auto topLeftVertex = Vertex{.position = topLeft, .texCoord = pixmap.texCoord.min};
-                const auto bottomRightVertex = Vertex{.position = bottomRight, .texCoord = pixmap.texCoord.max};
+                const auto topLeftVertex = VertexUV{.position = topLeft, .texCoord = pixmap.texCoord.min};
+                const auto bottomRightVertex = VertexUV{.position = bottomRight, .texCoord = pixmap.texCoord.max};
                 std::visit([this, &topLeftVertex, &bottomRightVertex,
                             depth](const auto &brush) { addSprite(topLeftVertex, bottomRightVertex, brush, depth); },
                            brush);
@@ -176,13 +178,8 @@ void Painter::drawCircle(const glm::vec2 &center, float radius, const Brush &bru
     if (m_clipRect.intersects(rect))
     {
         std::visit([this](auto &brush) { setCircleProgram(brush); }, brush);
-        struct Vertex
-        {
-            glm::vec2 position;
-            glm::vec2 texCoord;
-        };
-        const auto topLeftVertex = Vertex{.position = topLeft, .texCoord = {0, 0}};
-        const auto bottomRightVertex = Vertex{.position = bottomRight, .texCoord = {1, 1}};
+        const auto topLeftVertex = VertexUV{.position = topLeft, .texCoord = {0, 0}};
+        const auto bottomRightVertex = VertexUV{.position = bottomRight, .texCoord = {1, 1}};
         std::visit([this, &topLeftVertex, &bottomRightVertex,
                     depth](const auto &brush) { addSprite(topLeftVertex, bottomRightVertex, brush, depth); },
                    brush);
@@ -203,13 +200,8 @@ void Painter::drawRoundedRect(const RectF &rect, float cornerRadius, const Brush
     const auto radius = std::min(std::min(cornerRadius, 0.5f * rect.width()), 0.5f * rect.height());
     const glm::vec2 size(rect.width(), rect.height());
     const RectF texCoords{-0.5f * size, 0.5f * size};
-    struct Vertex
-    {
-        glm::vec2 position;
-        glm::vec2 texCoord;
-    };
-    const auto topLeft = Vertex{.position = rect.min, .texCoord = -0.5f * size};
-    const auto bottomRight = Vertex{.position = rect.max, .texCoord = 0.5f * size};
+    const auto topLeft = VertexUV{.position = rect.min, .texCoord = -0.5f * size};
+    const auto bottomRight = VertexUV{.position = rect.max, .texCoord = 0.5f * size};
     std::visit([this, &topLeft, &bottomRight, &size, cornerRadius, depth](
                    const auto &brush) { addRoundedRectSprite(topLeft, bottomRight, brush, size, cornerRadius, depth); },
                brush);
