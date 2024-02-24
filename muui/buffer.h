@@ -27,8 +27,6 @@ public:
     {
         Read = GL_MAP_READ_BIT,
         Write = GL_MAP_WRITE_BIT,
-        Persistent = GL_MAP_PERSISTENT_BIT,
-        Coherent = GL_MAP_COHERENT_BIT,
         Unsynchronized = GL_MAP_UNSYNCHRONIZED_BIT
     };
 

@@ -90,7 +90,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Android")
   target_link_libraries(${PROJECT_NAME} PUBLIC android log EGL GLESv3)
   target_compile_definitions(${PROJECT_NAME} PRIVATE ASSETSDIR="")
 else()
-  target_link_libraries(${PROJECT_NAME} PUBLIC glew OpenGL::GL)
+  target_link_libraries(${PROJECT_NAME} PUBLIC glad OpenGL::GL)
   target_compile_definitions(
     ${PROJECT_NAME} PRIVATE ASSETSDIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/")
 endif()

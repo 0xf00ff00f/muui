@@ -6,6 +6,8 @@
 #include "shadermanager.h"
 #include "textureatlas.h"
 
+#include <SDL.h>
+
 namespace muui
 {
 System *System::s_instance = nullptr;
@@ -18,9 +20,10 @@ constexpr auto TextureAtlasPageSize = 1024;
 bool System::initialize()
 {
 #if !defined(__ANDROID__)
-    if (glewInit() != GLEW_OK)
+    if (!gladLoadGLES2(reinterpret_cast<GLADloadfunc>(SDL_GL_GetProcAddress)))
     {
-        log_error("Failed to initialize GLEW");
+        log_error("Failed to initialize GLAD");
+        SDL_Quit();
         return false;
     }
 #endif
