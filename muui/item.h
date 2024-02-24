@@ -244,8 +244,8 @@ protected:
     void setHorizontalAnchor(const HorizontalAnchor &anchor);
     void setVerticalAnchor(const VerticalAnchor &anchor);
     virtual void updateLayout();
-    void renderBackground(Painter *painter, const glm::vec2 &pos, int depth);
-    virtual void renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) = 0;
+    bool renderBackground(Painter *painter, const glm::vec2 &pos, int depth);
+    virtual bool renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) = 0;
     virtual Item *handleMouseEvent(const TouchEvent &event);
     virtual void handleChildUpdated();
 
@@ -300,7 +300,7 @@ public:
     void setHeight(float height);
 
 protected:
-    void renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
+    bool renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
 };
 
 class Label : public Item
@@ -335,7 +335,7 @@ public:
     muslots::Signal<> clickedSignal;
 
 protected:
-    void renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
+    bool renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
     Item *handleMouseEvent(const TouchEvent &event) override;
     void updateSizeAndOffset();
 
@@ -374,7 +374,7 @@ public:
     glm::vec4 color = glm::vec4(1, 1, 1, 1);
 
 protected:
-    void renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
+    bool renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
     Item *handleMouseEvent(const TouchEvent &event) override;
     void updateSizeAndOffset();
 
@@ -399,7 +399,7 @@ public:
 protected:
     void handleChildUpdated() override;
     virtual void updateSize() = 0;
-    void renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
+    bool renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
 
     Margins m_margins;
     float m_spacing = 0.0f;
@@ -447,7 +447,7 @@ public:
 
 protected:
     void update(float elapsed) override;
-    void renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
+    bool renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
     Item *handleMouseEvent(const TouchEvent &event) override;
 
 private:
@@ -484,7 +484,7 @@ public:
     Alignment alignment = Alignment::VCenter | Alignment::Left;
 
 protected:
-    void renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
+    bool renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
 
 private:
     void updateSize();
@@ -522,7 +522,7 @@ public:
 
 protected:
     void update(float elapsed) override;
-    void renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
+    bool renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
     Item *handleMouseEvent(const TouchEvent &event) override;
 
     bool m_checked = false;
