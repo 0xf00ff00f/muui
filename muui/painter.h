@@ -3,6 +3,7 @@
 #include "noncopyable.h"
 
 #include "brush.h"
+#include "font.h"
 #include "util.h"
 
 #include <glm/glm.hpp>
@@ -13,7 +14,6 @@
 
 namespace muui
 {
-class Font;
 class SpriteBatcher;
 struct PackedPixmap;
 
@@ -46,6 +46,9 @@ public:
     void drawText(std::u32string_view text, const glm::vec2 &pos, const Brush &brush, int depth);
     void drawText(std::u32string_view text, const glm::vec2 &pos, const Brush &brush, const Brush &outlineBrush,
                   int depth);
+    void drawGlyph(const Font::Glyph *glyph, const glm::vec2 &pos, const Brush &brush, bool outline, int depth);
+    void drawGlyph(const Font::Glyph *glyph, const glm::vec2 &pos, const RectF &clipRect, const Brush &brush,
+                   bool outline, int depth);
     void drawCircle(const glm::vec2 &center, float radius, const Brush &brush, int depth);
     void drawCapsule(const RectF &rect, const Brush &brush, int depth);
     void drawRoundedRect(const RectF &rect, float cornerRadius, const Brush &brush, int depth);

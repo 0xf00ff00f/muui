@@ -145,28 +145,59 @@ void Painter::drawText(std::u32string_view text, const glm::vec2 &pos, const Bru
 void Painter::drawText(std::u32string_view text, const glm::vec2 &pos, const Brush &brush, bool outline, int depth)
 {
     assert(m_font);
-    std::visit([this, outline](auto &brush) { setTextProgram(brush, outline); }, brush);
-
     auto basePos = glm::vec2(pos.x, pos.y + m_font->ascent());
     for (auto ch : text)
     {
-        if (const auto *g = m_font->glyph(ch); g)
+        if (const auto *g = m_font->glyph(ch))
         {
-            const auto topLeft = basePos + glm::vec2(g->boundingBox.min);
-            const auto bottomRight = topLeft + glm::vec2(g->boundingBox.max - g->boundingBox.min);
-            const auto rect = RectF{topLeft, bottomRight};
-            if (m_clipRect.intersects(rect))
-            {
-                const auto &pixmap = g->pixmap;
-                m_spriteBatcher->setBatchTexture(pixmap.texture);
-                const auto topLeftVertex = VertexUV{.position = topLeft, .texCoord = pixmap.texCoord.min};
-                const auto bottomRightVertex = VertexUV{.position = bottomRight, .texCoord = pixmap.texCoord.max};
-                std::visit([this, &topLeftVertex, &bottomRightVertex,
-                            depth](const auto &brush) { addSprite(topLeftVertex, bottomRightVertex, brush, depth); },
-                           brush);
-            }
+            drawGlyph(g, basePos, brush, outline, depth);
             basePos.x += g->advanceWidth;
         }
+    }
+}
+
+void Painter::drawGlyph(const Font::Glyph *glyph, const glm::vec2 &pos, const Brush &brush, bool outline, int depth)
+{
+    const auto topLeft = pos + glm::vec2(glyph->boundingBox.min);
+    const auto bottomRight = topLeft + glm::vec2(glyph->boundingBox.max - glyph->boundingBox.min);
+    const auto rect = RectF{topLeft, bottomRight};
+    if (m_clipRect.intersects(rect))
+    {
+        std::visit([this, outline](auto &brush) { setTextProgram(brush, outline); }, brush);
+        const auto &pixmap = glyph->pixmap;
+        m_spriteBatcher->setBatchTexture(pixmap.texture);
+        const auto topLeftVertex = VertexUV{.position = topLeft, .texCoord = pixmap.texCoord.min};
+        const auto bottomRightVertex = VertexUV{.position = bottomRight, .texCoord = pixmap.texCoord.max};
+        std::visit([this, &topLeftVertex, &bottomRightVertex,
+                    depth](const auto &brush) { addSprite(topLeftVertex, bottomRightVertex, brush, depth); },
+                   brush);
+    }
+}
+
+void Painter::drawGlyph(const Font::Glyph *glyph, const glm::vec2 &pos, const RectF &clipRect, const Brush &brush,
+                        bool outline, int depth)
+{
+    const auto topLeft = pos + glm::vec2(glyph->boundingBox.min);
+    const auto bottomRight = topLeft + glm::vec2(glyph->boundingBox.max - glyph->boundingBox.min);
+    const auto rect = RectF{topLeft, bottomRight};
+    if (m_clipRect.intersects(rect))
+    {
+        std::visit([this, outline](auto &brush) { setTextProgram(brush, outline); }, brush);
+        const auto &pixmap = glyph->pixmap;
+        const auto texPos = [&rect, &texCoord = pixmap.texCoord](const glm::vec2 &p) {
+            const float x =
+                (p.x - rect.min.x) * (texCoord.max.x - texCoord.min.x) / (rect.max.x - rect.min.x) + texCoord.min.x;
+            const float y =
+                (p.y - rect.min.y) * (texCoord.max.y - texCoord.min.y) / (rect.max.y - rect.min.y) + texCoord.min.y;
+            return glm::vec2(x, y);
+        };
+        const auto spriteRect = rect.intersected(clipRect);
+        m_spriteBatcher->setBatchTexture(pixmap.texture);
+        const auto topLeftVertex = VertexUV{.position = spriteRect.min, .texCoord = texPos(spriteRect.min)};
+        const auto bottomRightVertex = VertexUV{.position = spriteRect.max, .texCoord = texPos(spriteRect.max)};
+        std::visit([this, &topLeftVertex, bottomRightVertex,
+                    depth](const auto &brush) { addSprite(topLeftVertex, bottomRightVertex, brush, depth); },
+                   brush);
     }
 }
 
