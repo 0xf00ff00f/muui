@@ -125,8 +125,20 @@ void Painter::drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const Re
 
 void Painter::drawText(std::u32string_view text, const glm::vec2 &pos, const Brush &brush, int depth)
 {
+    drawText(text, pos, brush, false, depth);
+}
+
+void Painter::drawText(std::u32string_view text, const glm::vec2 &pos, const Brush &brush, const Brush &outlineBrush,
+                       int depth)
+{
+    drawText(text, pos, outlineBrush, true, depth);
+    drawText(text, pos, brush, false, depth + 1);
+}
+
+void Painter::drawText(std::u32string_view text, const glm::vec2 &pos, const Brush &brush, bool outline, int depth)
+{
     assert(m_font);
-    std::visit([this](auto &brush) { setTextProgram(brush); }, brush);
+    std::visit([this, outline](auto &brush) { setTextProgram(brush, outline); }, brush);
 
     auto basePos = glm::vec2(pos.x, pos.y + m_font->ascent());
     for (auto ch : text)
@@ -225,15 +237,17 @@ void Painter::setDecalProgram(const LinearGradient &gradient)
     m_spriteBatcher->setBatchGradientTexture(gradient.texture);
 }
 
-void Painter::setTextProgram(const Color &)
+void Painter::setTextProgram(const Color &, bool outline)
 {
-    const auto program = ShaderManager::ProgramHandle::Text;
-    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramHandle::Text);
+    const auto program = outline ? ShaderManager::ProgramHandle::TextOutline : ShaderManager::ProgramHandle::Text;
+    m_spriteBatcher->setBatchProgram(program);
 }
 
-void Painter::setTextProgram(const LinearGradient &gradient)
+void Painter::setTextProgram(const LinearGradient &gradient, bool outline)
 {
-    m_spriteBatcher->setBatchProgram(ShaderManager::ProgramHandle::TextGradient);
+    const auto program =
+        outline ? ShaderManager::ProgramHandle::TextGradientOutline : ShaderManager::ProgramHandle::TextGradient;
+    m_spriteBatcher->setBatchProgram(program);
     m_spriteBatcher->setBatchGradientTexture(gradient.texture);
 }
 

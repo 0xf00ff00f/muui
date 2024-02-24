@@ -44,19 +44,22 @@ public:
     void drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const RectF &clipRect, const Brush &color,
                     int depth);
     void drawText(std::u32string_view text, const glm::vec2 &pos, const Brush &brush, int depth);
+    void drawText(std::u32string_view text, const glm::vec2 &pos, const Brush &brush, const Brush &outlineBrush,
+                  int depth);
     void drawCircle(const glm::vec2 &center, float radius, const Brush &brush, int depth);
     void drawCapsule(const RectF &rect, const Brush &brush, int depth);
     void drawRoundedRect(const RectF &rect, float cornerRadius, const Brush &brush, int depth);
 
 private:
+    void drawText(std::u32string_view text, const glm::vec2 &pos, const Brush &brush, bool outline, int depth);
     void setRectProgram(const Color &color);
     void setRectProgram(const LinearGradient &gradient);
 
     void setDecalProgram(const Color &color);
     void setDecalProgram(const LinearGradient &gradient);
 
-    void setTextProgram(const Color &color);
-    void setTextProgram(const LinearGradient &gradient);
+    void setTextProgram(const Color &color, bool outline);
+    void setTextProgram(const LinearGradient &gradient, bool outline);
 
     void setCircleProgram(const Color &color);
     void setCircleProgram(const LinearGradient &gradient);

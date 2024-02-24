@@ -98,11 +98,13 @@ void ShaderManager::addBasicPrograms()
         {"circle.vert", "circle.frag"},
         {"roundedrect.vert", "roundedrect.frag"},
         {"text.vert", "text.frag"},
+        {"text.vert", "textoutline.frag"},
         {"gradient.vert", "gradient.frag"},
         {"decalgradient.vert", "decalgradient.frag"},
         {"circlegradient.vert", "circlegradient.frag"},
         {"roundedrectgradient.vert", "roundedrectgradient.frag"},
         {"textgradient.vert", "textgradient.frag"},
+        {"textgradient.vert", "textgradientoutline.frag"},
         {"gaussianblur.vert", "gaussianblur.frag"},
     };
     static_assert(std::extent_v<decltype(programSources)> == static_cast<int>(ProgramHandle::NumDefaultPrograms));

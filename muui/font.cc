@@ -4,6 +4,8 @@
 #include "log.h"
 #include "pixmap.h"
 
+#include <algorithm>
+
 #include <stb_truetype.h>
 
 namespace muui
@@ -14,6 +16,75 @@ struct FontInfo
     std::vector<std::byte> buffer;
     stbtt_fontinfo font;
 };
+
+namespace
+{
+
+void dilateAlpha(Pixmap &pixmap, int filterSize)
+{
+    assert(pixmap.pixelType == PixelType::RGBA);
+
+    assert((filterSize & 1) == 1);
+    const auto halfFilterSize = filterSize / 2;
+
+    std::vector<std::vector<float>> weightMatrix(filterSize);
+    for (int i = 0; i < filterSize; ++i)
+    {
+        auto &row = weightMatrix[i];
+        row.resize(filterSize);
+        for (int j = 0; j < filterSize; ++j)
+        {
+            const auto dx = static_cast<float>(i - halfFilterSize);
+            const auto dy = static_cast<float>(j - halfFilterSize);
+            const auto d = sqrtf(dx * dx + dy * dy);
+            float weight;
+            if (d < halfFilterSize)
+            {
+                weight = 1.0f;
+            }
+            else if (d < halfFilterSize + 1)
+            {
+                weight = 1.0f - (d - halfFilterSize);
+            }
+            else
+            {
+                weight = 0.0f;
+            }
+            row[j] = weight;
+        }
+    }
+
+    const auto width = pixmap.width;
+    const auto height = pixmap.height;
+
+    const auto *sourcePixels = reinterpret_cast<const glm::u8vec4 *>(pixmap.pixels.data());
+
+    std::vector<unsigned char> destBuffer(pixmap.pixels.size());
+    auto *destPixels = reinterpret_cast<glm::u8vec4 *>(destBuffer.data());
+
+    for (int y = 0; y < height; ++y)
+    {
+        for (int x = 0; x < width; ++x)
+        {
+            int alpha = 0;
+            for (int i = std::max(y - halfFilterSize, 0); i <= std::min(y + halfFilterSize, height - 1); ++i)
+            {
+                for (int j = std::max(x - halfFilterSize, 0); j <= std::min(x + halfFilterSize, width - 1); ++j)
+                {
+                    const auto w = weightMatrix[j - x + halfFilterSize][i - y + halfFilterSize];
+                    const auto sourceAlpha = static_cast<int>(sourcePixels[i * width + j].a);
+                    alpha = std::max(alpha, static_cast<int>(w * sourceAlpha));
+                }
+            }
+
+            const auto origAlpha = sourcePixels[y * width + x].a;
+            const auto destColor = glm::u8vec4(origAlpha, origAlpha, origAlpha, alpha);
+            destPixels[y * width + x] = destColor;
+        }
+    }
+
+    std::swap(pixmap.pixels, destBuffer);
+}
 
 std::unique_ptr<FontInfo> loadFont(const std::filesystem::path &path)
 {
@@ -35,9 +106,6 @@ std::unique_ptr<FontInfo> loadFont(const std::filesystem::path &path)
     log_info("Loaded font %s", path.c_str());
     return font;
 }
-
-namespace
-{
 
 class FontInfoCache
 {
@@ -64,9 +132,7 @@ Font::Font(TextureAtlas *textureAtlas)
 {
 }
 
-Font::~Font() = default;
-
-bool Font::load(const std::filesystem::path &path, int pixelHeight)
+bool Font::load(const std::filesystem::path &path, int pixelHeight, int outlineSize)
 {
     static FontInfoCache cache;
 
@@ -85,6 +151,7 @@ bool Font::load(const std::filesystem::path &path, int pixelHeight)
     m_lineGap = m_scale * lineGap;
 
     m_pixelHeight = pixelHeight;
+    m_outlineSize = outlineSize;
 
     return true;
 }
@@ -122,17 +189,34 @@ std::unique_ptr<Font::Glyph> Font::initializeGlyph(int codepoint)
 
     constexpr auto Border = 1;
 
+    const int margin = Border + m_outlineSize;
+    const auto pixelType = m_outlineSize == 0 ? PixelType::Grayscale : PixelType::RGBA;
+
     Pixmap pixmap;
-    pixmap.width = width + 2 * Border;
-    pixmap.height = height + 2 * Border;
-    pixmap.pixelType = PixelType::Grayscale;
-    pixmap.pixels.resize(pixmap.width * pixmap.height);
+    pixmap.width = width + 2 * margin;
+    pixmap.height = height + 2 * margin;
+    pixmap.pixelType = pixelType;
+    pixmap.pixels.resize(pixmap.width * pixmap.height * pixelSizeInBytes(pixelType));
     std::fill(pixmap.pixels.begin(), pixmap.pixels.end(), 0);
     for (int i = 0; i < height; ++i)
     {
         const auto *src = pixels.data() + i * width;
-        auto *dest = pixmap.pixels.data() + (i + Border) * pixmap.width + Border;
-        std::copy(src, src + width, dest);
+        auto *dest = pixmap.pixels.data() + ((i + margin) * pixmap.width + margin) * pixelSizeInBytes(pixelType);
+        if (pixelType == PixelType::Grayscale)
+        {
+            std::copy(src, src + width, dest);
+        }
+        else
+        {
+            static_assert(sizeof(glm::u8vec4) == 4);
+            std::transform(src, src + width, reinterpret_cast<glm::u8vec4 *>(dest),
+                           [](unsigned char v) { return glm::u8vec4(255, 255, 255, v); });
+        }
+    }
+
+    if (m_outlineSize > 0)
+    {
+        dilateAlpha(pixmap, 2 * m_outlineSize + 1);
     }
 
     auto packedPixmap = m_textureAtlas->addPixmap(pixmap);
@@ -145,10 +229,10 @@ std::unique_ptr<Font::Glyph> Font::initializeGlyph(int codepoint)
     int advanceWidth, leftSideBearing;
     stbtt_GetCodepointHMetrics(&m_fontInfo->font, codepoint, &advanceWidth, &leftSideBearing);
 
-    ix0 -= Border;
-    ix1 += Border;
-    iy0 -= Border;
-    iy1 += Border;
+    ix0 -= margin;
+    ix1 += margin;
+    iy0 -= margin;
+    iy1 += margin;
     assert(packedPixmap->width == ix1 - ix0);
     assert(packedPixmap->height == iy1 - iy0);
 

@@ -8,6 +8,7 @@ set(ASSET_FILES
     shaders/roundedrect.frag
     shaders/roundedrect.vert
     shaders/text.frag
+    shaders/textoutline.frag
     shaders/text.vert
     shaders/decal.frag
     shaders/decal.vert
@@ -16,6 +17,7 @@ set(ASSET_FILES
     shaders/lineargradient.inc.frag
     shaders/textgradient.vert
     shaders/textgradient.frag
+    shaders/textgradientoutline.frag
     shaders/circlegradient.vert
     shaders/circlegradient.frag
     shaders/roundedrectgradient.vert

@@ -22,8 +22,10 @@ public:
 
 private:
     std::unique_ptr<muui::Painter> m_painter;
-    std::unique_ptr<muui::TextureAtlas> m_textureAtlas;
+    std::unique_ptr<muui::TextureAtlas> m_textureAtlasGrayscale;
+    std::unique_ptr<muui::TextureAtlas> m_textureAtlasRGBA;
     std::unique_ptr<muui::Font> m_font;
+    std::unique_ptr<muui::Font> m_outlineFont;
     std::unique_ptr<muui::GradientTexture> m_gradientTexture;
 };
 
@@ -32,9 +34,14 @@ void PainterTest::initialize()
     m_painter = std::make_unique<muui::Painter>();
     m_painter->setWindowSize(m_width, m_height);
 
-    m_textureAtlas = std::make_unique<muui::TextureAtlas>(512, 512, PixelType::Grayscale);
-    m_font = std::make_unique<muui::Font>(m_textureAtlas.get());
+    m_textureAtlasGrayscale = std::make_unique<muui::TextureAtlas>(512, 512, PixelType::Grayscale);
+    m_font = std::make_unique<muui::Font>(m_textureAtlasGrayscale.get());
     if (!m_font->load(ASSETSDIR "OpenSans_Bold.ttf", 60))
+        panic("Failed to load font\n");
+
+    m_textureAtlasRGBA = std::make_unique<muui::TextureAtlas>(512, 512, PixelType::RGBA);
+    m_outlineFont = std::make_unique<muui::Font>(m_textureAtlasRGBA.get());
+    if (!m_outlineFont->load(ASSETSDIR "OpenSans_Bold.ttf", 60, 8))
         panic("Failed to load font\n");
 
     m_gradientTexture = std::make_unique<muui::GradientTexture>();
@@ -65,6 +72,7 @@ void PainterTest::render()
     m_painter->drawRoundedRect({{110, 80}, {200, 140}}, 20, gradient, 0);
     m_painter->drawRect({{10, 150}, {100, 210}}, glm::vec4(1), 0);
     m_painter->drawRect({{110, 150}, {210, 210}}, gradient, 0);
+
     m_painter->setFont(m_font.get());
     m_painter->drawText(U"Sphinx of black quartz"sv, {10, 220}, glm::vec4(1), 0);
     m_painter->drawText(U"The quick brown fox"s, {10, 280}, gradient, 0);
@@ -73,11 +81,15 @@ void PainterTest::render()
     m_painter->drawPixmap(glyph->pixmap, {{250, 10}, {350, 110}}, glm::vec4(1), 0);
     m_painter->drawPixmap(glyph->pixmap, {{250, 120}, {350, 220}}, gradient, 0);
 
+    m_painter->setFont(m_outlineFont.get());
+    m_painter->drawText(U"Sphinx of black quartz"sv, {10, 340}, glm::vec4(1), glm::vec4(1, 0, 0, 1), 0);
+    m_painter->drawText(U"Sphinx of black quartz"sv, {10, 400}, glm::vec4(1), gradient, 0);
+
     m_painter->end();
 }
 
 int main(int argc, char *argv[])
 {
-    PainterTest w(800, 400, "hello");
+    PainterTest w(800, 600, "hello");
     w.run();
 }

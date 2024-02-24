@@ -39,11 +39,13 @@ public:
         Circle,
         RoundedRect,
         Text,
+        TextOutline,
         Gradient,
         DecalGradient,
         CircleGradient,
         RoundedRectGradient,
         TextGradient,
+        TextGradientOutline,
         GaussianBlur,
 
         NumDefaultPrograms,
