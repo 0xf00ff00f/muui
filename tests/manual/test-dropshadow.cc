@@ -1,7 +1,6 @@
-#include "testwindow.h"
-
 #include "panic.h"
 
+#include <muui/application.h>
 #include <muui/dropshadow.h>
 #include <muui/font.h>
 #include <muui/framebuffer.h>
@@ -22,16 +21,14 @@ using namespace std::string_view_literals;
 
 static const std::filesystem::path AssetsPath{ASSETSDIR};
 
-class DropShadowTest : public TestWindow
+class DropShadowTest : public muui::Application
 {
 public:
-    using TestWindow::TestWindow;
-
     void initialize() override;
+    void resize(int width, int height) override;
     void update(float elapsed) override;
-    void render() override;
-    void mouseButtonEvent(int button, int action, int mods) override;
-    void mouseMoveEvent(double x, double y) override;
+    void render() const override;
+    void handleTouchEvent(TouchAction action, int x, int y) override;
 
 private:
     std::unique_ptr<muui::TextureAtlas> m_textureAtlas;
@@ -78,8 +75,12 @@ void DropShadowTest::initialize()
     });
 
     m_screen = std::make_unique<muui::Screen>();
-    m_screen->resize(m_width, m_height);
     m_screen->setRootItem(m_rootItem.get());
+}
+
+void DropShadowTest::resize(int width, int height)
+{
+    m_screen->resize(width, height);
 }
 
 void DropShadowTest::update(float elapsed)
@@ -88,7 +89,7 @@ void DropShadowTest::update(float elapsed)
     m_rootItem->update(elapsed);
 }
 
-void DropShadowTest::render()
+void DropShadowTest::render() const
 {
     glClearColor(0.8, 0.95, 1, 1);
     glViewport(0, 0, m_screen->width(), m_screen->height());
@@ -97,38 +98,27 @@ void DropShadowTest::render()
     m_screen->render();
 }
 
-void DropShadowTest::mouseButtonEvent(int button, int action, [[maybe_unused]] int mods)
+void DropShadowTest::handleTouchEvent(TouchAction action, int x, int y)
 {
-    if (button != GLFW_MOUSE_BUTTON_LEFT)
-        return;
     switch (action)
     {
-    case GLFW_PRESS: {
-        double x, y;
-        glfwGetCursorPos(m_window, &x, &y);
+    case TouchAction::Down:
         m_screen->handleTouchEvent(TouchAction::Down, x, y);
         break;
-    }
-    case GLFW_RELEASE: {
-        double x, y;
-        glfwGetCursorPos(m_window, &x, &y);
+    case TouchAction::Up:
         m_screen->handleTouchEvent(TouchAction::Up, x, y);
         break;
-    }
+    case TouchAction::Move:
+        m_screen->handleTouchEvent(TouchAction::Move, x, y);
+        break;
     default:
         break;
     }
 }
 
-void DropShadowTest::mouseMoveEvent(double x, double y)
-{
-    int state = glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_LEFT);
-    if (state == GLFW_PRESS)
-        m_screen->handleTouchEvent(TouchAction::Move, x, y);
-}
-
 int main(int argc, char *argv[])
 {
-    DropShadowTest w(800, 400, "hello");
-    w.run();
+    DropShadowTest app;
+    if (app.createWindow(800, 400, "hello", true))
+        app.exec();
 }

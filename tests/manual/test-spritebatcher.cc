@@ -1,7 +1,6 @@
-#include "testwindow.h"
-
 #include "panic.h"
 
+#include <muui/application.h>
 #include <muui/spritebatcher.h>
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -11,26 +10,33 @@
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
-class SpriteBatcherTest : public TestWindow
+class SpriteBatcherTest : public muui::Application
 {
-public:
-    using TestWindow::TestWindow;
-
+protected:
     void initialize() override;
-    void render() override;
+    void resize(int width, int height) override;
+    void render() const override;
 
 private:
+    int m_width{0};
+    int m_height{0};
     std::unique_ptr<muui::SpriteBatcher> m_spriteBatcher;
 };
 
 void SpriteBatcherTest::initialize()
 {
     m_spriteBatcher = std::make_unique<muui::SpriteBatcher>();
-    const auto mvp = glm::ortho(0.0f, static_cast<float>(m_width), static_cast<float>(m_height), 0.0f);
+}
+
+void SpriteBatcherTest::resize(int width, int height)
+{
+    m_width = width;
+    m_height = height;
+    const auto mvp = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f);
     m_spriteBatcher->setTransformMatrix(mvp);
 }
 
-void SpriteBatcherTest::render()
+void SpriteBatcherTest::render() const
 {
     glClearColor(0.25, 0.25, 0.25, 1);
     glViewport(0, 0, m_width, m_height);
@@ -62,6 +68,7 @@ void SpriteBatcherTest::render()
 
 int main(int argc, char *argv[])
 {
-    SpriteBatcherTest w(800, 400, "hello");
-    w.run();
+    SpriteBatcherTest app;
+    if (app.createWindow(800, 400, "hello", true))
+        app.exec();
 }

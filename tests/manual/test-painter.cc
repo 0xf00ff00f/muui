@@ -1,7 +1,6 @@
-#include "testwindow.h"
-
 #include "panic.h"
 
+#include <muui/application.h>
 #include <muui/font.h>
 #include <muui/gradienttexture.h>
 #include <muui/painter.h>
@@ -12,13 +11,12 @@
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
-class PainterTest : public TestWindow
+class PainterTest : public muui::Application
 {
-public:
-    using TestWindow::TestWindow;
-
+protected:
     void initialize() override;
-    void render() override;
+    void resize(int width, int height) override;
+    void render() const override;
 
 private:
     std::unique_ptr<muui::Painter> m_painter;
@@ -32,7 +30,6 @@ private:
 void PainterTest::initialize()
 {
     m_painter = std::make_unique<muui::Painter>();
-    m_painter->setWindowSize(m_width, m_height);
 
     m_textureAtlasGrayscale = std::make_unique<muui::TextureAtlas>(512, 512, PixelType::Grayscale);
     m_font = std::make_unique<muui::Font>(m_textureAtlasGrayscale.get());
@@ -50,7 +47,12 @@ void PainterTest::initialize()
     m_gradientTexture->setColorAt(0.5, glm::vec4(0, 1, 1, 1));
 }
 
-void PainterTest::render()
+void PainterTest::resize(int width, int height)
+{
+    m_painter->setWindowSize(width, height);
+}
+
+void PainterTest::render() const
 {
     glClearColor(0.25, 0.25, 0.25, 1);
     glViewport(0, 0, m_painter->windowWidth(), m_painter->windowHeight());
@@ -90,6 +92,7 @@ void PainterTest::render()
 
 int main(int argc, char *argv[])
 {
-    PainterTest w(800, 600, "hello");
-    w.run();
+    PainterTest app;
+    if (app.createWindow(800, 600, "hello", true))
+        app.exec();
 }

@@ -1,7 +1,6 @@
-#include "testwindow.h"
-
 #include "panic.h"
 
+#include <muui/application.h>
 #include <muui/gradienttexture.h>
 #include <muui/spritebatcher.h>
 
@@ -12,15 +11,16 @@
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
-class GradientTest : public TestWindow
+class GradientTest : public muui::Application
 {
-public:
-    using TestWindow::TestWindow;
-
+protected:
     void initialize() override;
-    void render() override;
+    void resize(int width, int height) override;
+    void render() const override;
 
 private:
+    int m_width{0};
+    int m_height{0};
     std::unique_ptr<muui::SpriteBatcher> m_spriteBatcher;
     std::unique_ptr<muui::GradientTexture> m_gradientTexture;
 };
@@ -28,8 +28,6 @@ private:
 void GradientTest::initialize()
 {
     m_spriteBatcher = std::make_unique<muui::SpriteBatcher>();
-    const auto mvp = glm::ortho(0.0f, static_cast<float>(m_width), static_cast<float>(m_height), 0.0f);
-    m_spriteBatcher->setTransformMatrix(mvp);
 
     m_gradientTexture = std::make_unique<muui::GradientTexture>();
     m_gradientTexture->setColorAt(0.0f, glm::vec4(0.25f, 0.25f, 0.25f, 1.0f));
@@ -37,7 +35,15 @@ void GradientTest::initialize()
     m_gradientTexture->setColorAt(0.5f, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 }
 
-void GradientTest::render()
+void GradientTest::resize(int width, int height)
+{
+    m_width = width;
+    m_height = height;
+    const auto mvp = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f);
+    m_spriteBatcher->setTransformMatrix(mvp);
+}
+
+void GradientTest::render() const
 {
     glClearColor(0.25, 0.25, 0.25, 1);
     glViewport(0, 0, m_width, m_height);
@@ -70,6 +76,7 @@ void GradientTest::render()
 
 int main(int argc, char *argv[])
 {
-    GradientTest w(800, 400, "hello");
-    w.run();
+    GradientTest app;
+    if (app.createWindow(800, 400, "hello", true))
+        app.exec();
 }

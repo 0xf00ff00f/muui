@@ -10,6 +10,8 @@ add_library(muui STATIC)
 
 set(MUUI_SOURCES
     abstracttexture.h
+    application.h
+    application.cc
     buffer.cc
     buffer.h
     vertexarray.cc
@@ -68,23 +70,23 @@ set(MUUI_SOURCES
     dropshadow.h
     dropshadow.cc)
 
-if(MUUI_USE_SDL2)
-  list(APPEND MUUI_SOURCES sdlfs.h sdlfs.cc)
-else()
-  list(APPEND MUUI_SOURCES diskfs.h diskfs.cc)
-endif()
+list(APPEND MUUI_SOURCES sdlfs.h sdlfs.cc)
 
 target_sources(${PROJECT_NAME} PRIVATE ${MUUI_SOURCES})
+target_compile_definitions(${PROJECT_NAME} PUBLIC MUUI_USE_SDL2)
 
 target_link_libraries(
   ${PROJECT_NAME}
-  PUBLIC muslots glm stb fmt::fmt
-  PRIVATE cmrc-base embed-assets)
-
-if(MUUI_USE_SDL2)
-  target_compile_definitions(${PROJECT_NAME} PUBLIC MUUI_USE_SDL2)
-  target_link_libraries(${PROJECT_NAME} PUBLIC SDL2::SDL2)
-endif()
+  PUBLIC
+    muslots
+    glm
+    stb
+    fmt::fmt
+    SDL2::SDL2
+  PRIVATE
+    cmrc-base
+    embed-assets
+)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Android")
   target_link_libraries(${PROJECT_NAME} PUBLIC android log EGL GLESv3)

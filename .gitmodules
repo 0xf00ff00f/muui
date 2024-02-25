@@ -7,9 +7,10 @@
 [submodule "muui/3rdparty/fmt"]
 	path = muui/3rdparty/fmt
 	url = https://github.com/fmtlib/fmt.git
-[submodule "tests/3rdparty/glfw"]
-	path = tests/3rdparty/glfw
-	url = https://github.com/glfw/glfw.git
 [submodule "tests/3rdparty/Catch2"]
 	path = tests/3rdparty/Catch2
 	url = https://github.com/catchorg/Catch2.git
+[submodule "muui/3rdparty/SDL"]
+	path = muui/3rdparty/SDL
+	url = https://github.com/libsdl-org/SDL.git
+	branch = SDL2

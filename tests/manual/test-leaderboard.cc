@@ -1,7 +1,6 @@
-#include "testwindow.h"
-
 #include "panic.h"
 
+#include <muui/application.h>
 #include <muui/font.h>
 #include <muui/item.h>
 #include <muui/painter.h>
@@ -202,15 +201,13 @@ std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float
 
 } // namespace
 
-class LeaderboardTest : public TestWindow
+class LeaderboardTest : public muui::Application
 {
 public:
-    using TestWindow::TestWindow;
-
     void initialize() override;
-    void render() override;
-    void mouseButtonEvent(int button, int action, int mods) override;
-    void mouseMoveEvent(double x, double y) override;
+    void resize(int width, int height) override;
+    void render() const override;
+    void handleTouchEvent(TouchAction action, int x, int y) override;
 
 private:
     std::unique_ptr<TextureAtlas> m_textureAtlas;
@@ -231,14 +228,18 @@ void LeaderboardTest::initialize()
     if (!m_bigFont->load(fontPath, 70))
         panic("Failed to load font\n");
 
-    m_rootItem = buildUI(m_smallFont.get(), m_bigFont.get(), m_width, m_height);
-
     m_screen = std::make_unique<Screen>();
-    m_screen->resize(m_width, m_height);
+}
+
+void LeaderboardTest::resize(int width, int height)
+{
+    m_screen->resize(width, height);
+
+    m_rootItem = buildUI(m_smallFont.get(), m_bigFont.get(), width, height);
     m_screen->setRootItem(m_rootItem.get());
 }
 
-void LeaderboardTest::render()
+void LeaderboardTest::render() const
 {
     glClearColor(0.8, 0.95, 1.0, 1);
     glViewport(0, 0, m_screen->width(), m_screen->height());
@@ -247,38 +248,27 @@ void LeaderboardTest::render()
     m_screen->render();
 }
 
-void LeaderboardTest::mouseButtonEvent(int button, int action, [[maybe_unused]] int mods)
+void LeaderboardTest::handleTouchEvent(TouchAction action, int x, int y)
 {
-    if (button != GLFW_MOUSE_BUTTON_LEFT)
-        return;
     switch (action)
     {
-    case GLFW_PRESS: {
-        double x, y;
-        glfwGetCursorPos(m_window, &x, &y);
+    case TouchAction::Down:
         m_screen->handleTouchEvent(TouchAction::Down, x, y);
         break;
-    }
-    case GLFW_RELEASE: {
-        double x, y;
-        glfwGetCursorPos(m_window, &x, &y);
+    case TouchAction::Up:
         m_screen->handleTouchEvent(TouchAction::Up, x, y);
         break;
-    }
+    case TouchAction::Move:
+        m_screen->handleTouchEvent(TouchAction::Move, x, y);
+        break;
     default:
         break;
     }
 }
 
-void LeaderboardTest::mouseMoveEvent(double x, double y)
-{
-    int state = glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_LEFT);
-    if (state == GLFW_PRESS)
-        m_screen->handleTouchEvent(TouchAction::Move, x, y);
-}
-
 int main(int argc, char *argv[])
 {
-    LeaderboardTest w(1223, 512, "hello");
-    w.run();
+    LeaderboardTest app;
+    if (app.createWindow(1223, 512, "hello", true))
+        app.exec();
 }

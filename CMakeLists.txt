@@ -5,7 +5,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 project(muui)
 
 option(MUUI_TESTS "Build tests" ON)
-option(MUUI_USE_SDL2 "Use SDL2" OFF)
 
 include(CMakeRC)
 

@@ -1,3 +1,4 @@
+add_subdirectory(SDL)
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Android")
   add_subdirectory(glad)
 endif()
