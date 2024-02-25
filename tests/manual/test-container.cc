@@ -14,7 +14,7 @@ using namespace std::string_view_literals;
 class LayoutTest : public muui::Application
 {
 protected:
-    void initialize() override;
+    bool initialize() override;
     void resize(int width, int height) override;
     void render() const override;
 
@@ -25,7 +25,7 @@ private:
     std::unique_ptr<muui::Item> m_rootItem;
 };
 
-void LayoutTest::initialize()
+bool LayoutTest::initialize()
 {
     m_painter = std::make_unique<muui::Painter>();
 
@@ -74,6 +74,8 @@ void LayoutTest::initialize()
     }
 
     m_rootItem = std::move(root);
+
+    return true;
 }
 
 void LayoutTest::resize(int width, int height)

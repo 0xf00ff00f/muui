@@ -204,7 +204,7 @@ std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float
 class LeaderboardTest : public muui::Application
 {
 public:
-    void initialize() override;
+    bool initialize() override;
     void resize(int width, int height) override;
     void render() const override;
     void handleTouchEvent(TouchAction action, int x, int y) override;
@@ -216,7 +216,7 @@ private:
     std::unique_ptr<Screen> m_screen;
 };
 
-void LeaderboardTest::initialize()
+bool LeaderboardTest::initialize()
 {
     constexpr auto fontPath = ASSETSDIR "OpenSans_Bold.ttf";
 
@@ -229,6 +229,8 @@ void LeaderboardTest::initialize()
         panic("Failed to load font\n");
 
     m_screen = std::make_unique<Screen>();
+
+    return true;
 }
 
 void LeaderboardTest::resize(int width, int height)

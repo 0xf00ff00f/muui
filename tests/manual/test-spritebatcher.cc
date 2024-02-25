@@ -13,7 +13,7 @@ using namespace std::string_view_literals;
 class SpriteBatcherTest : public muui::Application
 {
 protected:
-    void initialize() override;
+    bool initialize() override;
     void resize(int width, int height) override;
     void render() const override;
 
@@ -23,9 +23,11 @@ private:
     std::unique_ptr<muui::SpriteBatcher> m_spriteBatcher;
 };
 
-void SpriteBatcherTest::initialize()
+bool SpriteBatcherTest::initialize()
 {
     m_spriteBatcher = std::make_unique<muui::SpriteBatcher>();
+
+    return true;
 }
 
 void SpriteBatcherTest::resize(int width, int height)

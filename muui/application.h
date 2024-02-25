@@ -31,7 +31,7 @@ public:
     float framesPerSecond() const { return m_fps; }
 
 protected:
-    virtual void initialize() = 0;
+    virtual bool initialize() = 0;
     virtual void resize(int width, int height) = 0;
     virtual void render() const = 0;
     virtual void update(float elapsed);

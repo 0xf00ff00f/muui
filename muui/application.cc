@@ -88,7 +88,8 @@ bool Application::createWindow(int width, int height, const char *title, bool wi
 
     SDL_GL_SetSwapInterval(0);
 
-    initialize();
+    if (!initialize())
+        return false;
 
     m_initialized = true;
 

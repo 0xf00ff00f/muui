@@ -24,7 +24,7 @@ static const std::filesystem::path AssetsPath{ASSETSDIR};
 class DropShadowTest : public muui::Application
 {
 public:
-    void initialize() override;
+    bool initialize() override;
     void resize(int width, int height) override;
     void update(float elapsed) override;
     void render() const override;
@@ -38,7 +38,7 @@ private:
     float m_direction{1.0f};
 };
 
-void DropShadowTest::initialize()
+bool DropShadowTest::initialize()
 {
     m_textureAtlas = std::make_unique<muui::TextureAtlas>(512, 512, PixelType::Grayscale);
     m_font = std::make_unique<muui::Font>(m_textureAtlas.get());
@@ -76,6 +76,8 @@ void DropShadowTest::initialize()
 
     m_screen = std::make_unique<muui::Screen>();
     m_screen->setRootItem(m_rootItem.get());
+
+    return true;
 }
 
 void DropShadowTest::resize(int width, int height)

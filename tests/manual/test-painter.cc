@@ -14,7 +14,7 @@ using namespace std::string_view_literals;
 class PainterTest : public muui::Application
 {
 protected:
-    void initialize() override;
+    bool initialize() override;
     void resize(int width, int height) override;
     void render() const override;
 
@@ -27,7 +27,7 @@ private:
     std::unique_ptr<muui::GradientTexture> m_gradientTexture;
 };
 
-void PainterTest::initialize()
+bool PainterTest::initialize()
 {
     m_painter = std::make_unique<muui::Painter>();
 
@@ -45,6 +45,8 @@ void PainterTest::initialize()
     m_gradientTexture->setColorAt(0, glm::vec4(1, 0, 0, 1));
     m_gradientTexture->setColorAt(1, glm::vec4(0, 0, 1, 1));
     m_gradientTexture->setColorAt(0.5, glm::vec4(0, 1, 1, 1));
+
+    return true;
 }
 
 void PainterTest::resize(int width, int height)
