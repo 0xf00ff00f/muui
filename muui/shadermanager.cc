@@ -60,6 +60,10 @@ ShaderManager::ProgramHandle ShaderManager::addProgram(const ProgramDescription 
 
 void ShaderManager::useProgram(ProgramHandle handle)
 {
+    if (handle == ProgramHandle::Invalid) {
+        m_currentProgram = nullptr;
+        return;
+    }
     const auto index = static_cast<int>(handle);
     assert(index >= 0 && index < m_cachedPrograms.size());
     auto &cachedProgram = m_cachedPrograms[index];
