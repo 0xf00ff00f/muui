@@ -328,6 +328,7 @@ public:
     Alignment alignment() { return m_alignment; }
 
     Brush brush = glm::vec4(0, 0, 0, 1);
+    Brush outlineBrush = glm::vec4(0.5, 0.5, 0.5, 1);
     bool shadowEnabled = false;
     glm::vec2 shadowOffset = glm::vec2(4, 4);
     glm::vec4 shadowColor = glm::vec4(0.5, 0.5, 0.5, 1);

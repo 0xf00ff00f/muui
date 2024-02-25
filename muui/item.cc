@@ -501,7 +501,10 @@ bool Label::renderContents(Painter *painter, const glm::vec2 &pos, int depth)
         painter->drawText(m_text, textPos + shadowOffset, shadowColor, depth);
         ++depth;
     }
-    painter->drawText(m_text, textPos, brush, depth);
+    if (m_font->outlineSize() > 0)
+        painter->drawText(m_text, textPos, brush, outlineBrush, depth);
+    else
+        painter->drawText(m_text, textPos, brush, depth);
 
     if (clipped)
         painter->setClipRect(prevClipRect);
