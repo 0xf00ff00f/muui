@@ -1,6 +1,5 @@
 #pragma once
 
-#include "gl.h"
 #include "noncopyable.h"
 #include "uiinput.h"
 

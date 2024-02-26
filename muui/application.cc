@@ -1,5 +1,6 @@
 #include "application.h"
 
+#include "gl.h"
 #include "log.h"
 #include "system.h"
 
@@ -75,6 +76,15 @@ bool Application::createWindow(int width, int height, const char *title, bool wi
         SDL_Quit();
         return false;
     }
+
+#if !defined(__ANDROID__)
+    if (!gladLoadGLES2(reinterpret_cast<GLADloadfunc>(SDL_GL_GetProcAddress)))
+    {
+        log_error("Failed to initialize GLAD");
+        SDL_Quit();
+        return false;
+    }
+#endif
 
     if (!System::initialize())
         return false;

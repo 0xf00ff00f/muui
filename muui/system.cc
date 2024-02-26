@@ -1,7 +1,6 @@
 #include "system.h"
 
 #include "fontcache.h"
-#include "log.h"
 #include "pixmapcache.h"
 #include "shadermanager.h"
 #include "textureatlas.h"
@@ -19,14 +18,6 @@ constexpr auto TextureAtlasPageSize = 1024;
 
 bool System::initialize()
 {
-#if !defined(__ANDROID__)
-    if (!gladLoadGLES2(reinterpret_cast<GLADloadfunc>(SDL_GL_GetProcAddress)))
-    {
-        log_error("Failed to initialize GLAD");
-        SDL_Quit();
-        return false;
-    }
-#endif
     return true;
 }
 
