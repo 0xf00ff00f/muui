@@ -245,7 +245,7 @@ protected:
     void setVerticalAnchor(const VerticalAnchor &anchor);
     virtual void updateLayout();
     bool renderBackground(Painter *painter, const glm::vec2 &pos, int depth);
-    virtual bool renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) = 0;
+    virtual bool renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0);
     virtual Item *handleMouseEvent(const TouchEvent &event);
     virtual void handleChildUpdated();
 
@@ -298,9 +298,6 @@ public:
     void setSize(float width, float height);
     void setWidth(float width);
     void setHeight(float height);
-
-protected:
-    bool renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
 };
 
 class Label : public Item
@@ -400,7 +397,6 @@ public:
 protected:
     void handleChildUpdated() override;
     virtual void updateSize() = 0;
-    bool renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
 
     Margins m_margins;
     float m_spacing = 0.0f;

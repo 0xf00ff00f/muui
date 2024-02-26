@@ -34,8 +34,8 @@ bool LayoutTest::initialize()
     if (!m_font->load(ASSETSDIR "OpenSans_Bold.ttf", 60))
         panic("Failed to load font\n");
 
-    auto addLabel = [this](muui::Container *container, std::u32string_view text, muui::Alignment alignment) {
-        auto *label = container->appendChild<muui::Label>(m_font.get(), text);
+    auto addLabel = [this](muui::Item *parent, std::u32string_view text, muui::Alignment alignment) {
+        auto *label = parent->appendChild<muui::Label>(m_font.get(), text);
         label->setContainerAlignment(alignment);
         label->fillBackground = true;
         label->backgroundBrush = glm::vec4{1, 0, 0, 1};

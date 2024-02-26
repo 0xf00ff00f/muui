@@ -109,6 +109,11 @@ bool Item::renderBackground(Painter *painter, const glm::vec2 &pos, int depth)
     }
 }
 
+bool Item::renderContents(Painter *, const glm::vec2 &, int)
+{
+    return false;
+}
+
 void Item::setSize(Size size)
 {
     if (size == m_size)
@@ -344,11 +349,6 @@ void Rectangle::setWidth(float width)
 void Rectangle::setHeight(float height)
 {
     setSize({m_size.width, height});
-}
-
-bool Rectangle::renderContents(Painter *, const glm::vec2 &, int)
-{
-    return false;
 }
 
 Label::Label(std::u32string_view text)
@@ -665,11 +665,6 @@ void Container::handleChildUpdated()
 {
     updateSize();
     Item::handleChildUpdated();
-}
-
-bool Container::renderContents(Painter *, const glm::vec2 &, int)
-{
-    return false;
 }
 
 void Column::setMinimumWidth(float width)
