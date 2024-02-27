@@ -181,7 +181,7 @@ void SpriteBatcher::flush()
         if (currentProgram != batchProgram)
         {
             currentProgram = batchProgram;
-            auto *shaderManager = getShaderManager();
+            auto *shaderManager = sys::shaderManager();
             shaderManager->useProgram(batchProgram);
             shaderManager->setUniform("mvp", m_transformMatrix);
             if (currentTexture)

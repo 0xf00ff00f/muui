@@ -7,51 +7,67 @@
 
 #include <SDL.h>
 
-namespace muui
+namespace muui::sys
 {
-System *System::s_instance = nullptr;
 
 namespace
 {
-constexpr auto TextureAtlasPageSize = 1024;
-}
 
-bool System::initialize()
+struct System
 {
+    System()
+        : m_shaderManager(std::make_unique<ShaderManager>())
+        , m_fontTextureAtlas(
+              std::make_unique<TextureAtlas>(TextureAtlasPageSize, TextureAtlasPageSize, PixelType::Grayscale))
+        , m_pixmapTextureAtlas(
+              std::make_unique<TextureAtlas>(TextureAtlasPageSize, TextureAtlasPageSize, PixelType::RGBA))
+        , m_fontCache(std::make_unique<FontCache>(m_fontTextureAtlas.get()))
+        , m_pixmapCache(std::make_unique<PixmapCache>(m_pixmapTextureAtlas.get()))
+    {
+    }
+
+    ShaderManager *shaderManager() { return m_shaderManager.get(); }
+    FontCache *fontCache() { return m_fontCache.get(); }
+    PixmapCache *pixmapCache() { return m_pixmapCache.get(); }
+
+    static constexpr auto TextureAtlasPageSize = 1024;
+
+    std::unique_ptr<ShaderManager> m_shaderManager;
+    std::unique_ptr<TextureAtlas> m_fontTextureAtlas;
+    std::unique_ptr<TextureAtlas> m_pixmapTextureAtlas;
+    std::unique_ptr<FontCache> m_fontCache;
+    std::unique_ptr<PixmapCache> m_pixmapCache;
+} *s_system = nullptr;
+
+} // namespace
+
+bool initialize()
+{
+    assert(s_system == nullptr);
+    s_system = new System;
     return true;
 }
 
-void System::shutdown()
+void shutdown()
 {
-    delete s_instance;
-    s_instance = nullptr;
+    assert(s_system != nullptr);
+    delete s_system;
+    s_system = nullptr;
 }
 
-System::System()
-    : m_shaderManager(std::make_unique<ShaderManager>())
-    , m_fontTextureAtlas(
-          std::make_unique<TextureAtlas>(TextureAtlasPageSize, TextureAtlasPageSize, PixelType::Grayscale))
-    , m_pixmapTextureAtlas(std::make_unique<TextureAtlas>(TextureAtlasPageSize, TextureAtlasPageSize, PixelType::RGBA))
-    , m_fontCache(std::make_unique<FontCache>(m_fontTextureAtlas.get()))
-    , m_pixmapCache(std::make_unique<PixmapCache>(m_pixmapTextureAtlas.get()))
+ShaderManager *shaderManager()
 {
+    return s_system->shaderManager();
 }
 
-System::~System() = default;
-
-ShaderManager *getShaderManager()
+FontCache *fontCache()
 {
-    return System::instance()->shaderManager();
+    return s_system->fontCache();
 }
 
-FontCache *getFontCache()
+PixmapCache *pixmapCache()
 {
-    return System::instance()->fontCache();
+    return s_system->pixmapCache();
 }
 
-PixmapCache *getPixmapCache()
-{
-    return System::instance()->pixmapCache();
-}
-
-} // namespace muui
+} // namespace muui::sys

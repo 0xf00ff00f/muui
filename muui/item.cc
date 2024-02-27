@@ -15,7 +15,7 @@ namespace
 {
 Font *defaultFont()
 {
-    return getFontCache()->font("OpenSans_Regular", 40);
+    return sys::fontCache()->font("OpenSans_Regular", 40);
 }
 } // namespace
 
@@ -530,7 +530,7 @@ void Image::setSource(std::string_view source)
         return;
     m_source = source;
     m_pixmap = [this] {
-        auto *cache = getPixmapCache();
+        auto *cache = sys::pixmapCache();
         return cache->pixmap(m_source);
     }();
     updateSizeAndOffset();

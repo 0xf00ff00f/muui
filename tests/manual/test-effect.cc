@@ -31,7 +31,7 @@ constexpr glm::vec3 rgbToColor(unsigned color)
 static muui::ShaderManager::ProgramHandle transitionProgramHandle()
 {
     static auto handle = [] {
-        auto *shaderManager = muui::getShaderManager();
+        auto *shaderManager = muui::sys::shaderManager();
         return shaderManager->addProgram({
             .vertexShaderPath = AssetsPath / "transition.vert",
             .fragmentShaderPath = AssetsPath / "transition.frag",

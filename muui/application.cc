@@ -15,7 +15,7 @@ Application::~Application()
 {
     if (m_initialized)
     {
-        System::shutdown();
+        sys::shutdown();
 
         assert(m_context);
         SDL_GL_DeleteContext(m_context);
@@ -86,7 +86,7 @@ bool Application::createWindow(int width, int height, const char *title, bool wi
     }
 #endif
 
-    if (!System::initialize())
+    if (!sys::initialize())
         return false;
 
     m_window = window.release();

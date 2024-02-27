@@ -22,7 +22,7 @@ DropShadow::DropShadow()
 
 void DropShadow::applyEffect(Painter *painter, const glm::vec2 &pos, int depth)
 {
-    auto *shaderManager = getShaderManager();
+    auto *shaderManager = sys::shaderManager();
     shaderManager->useProgram(ShaderManager::ProgramHandle::GaussianBlur);
     shaderManager->setUniform("baseColorTexture", 0);
 
