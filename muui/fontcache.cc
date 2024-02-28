@@ -20,11 +20,12 @@ std::size_t FontCache::FontKeyHasher::operator()(const FontCache::FontKey &key) 
 {
     std::size_t hash = 311;
     hash = hash * 31 + static_cast<std::size_t>(key.pixelHeight);
+    hash = hash * 31 + static_cast<std::size_t>(key.outlineSize);
     hash = hash * 31 + std::hash<std::string>()(key.name);
     return hash;
 }
 
-Font *FontCache::font(std::string_view source, int pixelHeight)
+Font *FontCache::font(std::string_view source, int pixelHeight, int outlineSize)
 {
     FontKey key{std::string(source), pixelHeight};
     auto it = m_fonts.find(key);
@@ -32,7 +33,7 @@ Font *FontCache::font(std::string_view source, int pixelHeight)
     {
         auto font = std::make_unique<Font>(m_textureAtlas);
         const auto path = m_rootPath / fmt::format("{}.ttf", source);
-        if (!font->load(path, pixelHeight))
+        if (!font->load(path, pixelHeight, outlineSize))
         {
             log_error("Failed to load font %s", std::string(source).c_str());
             font.reset();

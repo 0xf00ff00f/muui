@@ -22,7 +22,7 @@ public:
     explicit FontCache(TextureAtlas *textureAtlas);
     ~FontCache();
 
-    Font *font(std::string_view name, int pixelHeight);
+    Font *font(std::string_view name, int pixelHeight, int outlineSize = 0);
 
     void setRootPath(const std::filesystem::path &path);
     const std::filesystem::path &rootPath() const { return m_rootPath; }
@@ -33,6 +33,7 @@ private:
     {
         std::string name;
         int pixelHeight;
+        int outlineSize;
         bool operator==(const FontKey &other) const = default;
     };
     struct FontKeyHasher
