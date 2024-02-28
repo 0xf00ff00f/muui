@@ -5,7 +5,6 @@
 
 namespace muui
 {
-
 struct Pixmap;
 
 class LazyTexture : public AbstractTexture

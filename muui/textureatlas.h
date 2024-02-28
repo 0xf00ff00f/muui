@@ -8,10 +8,9 @@
 #include <optional>
 #include <vector>
 
-struct Pixmap;
-
 namespace muui
 {
+struct Pixmap;
 
 struct PackedPixmap
 {

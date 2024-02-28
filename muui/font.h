@@ -8,11 +8,10 @@
 #include <string_view>
 #include <unordered_map>
 
-struct Pixmap;
-
 namespace muui
 {
 class FontInfo;
+struct Pixmap;
 
 class Font
 {

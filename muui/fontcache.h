@@ -11,10 +11,9 @@
 #include <string_view>
 #include <unordered_map>
 
-class TextureAtlas;
-
 namespace muui
 {
+class TextureAtlas;
 class Font;
 
 class FontCache : private NonCopyable

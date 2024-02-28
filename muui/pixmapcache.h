@@ -9,10 +9,9 @@
 #include <string_view>
 #include <unordered_map>
 
-class TextureAtlas;
-
 namespace muui
 {
+class TextureAtlas;
 
 class PixmapCache : private NonCopyable
 {

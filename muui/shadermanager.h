@@ -9,13 +9,13 @@
 
 class Connection;
 
+namespace muui
+{
+
 namespace gl
 {
 class ShaderProgram;
 }
-
-namespace muui
-{
 
 struct ProgramDescription
 {
