@@ -40,7 +40,7 @@ private:
 
 bool DropShadowTest::initialize()
 {
-    m_textureAtlas = std::make_unique<muui::TextureAtlas>(512, 512, PixelType::Grayscale);
+    m_textureAtlas = std::make_unique<muui::TextureAtlas>(512, 512);
     m_font = std::make_unique<muui::Font>(m_textureAtlas.get());
     if (!m_font->load(AssetsPath / "OpenSans_Bold.ttf", 80))
         panic("Failed to load font\n");

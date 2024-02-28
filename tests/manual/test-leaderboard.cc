@@ -220,7 +220,7 @@ bool LeaderboardTest::initialize()
 {
     constexpr auto fontPath = ASSETSDIR "OpenSans_Bold.ttf";
 
-    m_textureAtlas = std::make_unique<TextureAtlas>(512, 512, PixelType::Grayscale);
+    m_textureAtlas = std::make_unique<TextureAtlas>(512, 512);
     m_smallFont = std::make_unique<Font>(m_textureAtlas.get());
     if (!m_smallFont->load(fontPath, 50))
         panic("Failed to load font\n");

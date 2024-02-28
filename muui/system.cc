@@ -17,12 +17,9 @@ struct System
 {
     System()
         : m_shaderManager(std::make_unique<ShaderManager>())
-        , m_fontTextureAtlas(
-              std::make_unique<TextureAtlas>(TextureAtlasPageSize, TextureAtlasPageSize, PixelType::Grayscale))
-        , m_pixmapTextureAtlas(
-              std::make_unique<TextureAtlas>(TextureAtlasPageSize, TextureAtlasPageSize, PixelType::RGBA))
-        , m_fontCache(std::make_unique<FontCache>(m_fontTextureAtlas.get()))
-        , m_pixmapCache(std::make_unique<PixmapCache>(m_pixmapTextureAtlas.get()))
+        , m_textureAtlas(std::make_unique<TextureAtlas>(TextureAtlasPageSize, TextureAtlasPageSize))
+        , m_fontCache(std::make_unique<FontCache>(m_textureAtlas.get()))
+        , m_pixmapCache(std::make_unique<PixmapCache>(m_textureAtlas.get()))
     {
     }
 
@@ -33,8 +30,7 @@ struct System
     static constexpr auto TextureAtlasPageSize = 1024;
 
     std::unique_ptr<ShaderManager> m_shaderManager;
-    std::unique_ptr<TextureAtlas> m_fontTextureAtlas;
-    std::unique_ptr<TextureAtlas> m_pixmapTextureAtlas;
+    std::unique_ptr<TextureAtlas> m_textureAtlas;
     std::unique_ptr<FontCache> m_fontCache;
     std::unique_ptr<PixmapCache> m_pixmapCache;
 } *s_system = nullptr;

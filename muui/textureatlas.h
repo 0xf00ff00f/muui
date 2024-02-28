@@ -23,12 +23,11 @@ struct PackedPixmap
 class TextureAtlas
 {
 public:
-    TextureAtlas(int pageWidth, int pageHeight, PixelType pixelType);
+    TextureAtlas(int pageWidth, int pageHeight);
     ~TextureAtlas();
 
     int pageWidth() const;
     int pageHeight() const;
-    PixelType pixelType() const;
 
     std::optional<PackedPixmap> addPixmap(const Pixmap &pixmap);
 
@@ -44,7 +43,6 @@ private:
     };
     int m_pageWidth;
     int m_pageHeight;
-    PixelType m_pixelType;
     std::vector<std::unique_ptr<PageTexture>> m_pages;
 };
 

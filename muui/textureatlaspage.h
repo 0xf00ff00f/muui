@@ -20,7 +20,8 @@ public:
     TextureAtlasPage(int width, int height, PixelType pixelType);
     ~TextureAtlasPage();
 
-    const Pixmap *pixmap() const;
+    PixelType pixelType() const { return m_pixmap.pixelType; }
+    const Pixmap &pixmap() const { return m_pixmap; }
 
     std::optional<RectF> insert(const Pixmap &pixmap);
 

@@ -6,10 +6,9 @@
 namespace muui
 {
 
-TextureAtlas::TextureAtlas(int pageWidth, int pageHeight, PixelType pixelType)
+TextureAtlas::TextureAtlas(int pageWidth, int pageHeight)
     : m_pageWidth(pageWidth)
     , m_pageHeight(pageHeight)
-    , m_pixelType(pixelType)
 {
 }
 
@@ -25,31 +24,27 @@ int TextureAtlas::pageHeight() const
     return m_pageHeight;
 }
 
-PixelType TextureAtlas::pixelType() const
-{
-    return m_pixelType;
-}
-
 std::optional<PackedPixmap> TextureAtlas::addPixmap(const Pixmap &pm)
 {
-    if (pm.pixelType != m_pixelType)
-    {
-        log_error("Invalid pixmap type for texture atlas");
-        return std::nullopt;
-    }
-
     if (pm.width > m_pageWidth || pm.height > m_pageHeight)
     {
         log_error("Pixmap too large for texture atlas");
         return std::nullopt;
     }
 
+    const auto pixelType = pm.pixelType;
+
     std::optional<RectF> texCoord;
     LazyTexture *texture = nullptr;
 
     for (auto &entry : m_pages)
     {
-        if ((texCoord = entry->page.insert(pm)))
+        auto &page = entry->page;
+
+        if (page.pixelType() != pixelType)
+            continue;
+
+        if ((texCoord = page.insert(pm)))
         {
             entry->texture.markDirty();
             texture = &entry->texture;
@@ -59,7 +54,7 @@ std::optional<PackedPixmap> TextureAtlas::addPixmap(const Pixmap &pm)
 
     if (!texCoord)
     {
-        m_pages.emplace_back(new PageTexture(m_pageWidth, m_pageHeight, m_pixelType));
+        m_pages.emplace_back(new PageTexture(m_pageWidth, m_pageHeight, pixelType));
         auto &entry = m_pages.back();
         texCoord = entry->page.insert(pm);
         if (!texCoord)
@@ -92,7 +87,7 @@ const TextureAtlasPage &TextureAtlas::page(int index) const
 
 TextureAtlas::PageTexture::PageTexture(int width, int height, PixelType pixelType)
     : page(width, height, pixelType)
-    , texture(page.pixmap())
+    , texture(&page.pixmap())
 {
 }
 

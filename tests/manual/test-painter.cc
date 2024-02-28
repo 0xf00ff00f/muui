@@ -20,8 +20,7 @@ protected:
 
 private:
     std::unique_ptr<muui::Painter> m_painter;
-    std::unique_ptr<muui::TextureAtlas> m_textureAtlasGrayscale;
-    std::unique_ptr<muui::TextureAtlas> m_textureAtlasRGBA;
+    std::unique_ptr<muui::TextureAtlas> m_textureAtlas;
     std::unique_ptr<muui::Font> m_font;
     std::unique_ptr<muui::Font> m_outlineFont;
     std::unique_ptr<muui::GradientTexture> m_gradientTexture;
@@ -31,13 +30,13 @@ bool PainterTest::initialize()
 {
     m_painter = std::make_unique<muui::Painter>();
 
-    m_textureAtlasGrayscale = std::make_unique<muui::TextureAtlas>(512, 512, PixelType::Grayscale);
-    m_font = std::make_unique<muui::Font>(m_textureAtlasGrayscale.get());
+    m_textureAtlas = std::make_unique<muui::TextureAtlas>(512, 512);
+
+    m_font = std::make_unique<muui::Font>(m_textureAtlas.get());
     if (!m_font->load(ASSETSDIR "OpenSans_Bold.ttf", 60))
         panic("Failed to load font\n");
 
-    m_textureAtlasRGBA = std::make_unique<muui::TextureAtlas>(512, 512, PixelType::RGBA);
-    m_outlineFont = std::make_unique<muui::Font>(m_textureAtlasRGBA.get());
+    m_outlineFont = std::make_unique<muui::Font>(m_textureAtlas.get());
     if (!m_outlineFont->load(ASSETSDIR "OpenSans_Bold.ttf", 60, 8))
         panic("Failed to load font\n");
 

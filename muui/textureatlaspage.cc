@@ -90,11 +90,6 @@ TextureAtlasPage::TextureAtlasPage(int width, int height, PixelType pixelType)
 
 TextureAtlasPage::~TextureAtlasPage() = default;
 
-const Pixmap *TextureAtlasPage::pixmap() const
-{
-    return &m_pixmap;
-}
-
 std::optional<RectF> TextureAtlasPage::insert(const Pixmap &pixmap)
 {
     constexpr auto Margin = 1;

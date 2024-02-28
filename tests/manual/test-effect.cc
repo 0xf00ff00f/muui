@@ -96,7 +96,7 @@ private:
 
 bool EffectTest::initialize()
 {
-    m_textureAtlas = std::make_unique<muui::TextureAtlas>(512, 512, PixelType::Grayscale);
+    m_textureAtlas = std::make_unique<muui::TextureAtlas>(128, 128);
     m_bigFont = std::make_unique<muui::Font>(m_textureAtlas.get());
     if (!m_bigFont->load(AssetsPath / "OpenSans_Bold.ttf", 80))
         panic("Failed to load font\n");
