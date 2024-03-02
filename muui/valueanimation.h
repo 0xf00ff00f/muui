@@ -4,6 +4,9 @@
 
 #include <glm/glm.hpp>
 
+namespace muui
+{
+
 template<typename F, typename T>
 class ValueAnimation
 {
@@ -44,6 +47,8 @@ public:
         valueChangedSignal(value());
     }
 
+    void stop() { m_active = false; }
+
     bool active() const { return m_active; }
 
     muslots::Signal<const T &> valueChangedSignal;
@@ -53,3 +58,4 @@ private:
     float m_t = 0.0f;
     bool m_active = false;
 };
+} // namespace muui
