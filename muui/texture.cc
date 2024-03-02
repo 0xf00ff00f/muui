@@ -1,6 +1,8 @@
 #include "texture.h"
 #include "pixmap.h"
 
+#include <algorithm>
+#include <cassert>
 #include <memory>
 
 namespace muui::gl
@@ -8,8 +10,6 @@ namespace muui::gl
 
 namespace
 {
-constexpr GLenum Target = GL_TEXTURE_2D;
-
 GLenum toGLFormat(PixelType pixelType)
 {
     return pixelType == PixelType::RGBA ? GL_RGBA : GL_LUMINANCE;
@@ -21,15 +21,16 @@ GLenum toGLInternalFormat(PixelType pixelType)
 }
 } // namespace
 
-Texture::Texture(const Pixmap &pixmap)
-    : Texture(pixmap.width, pixmap.height, pixmap.pixelType, pixmap.pixels.data())
+Texture::Texture(const Pixmap &pixmap, Target target)
+    : Texture(pixmap.width, pixmap.height, pixmap.pixelType, pixmap.pixels.data(), target)
 {
 }
 
-Texture::Texture(int width, int height, PixelType pixelType, const unsigned char *data)
+Texture::Texture(int width, int height, PixelType pixelType, const unsigned char *data, Target target)
     : m_width(width)
     , m_height(height)
     , m_pixelType(pixelType)
+    , m_target(target)
 {
     glGenTextures(1, &m_id);
     initialize();
@@ -74,44 +75,78 @@ void Texture::initialize()
 {
     bind();
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage2D(Target, 0, toGLInternalFormat(m_pixelType), m_width, m_height, 0, toGLFormat(m_pixelType),
-                 GL_UNSIGNED_BYTE, nullptr);
+    switch (m_target)
+    {
+    case Target::TextureCubeMap:
+        for (std::size_t faceIndex = 0; faceIndex < 6; ++faceIndex)
+            allocateTextureData(faceIndex);
+        break;
+    default:
+        allocateTextureData();
+        break;
+    }
 }
 
 void Texture::setMinificationFilter(Filter filter)
 {
     bind();
-    glTexParameteri(Target, GL_TEXTURE_MIN_FILTER, static_cast<GLint>(filter));
+    glTexParameteri(static_cast<GLenum>(m_target), GL_TEXTURE_MIN_FILTER, static_cast<GLint>(filter));
 }
 
 void Texture::setMagnificationFilter(Filter filter)
 {
     bind();
-    glTexParameteri(Target, GL_TEXTURE_MAG_FILTER, static_cast<GLint>(filter));
+    glTexParameteri(static_cast<GLenum>(m_target), GL_TEXTURE_MAG_FILTER, static_cast<GLint>(filter));
 }
 
 void Texture::setWrapModeS(WrapMode mode)
 {
     bind();
-    glTexParameteri(Target, GL_TEXTURE_WRAP_S, static_cast<GLint>(mode));
+    glTexParameteri(static_cast<GLenum>(m_target), GL_TEXTURE_WRAP_S, static_cast<GLint>(mode));
 }
 
 void Texture::setWrapModeT(WrapMode mode)
 {
     bind();
-    glTexParameteri(Target, GL_TEXTURE_WRAP_T, static_cast<GLint>(mode));
+    glTexParameteri(static_cast<GLenum>(m_target), GL_TEXTURE_WRAP_T, static_cast<GLint>(mode));
 }
 
-void Texture::setData(const unsigned char *data) const
+void Texture::setWrapModeR(WrapMode mode)
 {
     bind();
-    glTexSubImage2D(Target, 0, 0, 0, m_width, m_height, toGLFormat(m_pixelType), GL_UNSIGNED_BYTE, data);
+    glTexParameteri(static_cast<GLenum>(m_target), GL_TEXTURE_WRAP_R, static_cast<GLint>(mode));
+}
+
+void Texture::allocateTextureData(std::size_t faceIndex) const
+{
+    bind();
+    glTexImage2D(faceTarget(faceIndex), 0, toGLInternalFormat(m_pixelType), m_width, m_height, 0,
+                 toGLFormat(m_pixelType), GL_UNSIGNED_BYTE, nullptr);
+}
+
+void Texture::setData(const unsigned char *data, std::size_t faceIndex) const
+{
+    bind();
+    glTexSubImage2D(faceTarget(faceIndex), 0, 0, 0, m_width, m_height, toGLFormat(m_pixelType), GL_UNSIGNED_BYTE, data);
+}
+
+GLenum Texture::faceTarget(std::size_t faceIndex) const
+{
+    switch (m_target)
+    {
+    case Target::TextureCubeMap:
+        assert(faceIndex < 6);
+        return static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex);
+    default:
+        assert(faceIndex == 0);
+        return static_cast<GLenum>(m_target);
+    }
 }
 
 void Texture::bind(int textureUnit) const
 {
     glActiveTexture(GL_TEXTURE0 + textureUnit);
-    glBindTexture(Target, m_id);
+    glBindTexture(static_cast<GLenum>(m_target), m_id);
 }
 
 } // namespace muui::gl

@@ -19,8 +19,15 @@ namespace muui::gl
 class Texture : public AbstractTexture
 {
 public:
-    explicit Texture(const Pixmap &pixmap);
-    Texture(int width, int height, PixelType pixelType, const unsigned char *data = nullptr);
+    enum class Target
+    {
+        Texture2D = GL_TEXTURE_2D,
+        TextureCubeMap = GL_TEXTURE_CUBE_MAP,
+    };
+
+    explicit Texture(const Pixmap &pixmap, Target target = Target::Texture2D);
+    Texture(int width, int height, PixelType pixelType, const unsigned char *data = nullptr,
+            Target target = Target::Texture2D);
     ~Texture() override;
 
     Texture(Texture &) = delete;
@@ -44,8 +51,9 @@ public:
     };
     void setWrapModeS(WrapMode mode);
     void setWrapModeT(WrapMode mode);
+    void setWrapModeR(WrapMode mode);
 
-    void setData(const unsigned char *data) const;
+    void setData(const unsigned char *data, std::size_t faceIndex = 0) const;
 
     int width() const { return m_width; }
     int height() const { return m_height; }
@@ -58,10 +66,12 @@ public:
 
 private:
     void initialize();
-
+    GLenum faceTarget(std::size_t faceIndex = 0) const;
+    void allocateTextureData(std::size_t faceIndex = 0) const;
     int m_width{0};
     int m_height{0};
     PixelType m_pixelType{PixelType::Invalid};
+    Target m_target{Target::Texture2D};
     GLuint m_id{0};
 };
 
