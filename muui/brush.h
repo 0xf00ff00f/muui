@@ -9,8 +9,6 @@ namespace muui
 
 class GradientTexture;
 
-class GradientTexture;
-
 struct LinearGradient
 {
     GradientTexture *texture{nullptr};
