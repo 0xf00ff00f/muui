@@ -95,44 +95,39 @@ void Painter::setClipRect(const RectF &rect)
 
 void Painter::drawRect(const RectF &rect, int depth)
 {
-    assert(m_backgroundBrush);
     if (m_clipRect.intersects(rect))
     {
-        std::visit([this](auto &brush) { setRectProgram(brush); }, *m_backgroundBrush);
+        assert(m_backgroundBrush);
+        std::visit([this](const auto &brush) { setRectProgram(brush); }, *m_backgroundBrush);
         const auto topLeftVertex = Vertex{.position = rect.min};
         const auto bottomRightVertex = Vertex{.position = rect.max};
         std::visit([this, &topLeftVertex, &bottomRightVertex,
-                    depth](auto &brush) { addSprite(topLeftVertex, bottomRightVertex, brush, depth); },
+                    depth](const auto &brush) { addSprite(topLeftVertex, bottomRightVertex, brush, depth); },
                    *m_backgroundBrush);
     }
 }
 
 void Painter::drawPixmap(const PackedPixmap &pixmap, const RectF &rect, int depth)
 {
-    assert(m_foregroundBrush);
     if (m_clipRect.intersects(rect))
     {
-        std::visit([this](auto &brush) { setDecalProgram(brush); }, *m_foregroundBrush);
-        struct Vertex
-        {
-            glm::vec2 position;
-            glm::vec2 texCoord;
-        };
-        const Vertex topLeftVertex = {.position = rect.min, .texCoord = pixmap.texCoord.min};
-        const Vertex bottomRightVertex = {.position = rect.max, .texCoord = pixmap.texCoord.max};
+        assert(m_foregroundBrush);
+        std::visit([this](const auto &brush) { setDecalProgram(brush); }, *m_foregroundBrush);
+        const VertexUV topLeftVertex = {.position = rect.min, .texCoord = pixmap.texCoord.min};
+        const VertexUV bottomRightVertex = {.position = rect.max, .texCoord = pixmap.texCoord.max};
         m_spriteBatcher->setBatchTexture(pixmap.texture);
         std::visit([this, &topLeftVertex, &bottomRightVertex,
-                    depth](auto &brush) { addSprite(topLeftVertex, bottomRightVertex, brush, depth); },
+                    depth](const auto &brush) { addSprite(topLeftVertex, bottomRightVertex, brush, depth); },
                    *m_foregroundBrush);
     }
 }
 
 void Painter::drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const RectF &clipRect, int depth)
 {
-    assert(m_foregroundBrush);
     if (m_clipRect.intersects(rect) && m_clipRect.intersects(rect))
     {
-        std::visit([this](auto &brush) { setDecalProgram(brush); }, *m_foregroundBrush);
+        assert(m_foregroundBrush);
+        std::visit([this](const auto &brush) { setDecalProgram(brush); }, *m_foregroundBrush);
         const auto texPos = [&rect, &texCoord = pixmap.texCoord](const glm::vec2 &p) {
             const float x =
                 (p.x - rect.min.x) * (texCoord.max.x - texCoord.min.x) / (rect.max.x - rect.min.x) + texCoord.min.x;
@@ -145,7 +140,7 @@ void Painter::drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const Re
         const VertexUV bottomRightVertex = {.position = spriteRect.max, .texCoord = texPos(spriteRect.max)};
         m_spriteBatcher->setBatchTexture(pixmap.texture);
         std::visit([this, &topLeftVertex, &bottomRightVertex,
-                    depth](auto &brush) { addSprite(topLeftVertex, bottomRightVertex, brush, depth); },
+                    depth](const auto &brush) { addSprite(topLeftVertex, bottomRightVertex, brush, depth); },
                    *m_foregroundBrush);
     }
 }
@@ -180,14 +175,14 @@ void Painter::drawText(std::u32string_view text, const glm::vec2 &pos, bool outl
 
 void Painter::drawGlyph(const Font::Glyph *glyph, const glm::vec2 &pos, bool outline, int depth)
 {
-    auto& brush = outline ? m_outlineBrush : m_foregroundBrush;
-    assert(brush);
     const auto topLeft = pos + glm::vec2(glyph->boundingBox.min);
     const auto bottomRight = topLeft + glm::vec2(glyph->boundingBox.max - glyph->boundingBox.min);
     const auto rect = RectF{topLeft, bottomRight};
     if (m_clipRect.intersects(rect))
     {
-        std::visit([this, outline](auto &brush) { setTextProgram(brush, outline); }, *brush);
+        const auto &brush = outline ? m_outlineBrush : m_foregroundBrush;
+        assert(brush);
+        std::visit([this, outline](const auto &brush) { setTextProgram(brush, outline); }, *brush);
         const auto &pixmap = glyph->pixmap;
         m_spriteBatcher->setBatchTexture(pixmap.texture);
         const auto topLeftVertex = VertexUV{.position = topLeft, .texCoord = pixmap.texCoord.min};
@@ -200,14 +195,14 @@ void Painter::drawGlyph(const Font::Glyph *glyph, const glm::vec2 &pos, bool out
 
 void Painter::drawGlyph(const Font::Glyph *glyph, const glm::vec2 &pos, const RectF &clipRect, bool outline, int depth)
 {
-    auto& brush = outline ? m_outlineBrush : m_foregroundBrush;
-    assert(brush);
     const auto topLeft = pos + glm::vec2(glyph->boundingBox.min);
     const auto bottomRight = topLeft + glm::vec2(glyph->boundingBox.max - glyph->boundingBox.min);
     const auto rect = RectF{topLeft, bottomRight};
     if (m_clipRect.intersects(rect))
     {
-        std::visit([this, outline](auto &brush) { setTextProgram(brush, outline); }, *brush);
+        const auto &brush = outline ? m_outlineBrush : m_foregroundBrush;
+        assert(brush);
+        std::visit([this, outline](const auto &brush) { setTextProgram(brush, outline); }, *brush);
         const auto &pixmap = glyph->pixmap;
         const auto texPos = [&rect, &texCoord = pixmap.texCoord](const glm::vec2 &p) {
             const float x =
@@ -228,13 +223,13 @@ void Painter::drawGlyph(const Font::Glyph *glyph, const glm::vec2 &pos, const Re
 
 void Painter::drawCircle(const glm::vec2 &center, float radius, int depth)
 {
-    assert(m_backgroundBrush);
     const auto topLeft = center - glm::vec2(radius, radius);
     const auto bottomRight = center + glm::vec2(radius, radius);
     const auto rect = RectF{topLeft, bottomRight};
     if (m_clipRect.intersects(rect))
     {
-        std::visit([this](auto &brush) { setCircleProgram(brush); }, *m_backgroundBrush);
+        assert(m_backgroundBrush);
+        std::visit([this](const auto &brush) { setCircleProgram(brush); }, *m_backgroundBrush);
         const auto topLeftVertex = VertexUV{.position = topLeft, .texCoord = {0, 0}};
         const auto bottomRightVertex = VertexUV{.position = bottomRight, .texCoord = {1, 1}};
         std::visit([this, &topLeftVertex, &bottomRightVertex,
@@ -251,18 +246,21 @@ void Painter::drawCapsule(const RectF &rect, int depth)
 
 void Painter::drawRoundedRect(const RectF &rect, float cornerRadius, int depth)
 {
-    if (!m_clipRect.intersects(rect))
-        return;
-    assert(m_backgroundBrush);
-    std::visit([this](auto &brush) { setRoundedRectProgram(brush); }, *m_backgroundBrush);
-    const auto radius = std::min(std::min(cornerRadius, 0.5f * rect.width()), 0.5f * rect.height());
-    const glm::vec2 size(rect.width(), rect.height());
-    const RectF texCoords{-0.5f * size, 0.5f * size};
-    const auto topLeft = VertexUV{.position = rect.min, .texCoord = -0.5f * size};
-    const auto bottomRight = VertexUV{.position = rect.max, .texCoord = 0.5f * size};
-    std::visit([this, &topLeft, &bottomRight, &size, cornerRadius, depth](
-                   const auto &brush) { addRoundedRectSprite(topLeft, bottomRight, brush, size, cornerRadius, depth); },
-               *m_backgroundBrush);
+    if (m_clipRect.intersects(rect))
+    {
+        assert(m_backgroundBrush);
+        std::visit([this](const auto &brush) { setRoundedRectProgram(brush); }, *m_backgroundBrush);
+        const auto radius = std::min(std::min(cornerRadius, 0.5f * rect.width()), 0.5f * rect.height());
+        const glm::vec2 size(rect.width(), rect.height());
+        const RectF texCoords{-0.5f * size, 0.5f * size};
+        const auto topLeft = VertexUV{.position = rect.min, .texCoord = -0.5f * size};
+        const auto bottomRight = VertexUV{.position = rect.max, .texCoord = 0.5f * size};
+        std::visit(
+            [this, &topLeft, &bottomRight, &size, cornerRadius, depth](const auto &brush) {
+                addRoundedRectSprite(topLeft, bottomRight, brush, size, cornerRadius, depth);
+            },
+            *m_backgroundBrush);
+    }
 }
 
 void Painter::setRectProgram(const Color &)
