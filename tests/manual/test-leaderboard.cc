@@ -41,7 +41,7 @@ std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float
     outerContainer->setSpacing(5);
 
     auto *title = outerContainer->appendChild<Label>(bigFont, U"TODAY'S HEROES"sv);
-    title->brush = glm::vec4{headingColor, 1};
+    title->foregroundBrush = glm::vec4{headingColor, 1};
     title->setContainerAlignment(Alignment::VCenter | Alignment::HCenter);
 
     auto *innerContainer = outerContainer->appendChild<Column>();
@@ -77,7 +77,7 @@ std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float
 
         {
             auto *l = headerRow->appendChild<Label>(smallFont, U"NAME"sv);
-            l->brush = glm::vec4{textColor, 1.0f};
+            l->foregroundBrush = glm::vec4{textColor, 1.0f};
             l->setAlignment(Alignment::Left);
             l->setFixedWidth(nameColumnWidth);
         }
@@ -86,7 +86,7 @@ std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float
 
         {
             auto *l = headerRow->appendChild<Label>(smallFont, U"SCORE"sv);
-            l->brush = glm::vec4{textColor, 1.0f};
+            l->foregroundBrush = glm::vec4{textColor, 1.0f};
             l->setAlignment(Alignment::HCenter);
             l->setFixedWidth(scoreColumnWidth);
         }
@@ -95,7 +95,7 @@ std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float
 
         {
             auto *l = headerRow->appendChild<Label>(smallFont, U"ACCURACY"sv);
-            l->brush = glm::vec4{textColor, 1.0f};
+            l->foregroundBrush = glm::vec4{textColor, 1.0f};
             l->setAlignment(Alignment::Right);
             l->setFixedWidth(accuracyColumnWidth);
         }
@@ -147,11 +147,11 @@ std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float
             row->setSpacing(1);
 
             auto *index = row->appendChild<Label>(smallFont, fmt::format(U"{}.", i + 1));
-            index->brush = glm::vec4{textColor, 1.0f};
+            index->foregroundBrush = glm::vec4{textColor, 1.0f};
             index->setFixedWidth(indexColumnWidth);
 
             auto *nameLabel = row->appendChild<Label>(smallFont, entry.name);
-            nameLabel->brush = glm::vec4{headingColor, 1.0f};
+            nameLabel->foregroundBrush = glm::vec4{headingColor, 1.0f};
             nameLabel->setFixedWidth(nameColumnWidth);
 
             auto formatThousands = [](int value) -> std::u32string {
@@ -169,12 +169,12 @@ std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float
             };
 
             auto *scoreLabel = row->appendChild<Label>(smallFont, formatThousands(entry.score));
-            scoreLabel->brush = glm::vec4{textColor, 1.0f};
+            scoreLabel->foregroundBrush = glm::vec4{textColor, 1.0f};
             scoreLabel->setFixedWidth(scoreColumnWidth);
             scoreLabel->setAlignment(Alignment::HCenter);
 
             auto *accuracyLabel = row->appendChild<Label>(smallFont, fmt::format(U"{:.2f}%", entry.accuracy));
-            accuracyLabel->brush = glm::vec4{textColor, 1.0f};
+            accuracyLabel->foregroundBrush = glm::vec4{textColor, 1.0f};
             accuracyLabel->setFixedWidth(accuracyColumnWidth);
             accuracyLabel->setAlignment(Alignment::Right);
         }

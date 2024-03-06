@@ -119,7 +119,7 @@ bool EffectTest::initialize()
     innerColumn->cornerRadius = 12.0f;
 
     auto *label = innerColumn->appendChild<muui::Label>(m_bigFont.get(), U"Sphinx of black quartz"sv);
-    label->brush = glm::vec4(rgbToColor(0x040a18), 1);
+    label->foregroundBrush = glm::vec4(rgbToColor(0x040a18), 1);
 
     auto *bottomRow = innerColumn->appendChild<muui::Row>();
 
@@ -127,9 +127,10 @@ bool EffectTest::initialize()
     text->setFixedWidth(500);
     text->setText(
         U"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a semper quam. Donec tempor bibendum nulla a viverra. Aenean non urna sit amet dolor hendrerit efficitur vitae dapibus ante. Vestibulum et hendrerit metus. Integer ornare, purus vel ultricies porta, nisl ligula vehicula quam, faucibus malesuada diam risus id lacus. Donec velit nisl, cursus id enim at, sagittis bibendum enim. Phasellus elementum quam eu ultrices rhoncus. Pellentesque vel dui id turpis euismod consequat. Fusce ac aliquam nibh. Mauris laoreet tincidunt sem eget varius."sv);
-    text->color = glm::vec4(rgbToColor(0x040a18), 1);
+    text->foregroundBrush = glm::vec4(rgbToColor(0x040a18), 1);
 
     auto *image = bottomRow->appendChild<muui::Image>((AssetsPath / "vim.png").string());
+    image->foregroundBrush = glm::vec4{1};
 
     m_innerContainer->setShaderEffect(std::make_unique<TransitionEffect>());
 

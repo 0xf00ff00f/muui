@@ -69,24 +69,37 @@ void PainterTest::render() const
         .texture = m_gradientTexture.get(), .start = glm::vec2(0, 0), .end = glm::vec2(500, 0)};
 
     m_painter->begin();
-    m_painter->drawCircle({40, 40}, 30, glm::vec4(1), 0);
-    m_painter->drawCircle({140, 40}, 30, gradient, 0);
-    m_painter->drawRoundedRect({{10, 80}, {100, 140}}, 20, glm::vec4(1), 0);
-    m_painter->drawRoundedRect({{110, 80}, {200, 140}}, 20, gradient, 0);
-    m_painter->drawRect({{10, 150}, {100, 210}}, glm::vec4(1), 0);
-    m_painter->drawRect({{110, 150}, {210, 210}}, gradient, 0);
+    m_painter->setBackgroundBrush(glm::vec4(1));
+    m_painter->drawCircle({40, 40}, 30, 0);
+    m_painter->setBackgroundBrush(gradient);
+    m_painter->drawCircle({140, 40}, 30, 0);
+    m_painter->setBackgroundBrush(glm::vec4(1));
+    m_painter->drawRoundedRect({{10, 80}, {100, 140}}, 20, 0);
+    m_painter->setBackgroundBrush(gradient);
+    m_painter->drawRoundedRect({{110, 80}, {200, 140}}, 20, 0);
+    m_painter->setBackgroundBrush(glm::vec4(1));
+    m_painter->drawRect({{10, 150}, {100, 210}}, 0);
+    m_painter->setBackgroundBrush(gradient);
+    m_painter->drawRect({{110, 150}, {210, 210}}, 0);
 
     m_painter->setFont(m_font.get());
-    m_painter->drawText(U"Sphinx of black quartz"sv, {10, 220}, glm::vec4(1), 0);
-    m_painter->drawText(U"The quick brown fox"s, {10, 280}, gradient, 0);
+    m_painter->setForegroundBrush(glm::vec4(1));
+    m_painter->drawText(U"Sphinx of black quartz"sv, {10, 220}, 0);
+    m_painter->setForegroundBrush(gradient);
+    m_painter->drawText(U"The quick brown fox"s, {10, 280}, 0);
 
     const auto *glyph = m_font->glyph('@');
-    m_painter->drawPixmap(glyph->pixmap, {{250, 10}, {350, 110}}, glm::vec4(1), 0);
-    m_painter->drawPixmap(glyph->pixmap, {{250, 120}, {350, 220}}, gradient, 0);
+    m_painter->setForegroundBrush(glm::vec4(1));
+    m_painter->drawPixmap(glyph->pixmap, {{250, 10}, {350, 110}}, 0);
+    m_painter->setForegroundBrush(gradient);
+    m_painter->drawPixmap(glyph->pixmap, {{250, 120}, {350, 220}}, 0);
 
     m_painter->setFont(m_outlineFont.get());
-    m_painter->drawText(U"Sphinx of black quartz"sv, {10, 340}, glm::vec4(1), glm::vec4(1, 0, 0, 1), 0);
-    m_painter->drawText(U"Sphinx of black quartz"sv, {10, 400}, glm::vec4(1), gradient, 0);
+    m_painter->setForegroundBrush(glm::vec4(1));
+    m_painter->setOutlineBrush(glm::vec4(1, 0, 0, 1));
+    m_painter->drawText(U"Sphinx of black quartz"sv, {10, 340}, 0);
+    m_painter->setOutlineBrush(gradient);
+    m_painter->drawText(U"Sphinx of black quartz"sv, {10, 400}, 0);
 
     m_painter->end();
 }

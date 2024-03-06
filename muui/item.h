@@ -204,7 +204,9 @@ public:
     };
     Shape shape = Shape::Rectangle;
     bool fillBackground = false;
-    Brush backgroundBrush;
+    std::optional<Brush> backgroundBrush;
+    std::optional<Brush> foregroundBrush;
+    std::optional<Brush> outlineBrush;
     float cornerRadius = 0.0f;
 
     muslots::Signal<Size> resizedSignal;
@@ -325,8 +327,6 @@ public:
     void setAlignment(Alignment alignment);
     Alignment alignment() { return m_alignment; }
 
-    Brush brush = glm::vec4(0, 0, 0, 1);
-    Brush outlineBrush = glm::vec4(0.5, 0.5, 0.5, 1);
     bool shadowEnabled = false;
     glm::vec2 shadowOffset = glm::vec2(4, 4);
     glm::vec4 shadowColor = glm::vec4(0.5, 0.5, 0.5, 1);
@@ -369,8 +369,6 @@ public:
 
     void setAlignment(Alignment alignment);
     Alignment alignment() { return m_alignment; }
-
-    glm::vec4 color = glm::vec4(1, 1, 1, 1);
 
 protected:
     bool renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
@@ -478,7 +476,6 @@ public:
     void setFixedHeight(float height);
     float fixedHeight() const { return m_fixedHeight; }
 
-    glm::vec4 color = glm::vec4(0, 0, 0, 1);
     Alignment alignment = Alignment::VCenter | Alignment::Left;
 
 protected:

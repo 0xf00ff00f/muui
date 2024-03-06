@@ -34,27 +34,32 @@ public:
     void setFont(Font *font);
     Font *font() const { return m_font; }
 
+    void setBackgroundBrush(const std::optional<Brush> &brush);
+    std::optional<Brush> backgroundBrush() const { return m_backgroundBrush; }
+
+    void setForegroundBrush(const std::optional<Brush> &brush);
+    std::optional<Brush> foregroundBrush() const { return m_foregroundBrush; }
+
+    void setOutlineBrush(const std::optional<Brush> &brush);
+    std::optional<Brush> outlineBrush() const { return m_outlineBrush; }
+
     void setClipRect(const RectF &rect);
     RectF clipRect() const { return m_clipRect; }
 
     SpriteBatcher *spriteBatcher() const { return m_spriteBatcher.get(); }
 
-    void drawRect(const RectF &rect, const Brush &brush, int depth);
-    void drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const Brush &color, int depth);
-    void drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const RectF &clipRect, const Brush &color,
-                    int depth);
-    void drawText(std::u32string_view text, const glm::vec2 &pos, const Brush &brush, int depth);
-    void drawText(std::u32string_view text, const glm::vec2 &pos, const Brush &brush, const Brush &outlineBrush,
-                  int depth);
-    void drawGlyph(const Font::Glyph *glyph, const glm::vec2 &pos, const Brush &brush, bool outline, int depth);
-    void drawGlyph(const Font::Glyph *glyph, const glm::vec2 &pos, const RectF &clipRect, const Brush &brush,
-                   bool outline, int depth);
-    void drawCircle(const glm::vec2 &center, float radius, const Brush &brush, int depth);
-    void drawCapsule(const RectF &rect, const Brush &brush, int depth);
-    void drawRoundedRect(const RectF &rect, float cornerRadius, const Brush &brush, int depth);
+    void drawRect(const RectF &rect, int depth);
+    void drawPixmap(const PackedPixmap &pixmap, const RectF &rect, int depth);
+    void drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const RectF &clipRect, int depth);
+    void drawText(std::u32string_view text, const glm::vec2 &pos, int depth);
+    void drawGlyph(const Font::Glyph *glyph, const glm::vec2 &pos, bool outline, int depth);
+    void drawGlyph(const Font::Glyph *glyph, const glm::vec2 &pos, const RectF &clipRect, bool outline, int depth);
+    void drawCircle(const glm::vec2 &center, float radius, int depth);
+    void drawCapsule(const RectF &rect, int depth);
+    void drawRoundedRect(const RectF &rect, float cornerRadius, int depth);
 
 private:
-    void drawText(std::u32string_view text, const glm::vec2 &pos, const Brush &brush, bool outline, int depth);
+    void drawText(std::u32string_view text, const glm::vec2 &pos, bool outline, int depth);
     void setRectProgram(const Color &color);
     void setRectProgram(const LinearGradient &gradient);
 
@@ -87,12 +92,15 @@ private:
     void render();
     void updateTransformMatrix();
 
-    int m_windowWidth = 0;
-    int m_windowHeight = 0;
+    int m_windowWidth{0};
+    int m_windowHeight{0};
     std::unique_ptr<SpriteBatcher> m_spriteBatcher;
-    Font *m_font = nullptr;
+    Font *m_font{nullptr};
+    std::optional<Brush> m_backgroundBrush; // rect, capsule, circle
+    std::optional<Brush> m_foregroundBrush; // pixmap, text
+    std::optional<Brush> m_outlineBrush;    // text outline
     RectF m_clipRect;
-    bool m_clippingEnabled = false;
+    bool m_clippingEnabled{false};
 };
 
 } // namespace muui

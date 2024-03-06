@@ -90,20 +90,19 @@ bool Item::renderBackground(Painter *painter, const glm::vec2 &pos, int depth)
     if (!fillBackground)
         return false;
     const auto rect = RectF{pos, pos + glm::vec2(width(), height())};
-    const auto brush = adjustBrushToRect(backgroundBrush, pos);
     switch (shape)
     {
     case Shape::Rectangle:
-        painter->drawRect(rect, brush, depth);
+        painter->drawRect(rect, depth);
         return true;
     case Shape::Capsule:
-        painter->drawCapsule(rect, brush, depth);
+        painter->drawCapsule(rect, depth);
         return true;
     case Shape::Circle:
-        painter->drawCircle(rect.center(), 0.5f * std::max(rect.width(), rect.height()), brush, depth);
+        painter->drawCircle(rect.center(), 0.5f * std::max(rect.width(), rect.height()), depth);
         return true;
     case Shape::RoundedRectangle:
-        painter->drawRoundedRect(rect, cornerRadius, brush, depth);
+        painter->drawRoundedRect(rect, cornerRadius, depth);
         return true;
     default:
         return false;
@@ -226,8 +225,43 @@ void Item::render(Painter *painter, const glm::vec2 &pos, int depth)
     }
 }
 
+namespace
+{
+class PainterBrushSaver
+{
+public:
+    explicit PainterBrushSaver(Painter *painter)
+        : m_painter(painter)
+        , m_backgroundBrush(painter->backgroundBrush())
+        , m_foregroundBrush(painter->foregroundBrush())
+        , m_outlineBrush(painter->outlineBrush())
+    {
+    }
+
+    ~PainterBrushSaver()
+    {
+        m_painter->setBackgroundBrush(m_backgroundBrush);
+        m_painter->setForegroundBrush(m_foregroundBrush);
+        m_painter->setOutlineBrush(m_outlineBrush);
+    }
+
+private:
+    Painter *m_painter;
+    std::optional<Brush> m_backgroundBrush;
+    std::optional<Brush> m_foregroundBrush;
+    std::optional<Brush> m_outlineBrush;
+};
+}; // namespace
+
 void Item::doRender(Painter *painter, const glm::vec2 &pos, int depth)
 {
+    PainterBrushSaver saver(painter);
+    if (backgroundBrush)
+        painter->setBackgroundBrush(adjustBrushToRect(*backgroundBrush, pos));
+    if (foregroundBrush)
+        painter->setForegroundBrush(adjustBrushToRect(*foregroundBrush, pos));
+    if (outlineBrush)
+        painter->setOutlineBrush(adjustBrushToRect(*outlineBrush, pos));
     if (renderBackground(painter, pos, depth))
         ++depth;
     if (renderContents(painter, pos, depth))
@@ -520,15 +554,7 @@ bool Label::renderContents(Painter *painter, const glm::vec2 &pos, int depth)
 
     const auto textPos = pos + m_offset;
     painter->setFont(m_font);
-    if (shadowEnabled)
-    {
-        painter->drawText(m_text, textPos + shadowOffset, shadowColor, depth);
-        ++depth;
-    }
-    if (m_font->outlineSize() > 0)
-        painter->drawText(m_text, textPos, adjustBrushToRect(brush, pos), adjustBrushToRect(outlineBrush, pos), depth);
-    else
-        painter->drawText(m_text, textPos, adjustBrushToRect(brush, pos), depth);
+    painter->drawText(m_text, textPos, depth);
 
     if (clipped)
         painter->setClipRect(prevClipRect);
@@ -658,12 +684,12 @@ bool Image::renderContents(Painter *painter, const glm::vec2 &pos, int depth)
     const auto rect = RectF{imagePos, imagePos + glm::vec2(m_pixmap->width, m_pixmap->height)};
     if (!clipped)
     {
-        painter->drawPixmap(*m_pixmap, rect, color, depth);
+        painter->drawPixmap(*m_pixmap, rect, depth);
     }
     else
     {
         const auto clipRect = RectF{topLeft, topLeft + glm::vec2(availableWidth, availableHeight)};
-        painter->drawPixmap(*m_pixmap, rect, clipRect, color, depth);
+        painter->drawPixmap(*m_pixmap, rect, clipRect, depth);
     }
 
     return true;
@@ -954,7 +980,10 @@ bool Switch::renderContents(Painter *painter, const glm::vec2 &pos, int depth)
     const float indicatorRadius = 0.75f * radius;
     const float centerX = radius + m_indicatorPosition * (m_size.width - 2 * radius);
     const auto center = pos + glm::vec2(centerX, 0.5f * m_size.height);
-    painter->drawCircle(center, indicatorRadius, indicatorColor, depth);
+    auto oldBrush = painter->backgroundBrush();
+    painter->setBackgroundBrush(indicatorColor);
+    painter->drawCircle(center, indicatorRadius, depth);
+    painter->setBackgroundBrush(oldBrush);
     return true;
 }
 
@@ -1075,7 +1104,7 @@ bool MultiLineText::renderContents(Painter *painter, const glm::vec2 &pos, int d
                 return availableWidth - line.width;
             }
         }();
-        painter->drawText(line.text, textPos + glm::vec2(offset, 0), color, depth);
+        painter->drawText(line.text, textPos + glm::vec2(offset, 0), depth);
         textPos.y += m_font->pixelHeight();
     }
 

@@ -2,6 +2,7 @@
 
 #include <muui/application.h>
 #include <muui/font.h>
+#include <muui/gradienttexture.h>
 #include <muui/item.h>
 #include <muui/painter.h>
 #include <muui/textureatlas.h>
@@ -23,10 +24,16 @@ private:
     std::unique_ptr<muui::TextureAtlas> m_textureAtlas;
     std::unique_ptr<muui::Font> m_font;
     std::unique_ptr<muui::Item> m_rootItem;
+    std::unique_ptr<muui::GradientTexture> m_gradientTexture;
 };
 
 bool LayoutTest::initialize()
 {
+    m_gradientTexture = std::make_unique<muui::GradientTexture>();
+    m_gradientTexture->setColorAt(0, glm::vec4(1, 0, 0, 1));
+    m_gradientTexture->setColorAt(1, glm::vec4(0, 0, 1, 1));
+    m_gradientTexture->setColorAt(0.5, glm::vec4(0, 1, 1, 1));
+
     m_painter = std::make_unique<muui::Painter>();
 
     m_textureAtlas = std::make_unique<muui::TextureAtlas>(512, 512);
@@ -34,44 +41,30 @@ bool LayoutTest::initialize()
     if (!m_font->load(ASSETSDIR "OpenSans_Bold.ttf", 60))
         panic("Failed to load font\n");
 
-    auto addLabel = [this](muui::Item *parent, std::u32string_view text, muui::Alignment alignment) {
+    auto addRectangle = [this](muui::Item *parent, float width, float height) {
+        const muui::LinearGradient gradient = {
+            .texture = m_gradientTexture.get(), .start = glm::vec2(0, 0), .end = glm::vec2(0, 1)};
+        auto *rect = parent->appendChild<muui::Rectangle>(width, height);
+        rect->fillBackground = true;
+        rect->backgroundBrush = gradient;
+    };
+
+    auto addLabel = [this](muui::Item *parent, std::u32string_view text) {
+        const muui::LinearGradient gradient = {
+            .texture = m_gradientTexture.get(), .start = glm::vec2(0, 0.2), .end = glm::vec2(0, 0.8)};
         auto *label = parent->appendChild<muui::Label>(m_font.get(), text);
-        label->setContainerAlignment(alignment);
         label->fillBackground = true;
         label->backgroundBrush = glm::vec4{1, 0, 0, 1};
-        label->foregroundBrush = glm::vec4{1, 1, 1, 1};
+        label->foregroundBrush = gradient;
     };
 
     auto root = std::make_unique<muui::Column>();
     root->setSpacing(8);
 
-    {
-        auto *column = root->appendChild<muui::Column>();
-        column->setMinimumWidth(400);
-        column->shape = muui::Item::Shape::RoundedRectangle;
-        column->fillBackground = true;
-        column->backgroundBrush = glm::vec4{0.75, 0.75, 0.75, 1};
-        column->setMargins(muui::Margins{8, 8, 8, 8});
-        column->cornerRadius = 8.0f;
-        column->setSpacing(4);
-        addLabel(column, U"label 1"sv, muui::Alignment::VCenter | muui::Alignment::Left);
-        addLabel(column, U"label 2"sv, muui::Alignment::VCenter | muui::Alignment::HCenter);
-        addLabel(column, U"label 3"sv, muui::Alignment::VCenter | muui::Alignment::Right);
-    }
-
-    {
-        auto *row = root->appendChild<muui::Row>();
-        row->setMinimumHeight(150);
-        row->shape = muui::Item::Shape::RoundedRectangle;
-        row->fillBackground = true;
-        row->backgroundBrush = glm::vec4{0.75, 0.75, 0.75, 1};
-        row->setMargins(muui::Margins{8, 8, 8, 8});
-        row->cornerRadius = 8.0f;
-        row->setSpacing(4);
-        addLabel(row, U"label 1"sv, muui::Alignment::Top | muui::Alignment::Left);
-        addLabel(row, U"label 2"sv, muui::Alignment::VCenter | muui::Alignment::Left);
-        addLabel(row, U"label 3"sv, muui::Alignment::Bottom | muui::Alignment::Left);
-    }
+    addRectangle(root.get(), 200, 100);
+    addLabel(root.get(), U"hello, world"sv);
+    addRectangle(root.get(), 200, 100);
+    addLabel(root.get(), U"hello, world"sv);
 
     m_rootItem = std::move(root);
 

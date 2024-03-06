@@ -50,7 +50,7 @@ bool DropShadowTest::initialize()
     m_rootItem->setSpacing(12);
 
     auto *item = m_rootItem->appendChild<muui::Label>(m_font.get(), U"Sphinx of black quartz"sv);
-    item->brush = glm::vec4(1);
+    item->foregroundBrush = glm::vec4(1);
 
     auto applyDropShadow = [](auto *item) {
         auto dropShadow = std::make_unique<muui::DropShadow>();
