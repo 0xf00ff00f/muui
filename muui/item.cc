@@ -90,19 +90,20 @@ bool Item::renderBackground(Painter *painter, const glm::vec2 &pos, int depth)
     if (!fillBackground)
         return false;
     const auto rect = RectF{pos, pos + glm::vec2(width(), height())};
+    const auto brush = adjustBrushToRect(backgroundBrush, pos);
     switch (shape)
     {
     case Shape::Rectangle:
-        painter->drawRect(rect, backgroundBrush, depth);
+        painter->drawRect(rect, brush, depth);
         return true;
     case Shape::Capsule:
-        painter->drawCapsule(rect, backgroundBrush, depth);
+        painter->drawCapsule(rect, brush, depth);
         return true;
     case Shape::Circle:
-        painter->drawCircle(rect.center(), 0.5f * std::max(rect.width(), rect.height()), backgroundBrush, depth);
+        painter->drawCircle(rect.center(), 0.5f * std::max(rect.width(), rect.height()), brush, depth);
         return true;
     case Shape::RoundedRectangle:
-        painter->drawRoundedRect(rect, cornerRadius, backgroundBrush, depth);
+        painter->drawRoundedRect(rect, cornerRadius, brush, depth);
         return true;
     default:
         return false;
@@ -126,6 +127,29 @@ void Item::setSize(Size size)
 void Item::handleChildUpdated()
 {
     updateLayout();
+}
+
+namespace
+{
+
+Brush adjustToRect(const LinearGradient &gradient, const RectF &rect)
+{
+    const auto start = glm::mix(rect.min, rect.max, gradient.start);
+    const auto end = glm::mix(rect.min, rect.max, gradient.end);
+    return LinearGradient{.texture = gradient.texture, .start = start, .end = end};
+}
+
+Brush adjustToRect(const Color &color, const RectF &)
+{
+    return color;
+}
+
+} // namespace
+
+Brush Item::adjustBrushToRect(const Brush &brush, const glm::vec2 &topLeft) const
+{
+    const RectF rect{topLeft, topLeft + glm::vec2(m_size.width, m_size.height)};
+    return std::visit([&rect](auto &brush) { return adjustToRect(brush, rect); }, brush);
 }
 
 void Item::updateLayout()
@@ -502,9 +526,9 @@ bool Label::renderContents(Painter *painter, const glm::vec2 &pos, int depth)
         ++depth;
     }
     if (m_font->outlineSize() > 0)
-        painter->drawText(m_text, textPos, brush, outlineBrush, depth);
+        painter->drawText(m_text, textPos, adjustBrushToRect(brush, pos), adjustBrushToRect(outlineBrush, pos), depth);
     else
-        painter->drawText(m_text, textPos, brush, depth);
+        painter->drawText(m_text, textPos, adjustBrushToRect(brush, pos), depth);
 
     if (clipped)
         painter->setClipRect(prevClipRect);

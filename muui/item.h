@@ -248,6 +248,7 @@ protected:
     virtual bool renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0);
     virtual Item *handleMouseEvent(const TouchEvent &event);
     virtual void handleChildUpdated();
+    Brush adjustBrushToRect(const Brush &brush, const glm::vec2 &topLeft) const;
 
     class LayoutItem
     {
