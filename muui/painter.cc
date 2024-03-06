@@ -180,54 +180,34 @@ void Painter::drawText(std::u32string_view text, const glm::vec2 &pos, bool outl
 
 void Painter::drawGlyph(const Font::Glyph *glyph, const glm::vec2 &pos, bool outline, int depth)
 {
-    const Brush brush = [this, outline]() -> Brush {
-        if (outline)
-        {
-            assert(m_outlineBrush);
-            return *m_outlineBrush;
-        }
-        else
-        {
-            assert(m_foregroundBrush);
-            return *m_foregroundBrush;
-        }
-    }();
+    auto& brush = outline ? m_outlineBrush : m_foregroundBrush;
+    assert(brush);
     const auto topLeft = pos + glm::vec2(glyph->boundingBox.min);
     const auto bottomRight = topLeft + glm::vec2(glyph->boundingBox.max - glyph->boundingBox.min);
     const auto rect = RectF{topLeft, bottomRight};
     if (m_clipRect.intersects(rect))
     {
-        std::visit([this, outline](auto &brush) { setTextProgram(brush, outline); }, brush);
+        std::visit([this, outline](auto &brush) { setTextProgram(brush, outline); }, *brush);
         const auto &pixmap = glyph->pixmap;
         m_spriteBatcher->setBatchTexture(pixmap.texture);
         const auto topLeftVertex = VertexUV{.position = topLeft, .texCoord = pixmap.texCoord.min};
         const auto bottomRightVertex = VertexUV{.position = bottomRight, .texCoord = pixmap.texCoord.max};
         std::visit([this, &topLeftVertex, &bottomRightVertex,
                     depth](const auto &brush) { addSprite(topLeftVertex, bottomRightVertex, brush, depth); },
-                   brush);
+                   *brush);
     }
 }
 
 void Painter::drawGlyph(const Font::Glyph *glyph, const glm::vec2 &pos, const RectF &clipRect, bool outline, int depth)
 {
-    const Brush brush = [this, outline]() -> Brush {
-        if (outline)
-        {
-            assert(m_outlineBrush);
-            return *m_outlineBrush;
-        }
-        else
-        {
-            assert(m_foregroundBrush);
-            return *m_foregroundBrush;
-        }
-    }();
+    auto& brush = outline ? m_outlineBrush : m_foregroundBrush;
+    assert(brush);
     const auto topLeft = pos + glm::vec2(glyph->boundingBox.min);
     const auto bottomRight = topLeft + glm::vec2(glyph->boundingBox.max - glyph->boundingBox.min);
     const auto rect = RectF{topLeft, bottomRight};
     if (m_clipRect.intersects(rect))
     {
-        std::visit([this, outline](auto &brush) { setTextProgram(brush, outline); }, brush);
+        std::visit([this, outline](auto &brush) { setTextProgram(brush, outline); }, *brush);
         const auto &pixmap = glyph->pixmap;
         const auto texPos = [&rect, &texCoord = pixmap.texCoord](const glm::vec2 &p) {
             const float x =
@@ -242,7 +222,7 @@ void Painter::drawGlyph(const Font::Glyph *glyph, const glm::vec2 &pos, const Re
         const auto bottomRightVertex = VertexUV{.position = spriteRect.max, .texCoord = texPos(spriteRect.max)};
         std::visit([this, &topLeftVertex, bottomRightVertex,
                     depth](const auto &brush) { addSprite(topLeftVertex, bottomRightVertex, brush, depth); },
-                   brush);
+                   *brush);
     }
 }
 
