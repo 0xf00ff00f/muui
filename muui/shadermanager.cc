@@ -17,13 +17,13 @@ namespace
 std::unique_ptr<gl::ShaderProgram> loadProgram(const ProgramDescription &description)
 {
     auto program = std::make_unique<gl::ShaderProgram>();
-    if (!program->addShader(GL_VERTEX_SHADER, description.vertexShaderPath))
+    if (!program->addShader(gl::Shader::Type::Vertex, description.vertexShaderPath))
     {
         log_error("Failed to add vertex shader for program %s: %s", description.vertexShaderPath.c_str(),
                   program->log().c_str());
         return {};
     }
-    if (!program->addShader(GL_FRAGMENT_SHADER, description.fragmentShaderPath))
+    if (!program->addShader(gl::Shader::Type::Fragment, description.fragmentShaderPath))
     {
         log_error("Failed to add fragment shader for program %s: %s", description.fragmentShaderPath.c_str(),
                   program->log().c_str());

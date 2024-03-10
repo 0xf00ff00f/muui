@@ -17,7 +17,13 @@ namespace muui::gl
 class Shader
 {
 public:
-    explicit Shader(GLenum type);
+    enum class Type : GLenum
+    {
+        Invalid = 0,
+        Vertex = GL_VERTEX_SHADER,
+        Fragment = GL_FRAGMENT_SHADER
+    };
+    explicit Shader(Type type);
     ~Shader();
 
     Shader(const Shader &) = delete;
@@ -31,13 +37,13 @@ public:
 
     bool compile();
 
-    GLenum type() const { return m_type; }
+    Type type() const { return m_type; }
     GLuint id() const { return m_id; }
 
     const std::string &log() const { return m_log; }
 
 private:
-    GLenum m_type{0};
+    Type m_type{Type::Invalid};
     GLuint m_id{0};
     std::vector<std::string> m_sources;
     std::string m_log;
@@ -55,8 +61,8 @@ public:
     ShaderProgram(ShaderProgram &&other);
     ShaderProgram &operator=(ShaderProgram &&other);
 
-    bool addShader(GLenum type, const std::filesystem::path &path);
-    bool addShaderSource(GLenum type, std::string_view source);
+    bool addShader(Shader::Type type, const std::filesystem::path &path);
+    bool addShaderSource(Shader::Type type, std::string_view source);
     void attach(Shader &&shader);
     bool link();
     const std::string &log() const { return m_log; }

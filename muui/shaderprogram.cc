@@ -96,9 +96,9 @@ std::optional<std::string> readShaderSource(const std::filesystem::path &path)
 
 } // namespace
 
-Shader::Shader(GLenum type)
+Shader::Shader(Type type)
     : m_type{type}
-    , m_id{glCreateShader(type)}
+    , m_id{glCreateShader(static_cast<GLenum>(type))}
 {
 }
 
@@ -114,7 +114,7 @@ Shader::Shader(Shader &&other)
     , m_sources{std::move(other.m_sources)}
     , m_log{std::move(other.m_log)}
 {
-    other.m_type = 0;
+    other.m_type = Type::Invalid;
     other.m_id = 0;
     other.m_sources.clear();
     other.m_log.clear();
@@ -127,7 +127,7 @@ Shader &Shader::operator=(Shader &&other)
     m_sources = std::move(other.m_sources);
     m_log = std::move(other.m_log);
 
-    other.m_type = 0;
+    other.m_type = Type::Invalid;
     other.m_id = 0;
     other.m_sources.clear();
     other.m_log.clear();
@@ -224,7 +224,7 @@ ShaderProgram &ShaderProgram::operator=(ShaderProgram &&other)
     return *this;
 }
 
-bool ShaderProgram::addShader(GLenum type, const std::filesystem::path &path)
+bool ShaderProgram::addShader(Shader::Type type, const std::filesystem::path &path)
 {
     Shader shader{type};
     if (!shader.addSourceFromFile(path))
@@ -241,7 +241,7 @@ bool ShaderProgram::addShader(GLenum type, const std::filesystem::path &path)
     return true;
 }
 
-bool ShaderProgram::addShaderSource(GLenum type, std::string_view source)
+bool ShaderProgram::addShaderSource(Shader::Type type, std::string_view source)
 {
     Shader shader{type};
     shader.addSource(source);
