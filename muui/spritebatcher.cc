@@ -5,15 +5,32 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <algorithm>
+#include <span>
 
 namespace muui
 {
 
 SpriteBatcher::SpriteBatcher()
-    : m_buffer(gl::Buffer::Type::Vertex, gl::Buffer::Usage::DynamicDraw)
+    : m_vertexBuffer(gl::Buffer::Type::Vertex, gl::Buffer::Usage::DynamicDraw)
+    , m_indexBuffer(gl::Buffer::Type::Index, gl::Buffer::Usage::StaticDraw)
 {
+    std::vector<uint32_t> indices(MaxQuadsPerBatch * 6);
+    for (std::size_t i = 0; i < MaxQuadsPerBatch; ++i)
+    {
+        indices[i * 6 + 0] = i * 4 + 0;
+        indices[i * 6 + 1] = i * 4 + 1;
+        indices[i * 6 + 2] = i * 4 + 2;
+
+        indices[i * 6 + 3] = i * 4 + 2;
+        indices[i * 6 + 4] = i * 4 + 3;
+        indices[i * 6 + 5] = i * 4 + 0;
+    }
+    m_indexBuffer.bind();
+    m_indexBuffer.allocate(std::as_bytes(std::span<uint32_t>(indices)));
+
     gl::VertexArray::Binder binder(&m_vao);
-    m_buffer.bind();
+    m_vertexBuffer.bind();
+    m_indexBuffer.bind();
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(SpriteVertex), reinterpret_cast<GLvoid *>(0));
@@ -89,7 +106,7 @@ void SpriteBatcher::flush()
                std::tie(b->depth, b->texture, b->gradientTexture, b->program);
     });
 
-    m_buffer.bind();
+    m_vertexBuffer.bind();
     gl::VertexArray::Binder binder(&m_vao);
 
     const AbstractTexture *currentTexture = nullptr;
@@ -115,18 +132,17 @@ void SpriteBatcher::flush()
             });
 
         const auto quadCount = batchEnd - batchStart;
-        const auto bufferRangeSize = quadCount * GLQuadSize;
 
-        if (!m_bufferAllocated || (m_bufferOffset + bufferRangeSize > BufferCapacity))
+        if (!m_bufferAllocated || (m_quadIndex + quadCount > MaxQuadsPerBatch))
         {
             // orphan the old buffer and grab a new memory block
-            m_buffer.allocate(BufferCapacity * sizeof(GLfloat));
-            m_bufferOffset = 0;
+            m_vertexBuffer.allocate(MaxQuadsPerBatch * 4 * sizeof(SpriteVertex));
+            m_quadIndex = 0;
             m_bufferAllocated = true;
         }
 
-        auto *data = m_buffer.mapRange<GLfloat>(m_bufferOffset, bufferRangeSize,
-                                                gl::Buffer::Access::Write | gl::Buffer::Access::Unsynchronized);
+        auto *data = m_vertexBuffer.mapRange<GLfloat>(m_quadIndex * 4 * GLVertexSize, quadCount * 4 * GLVertexSize,
+                                                      gl::Buffer::Access::Write | gl::Buffer::Access::Unsynchronized);
         for (auto it = batchStart; it != batchEnd; ++it)
         {
             auto *quadPtr = *it;
@@ -149,20 +165,12 @@ void SpriteBatcher::flush()
                 *data++ = vertex.bgColor.w;
             };
 
-            const auto &v0 = quadPtr->vertices[0];
-            const auto &v1 = quadPtr->vertices[1];
-            const auto &v2 = quadPtr->vertices[2];
-            const auto &v3 = quadPtr->vertices[3];
-
-            emitVertex(v0);
-            emitVertex(v1);
-            emitVertex(v2);
-
-            emitVertex(v2);
-            emitVertex(v3);
-            emitVertex(v0);
+            emitVertex(quadPtr->vertices[0]);
+            emitVertex(quadPtr->vertices[1]);
+            emitVertex(quadPtr->vertices[2]);
+            emitVertex(quadPtr->vertices[3]);
         }
-        m_buffer.unmap();
+        m_vertexBuffer.unmap();
 
         if (currentTexture != batchTexture)
         {
@@ -202,9 +210,10 @@ void SpriteBatcher::flush()
             glBlendFunc(static_cast<GLenum>(blendFunc.sourceFactor), static_cast<GLenum>(blendFunc.destFactor));
         }
 
-        glDrawArrays(GL_TRIANGLES, m_bufferOffset / GLVertexSize, quadCount * 6);
+        glDrawElements(GL_TRIANGLES, 6 * quadCount, GL_UNSIGNED_INT,
+                       reinterpret_cast<void *>(m_quadIndex * 6 * sizeof(uint32_t)));
 
-        m_bufferOffset += bufferRangeSize;
+        m_quadIndex += quadCount;
         batchStart = batchEnd;
     }
 

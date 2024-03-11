@@ -221,14 +221,13 @@ private:
                 SpriteVertex{{p0.x, p1.y}, {t0.x, t1.y}, fgColor, bgColor}};
     }
 
-    static constexpr int BufferCapacity = 0x100000;                             // in floats
+    static constexpr int MaxQuadsPerBatch = 512 * 1024;
     static constexpr int GLVertexSize = sizeof(SpriteVertex) / sizeof(GLfloat); // in floats
-    static constexpr int GLQuadSize = 6 * GLVertexSize;                         // 6 verts per quad
-    static constexpr int MaxQuadsPerBatch = BufferCapacity / GLQuadSize;
 
     std::array<Sprite, MaxQuadsPerBatch> m_sprites;
     int m_quadCount{0};
-    gl::Buffer m_buffer;
+    gl::Buffer m_vertexBuffer;
+    gl::Buffer m_indexBuffer;
     gl::VertexArray m_vao;
     glm::mat4 m_transformMatrix;
     ShaderManager::ProgramHandle m_batchProgram{ShaderManager::ProgramHandle::Invalid};
@@ -237,7 +236,7 @@ private:
     ScissorBox m_batchScissorBox;
     BlendFunc m_batchBlendFunc{BlendFunc::Factor::SourceAlpha, BlendFunc::Factor::OneMinusSourceAlpha};
     bool m_bufferAllocated{false};
-    int m_bufferOffset{0};
+    int m_quadIndex{0};
 };
 
 } // namespace muui
