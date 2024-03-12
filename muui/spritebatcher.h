@@ -7,6 +7,7 @@
 
 #include <glm/vec2.hpp>
 
+#include <algorithm>
 #include <array>
 
 namespace muui
@@ -35,57 +36,6 @@ concept HasColor = requires(VertexT v) {
                        { v.color.a } -> std::convertible_to<float>;
                    };
 // clang-format on
-
-struct SpriteVertex
-{
-    glm::vec2 position;
-    glm::vec2 texCoord;
-    glm::vec4 fgColor;
-    glm::vec4 bgColor;
-
-    SpriteVertex() = default;
-
-    SpriteVertex(const glm::vec2 &position, const glm::vec2 &texCoord, const glm::vec4 &fgColor,
-                 const glm::vec4 &bgColor)
-        : position(position)
-        , texCoord(texCoord)
-        , fgColor(fgColor)
-        , bgColor(bgColor)
-    {
-    }
-
-    template<typename InVertexT>
-        requires HasPosition<InVertexT>
-    SpriteVertex(const InVertexT &inVertex)
-        : position(inVertex.position)
-    {
-    }
-
-    template<typename InVertexT>
-        requires HasPosition<InVertexT> && HasTexCoord<InVertexT>
-    SpriteVertex(const InVertexT &inVertex)
-        : position(inVertex.position)
-        , texCoord(inVertex.texCoord)
-    {
-    }
-
-    template<typename InVertexT>
-        requires HasPosition<InVertexT> && HasColor<InVertexT>
-    SpriteVertex(const InVertexT &inVertex)
-        : position(inVertex.position)
-        , fgColor(inVertex.color)
-    {
-    }
-
-    template<typename InVertexT>
-        requires HasPosition<InVertexT> && HasTexCoord<InVertexT> && HasColor<InVertexT>
-    SpriteVertex(const InVertexT &inVertex)
-        : position(inVertex.position)
-        , texCoord(inVertex.texCoord)
-        , fgColor(inVertex.color)
-    {
-    }
-};
 
 struct ScissorBox
 {
@@ -116,8 +66,12 @@ public:
     SpriteBatcher();
     ~SpriteBatcher();
 
-    void setTransformMatrix(const glm::mat4 &matrix);
-    glm::mat4 transformMatrix() const { return m_transformMatrix; }
+    void setMvp(const glm::mat4 &mvp);
+    glm::mat4 mvp() const { return m_mvp; }
+
+    void setSpriteTransform(const glm::mat3 &transform);
+    void clearSpriteTransform();
+    std::optional<glm::mat3> spriteTransform() const { return m_spriteTransform; }
 
     void setBatchProgram(ShaderManager::ProgramHandle program);
     ShaderManager::ProgramHandle batchProgram() const { return m_batchProgram; }
@@ -137,27 +91,37 @@ public:
     void begin();
     void flush();
 
-    void addSprite(const std::array<SpriteVertex, 4> &verts, int depth)
-    {
-        if (m_quadCount == MaxQuadsPerBatch)
-            flush();
-
-        auto &sprite = m_sprites[m_quadCount++];
-        sprite.texture = m_batchTexture;
-        sprite.gradientTexture = m_batchGradientTexture;
-        sprite.program = m_batchProgram;
-        sprite.depth = depth;
-        sprite.scissorBox = m_batchScissorBox;
-        sprite.blendFunc = m_batchBlendFunc;
-        sprite.vertices = verts;
-    }
-
     template<typename VertexT>
         requires HasPosition<VertexT>
     void addSprite(const std::array<VertexT, 4> &verts, int depth)
     {
         std::array<SpriteVertex, 4> spriteVerts;
-        std::copy(verts.begin(), verts.end(), spriteVerts.begin());
+        if (!m_spriteTransform)
+        {
+            std::copy(verts.begin(), verts.end(), spriteVerts.begin());
+        }
+        else
+        {
+            std::transform(verts.begin(), verts.end(), spriteVerts.begin(), [this](const VertexT &v) {
+                const auto position = glm::vec2(*m_spriteTransform * glm::vec3(v.position, 1));
+                if constexpr (HasPosition<VertexT> && HasTexCoord<VertexT> && HasColor<VertexT>)
+                {
+                    return SpriteVertex(position, v.texCoord, v.color, {});
+                }
+                else if constexpr (HasPosition<VertexT> && HasColor<VertexT>)
+                {
+                    return SpriteVertex(position, {}, v.color, {});
+                }
+                else if constexpr (HasPosition<VertexT> && HasTexCoord<VertexT>)
+                {
+                    return SpriteVertex(position, v.texCoord, {}, {});
+                }
+                else
+                {
+                    return SpriteVertex(position, {}, {}, {});
+                }
+            });
+        }
         addSprite(spriteVerts, depth);
     }
 
@@ -184,6 +148,54 @@ public:
     }
 
 private:
+    struct SpriteVertex
+    {
+        glm::vec2 position;
+        glm::vec2 texCoord;
+        glm::vec4 fgColor;
+        glm::vec4 bgColor;
+
+        SpriteVertex() = default;
+
+        SpriteVertex(const glm::vec2 &position, const glm::vec2 &texCoord, const glm::vec4 &fgColor,
+                     const glm::vec4 &bgColor)
+            : position(position)
+            , texCoord(texCoord)
+            , fgColor(fgColor)
+            , bgColor(bgColor)
+        {
+        }
+
+        template<typename InVertexT>
+        requires HasPosition<InVertexT> SpriteVertex(const InVertexT &inVertex)
+            : position(inVertex.position)
+        {
+        }
+
+        template<typename InVertexT>
+        requires HasPosition<InVertexT> && HasTexCoord<InVertexT> SpriteVertex(const InVertexT &inVertex)
+            : position(inVertex.position)
+            , texCoord(inVertex.texCoord)
+        {
+        }
+
+        template<typename InVertexT>
+        requires HasPosition<InVertexT> && HasColor<InVertexT> SpriteVertex(const InVertexT &inVertex)
+            : position(inVertex.position)
+            , fgColor(inVertex.color)
+        {
+        }
+
+        template<typename InVertexT>
+        requires HasPosition<InVertexT> && HasTexCoord<InVertexT> && HasColor<InVertexT>
+        SpriteVertex(const InVertexT &inVertex)
+            : position(inVertex.position)
+            , texCoord(inVertex.texCoord)
+            , fgColor(inVertex.color)
+        {
+        }
+    };
+
     struct Sprite
     {
         ShaderManager::ProgramHandle program;
@@ -195,30 +207,54 @@ private:
         BlendFunc blendFunc;
     };
 
+    glm::vec2 transformed(const glm::vec2 &position) const
+    {
+        if (!m_spriteTransform)
+            return position;
+        return glm::vec2(*m_spriteTransform * glm::vec3(position, 1.0f));
+    }
+
     template<typename VertexT>
         requires HasPosition<VertexT>
     std::array<SpriteVertex, 4> unpack(const VertexT &topLeft, const VertexT &bottomRight,
-                                       const glm::vec4 &fgColor = {}, const glm::vec4 &bgColor = {})
+                                       const glm::vec4 &fgColor = {}, const glm::vec4 &bgColor = {}) const
     {
         const auto &p0 = topLeft.position;
         const auto &p1 = bottomRight.position;
-        return {SpriteVertex{{p0.x, p0.y}, {}, fgColor, bgColor}, SpriteVertex{{p1.x, p0.y}, {}, fgColor, bgColor},
-                SpriteVertex{{p1.x, p1.y}, {}, fgColor, bgColor}, SpriteVertex{{p0.x, p1.y}, {}, fgColor, bgColor}};
+        return {SpriteVertex{transformed({p0.x, p0.y}), {}, fgColor, bgColor},
+                SpriteVertex{transformed({p1.x, p0.y}), {}, fgColor, bgColor},
+                SpriteVertex{transformed({p1.x, p1.y}), {}, fgColor, bgColor},
+                SpriteVertex{transformed({p0.x, p1.y}), {}, fgColor, bgColor}};
     }
 
     template<typename VertexT>
         requires HasPosition<VertexT> && HasTexCoord<VertexT>
     std::array<SpriteVertex, 4> unpack(const VertexT &topLeft, const VertexT &bottomRight,
-                                       const glm::vec4 &fgColor = {}, const glm::vec4 &bgColor = {})
+                                       const glm::vec4 &fgColor = {}, const glm::vec4 &bgColor = {}) const
     {
         const auto &p0 = topLeft.position;
         const auto &p1 = bottomRight.position;
         const auto &t0 = topLeft.texCoord;
         const auto &t1 = bottomRight.texCoord;
-        return {SpriteVertex{{p0.x, p0.y}, {t0.x, t0.y}, fgColor, bgColor},
-                SpriteVertex{{p1.x, p0.y}, {t1.x, t0.y}, fgColor, bgColor},
-                SpriteVertex{{p1.x, p1.y}, {t1.x, t1.y}, fgColor, bgColor},
-                SpriteVertex{{p0.x, p1.y}, {t0.x, t1.y}, fgColor, bgColor}};
+        return {SpriteVertex{transformed({p0.x, p0.y}), {t0.x, t0.y}, fgColor, bgColor},
+                SpriteVertex{transformed({p1.x, p0.y}), {t1.x, t0.y}, fgColor, bgColor},
+                SpriteVertex{transformed({p1.x, p1.y}), {t1.x, t1.y}, fgColor, bgColor},
+                SpriteVertex{transformed({p0.x, p1.y}), {t0.x, t1.y}, fgColor, bgColor}};
+    }
+
+    void addSprite(const std::array<SpriteVertex, 4> &verts, int depth)
+    {
+        if (m_quadCount == MaxQuadsPerBatch)
+            flush();
+
+        auto &sprite = m_sprites[m_quadCount++];
+        sprite.texture = m_batchTexture;
+        sprite.gradientTexture = m_batchGradientTexture;
+        sprite.program = m_batchProgram;
+        sprite.depth = depth;
+        sprite.scissorBox = m_batchScissorBox;
+        sprite.blendFunc = m_batchBlendFunc;
+        sprite.vertices = verts;
     }
 
     static constexpr int MaxQuadsPerBatch = 512 * 1024;
@@ -229,7 +265,8 @@ private:
     gl::Buffer m_vertexBuffer;
     gl::Buffer m_indexBuffer;
     gl::VertexArray m_vao;
-    glm::mat4 m_transformMatrix;
+    glm::mat4 m_mvp;
+    std::optional<glm::mat3> m_spriteTransform;
     ShaderManager::ProgramHandle m_batchProgram{ShaderManager::ProgramHandle::Invalid};
     const AbstractTexture *m_batchTexture{nullptr};
     const AbstractTexture *m_batchGradientTexture{nullptr};

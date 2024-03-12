@@ -45,7 +45,7 @@ void Painter::setWindowSize(int width, int height)
 void Painter::updateTransformMatrix()
 {
     const auto mvp = glm::ortho(0.0f, static_cast<float>(m_windowWidth), static_cast<float>(m_windowHeight), 0.0f);
-    m_spriteBatcher->setTransformMatrix(mvp);
+    m_spriteBatcher->setMvp(mvp);
 }
 
 void Painter::begin()

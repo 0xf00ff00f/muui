@@ -50,9 +50,19 @@ SpriteBatcher::SpriteBatcher()
 
 SpriteBatcher::~SpriteBatcher() = default;
 
-void SpriteBatcher::setTransformMatrix(const glm::mat4 &matrix)
+void SpriteBatcher::setMvp(const glm::mat4 &mvp)
 {
-    m_transformMatrix = matrix;
+    m_mvp = mvp;
+}
+
+void SpriteBatcher::setSpriteTransform(const glm::mat3 &spriteTransform)
+{
+    m_spriteTransform = spriteTransform;
+}
+
+void SpriteBatcher::clearSpriteTransform()
+{
+    m_spriteTransform.reset();
 }
 
 void SpriteBatcher::setBatchProgram(ShaderManager::ProgramHandle program)
@@ -83,6 +93,7 @@ void SpriteBatcher::setBatchBlendFunc(BlendFunc blendFunc)
 void SpriteBatcher::begin()
 {
     m_quadCount = 0;
+    clearSpriteTransform();
     m_batchProgram = ShaderManager::ProgramHandle::Invalid;
     m_batchTexture = nullptr;
     m_batchGradientTexture = nullptr;
@@ -191,7 +202,7 @@ void SpriteBatcher::flush()
             currentProgram = batchProgram;
             auto *shaderManager = sys::shaderManager();
             shaderManager->useProgram(batchProgram);
-            shaderManager->setUniform("mvp", m_transformMatrix);
+            shaderManager->setUniform("mvp", m_mvp);
             if (currentTexture)
                 shaderManager->setUniform("baseColorTexture", 0);
             if (currentGradientTexture)
@@ -201,6 +212,7 @@ void SpriteBatcher::flush()
         if (currentScissorBox != scissorBox)
         {
             currentScissorBox = scissorBox;
+            // TODO: won't work if a transform is set!
             glScissor(scissorBox.position.x, scissorBox.position.y, scissorBox.size.x, scissorBox.size.y);
         }
 

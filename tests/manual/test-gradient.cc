@@ -42,7 +42,7 @@ void GradientTest::resize(int width, int height)
     m_width = width;
     m_height = height;
     const auto mvp = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f);
-    m_spriteBatcher->setTransformMatrix(mvp);
+    m_spriteBatcher->setMvp(mvp);
 }
 
 void GradientTest::render() const
