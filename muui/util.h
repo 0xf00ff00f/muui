@@ -70,6 +70,13 @@ struct Rect
             return false;
         return true;
     }
+
+    bool contains(const Rect &other) const
+    {
+        return other.min.x >= min.x && other.max.x <= max.x && other.min.y >= min.y && other.max.y <= max.y;
+    }
+
+    bool isNull() const { return min == max; }
 };
 
 template<typename Point>

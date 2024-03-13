@@ -80,11 +80,6 @@ void SpriteBatcher::setBatchGradientTexture(const AbstractTexture *texture)
     m_batchGradientTexture = texture;
 }
 
-void SpriteBatcher::setBatchScissorBox(const ScissorBox &scissorBox)
-{
-    m_batchScissorBox = scissorBox;
-}
-
 void SpriteBatcher::setBatchBlendFunc(BlendFunc blendFunc)
 {
     m_batchBlendFunc = blendFunc;
@@ -97,7 +92,6 @@ void SpriteBatcher::begin()
     m_batchProgram = ShaderManager::ProgramHandle::Invalid;
     m_batchTexture = nullptr;
     m_batchGradientTexture = nullptr;
-    m_batchScissorBox = ScissorBox{};
     // assume shaders output premultiplied alpha by default
     m_batchBlendFunc = {BlendFunc::Factor::One, BlendFunc::Factor::OneMinusSourceAlpha};
 }
@@ -112,7 +106,6 @@ void SpriteBatcher::flush()
     std::transform(m_sprites.begin(), quadsEnd, sortedQuads.begin(), [](const Sprite &sprite) { return &sprite; });
     const auto sortedQuadsEnd = sortedQuads.begin() + m_quadCount;
     std::stable_sort(sortedQuads.begin(), sortedQuadsEnd, [](const Sprite *a, const Sprite *b) {
-        // TODO: scissorBox?
         return std::tie(a->depth, a->texture, a->gradientTexture, a->program) <
                std::tie(b->depth, b->texture, b->gradientTexture, b->program);
     });
@@ -123,7 +116,6 @@ void SpriteBatcher::flush()
     const AbstractTexture *currentTexture = nullptr;
     const AbstractTexture *currentGradientTexture = nullptr;
     ShaderManager::ProgramHandle currentProgram = ShaderManager::ProgramHandle::Invalid;
-    ScissorBox currentScissorBox;
     std::optional<BlendFunc> currentBlendMode;
 
     auto batchStart = sortedQuads.begin();
@@ -132,15 +124,14 @@ void SpriteBatcher::flush()
         const auto *batchTexture = (*batchStart)->texture;
         const auto *batchGradientTexture = (*batchStart)->gradientTexture;
         const auto batchProgram = (*batchStart)->program;
-        const auto scissorBox = (*batchStart)->scissorBox;
         const auto blendFunc = (*batchStart)->blendFunc;
-        const auto batchEnd = std::find_if(
-            batchStart + 1, sortedQuadsEnd,
-            [batchTexture, batchGradientTexture, batchProgram, &scissorBox, blendFunc](const Sprite *sprite) {
-                return sprite->texture != batchTexture || sprite->gradientTexture != batchGradientTexture ||
-                       sprite->program != batchProgram || sprite->scissorBox != scissorBox ||
-                       sprite->blendFunc != blendFunc;
-            });
+        const auto batchEnd =
+            std::find_if(batchStart + 1, sortedQuadsEnd,
+                         [batchTexture, batchGradientTexture, batchProgram, blendFunc](const Sprite *sprite) {
+                             return sprite->texture != batchTexture ||
+                                    sprite->gradientTexture != batchGradientTexture ||
+                                    sprite->program != batchProgram || sprite->blendFunc != blendFunc;
+                         });
 
         const auto quadCount = batchEnd - batchStart;
 
@@ -207,13 +198,6 @@ void SpriteBatcher::flush()
                 shaderManager->setUniform("baseColorTexture", 0);
             if (currentGradientTexture)
                 shaderManager->setUniform("gradientTexture", 1);
-        }
-
-        if (currentScissorBox != scissorBox)
-        {
-            currentScissorBox = scissorBox;
-            // TODO: won't work if a transform is set!
-            glScissor(scissorBox.position.x, scissorBox.position.y, scissorBox.size.x, scissorBox.size.y);
         }
 
         if (currentBlendMode != blendFunc)

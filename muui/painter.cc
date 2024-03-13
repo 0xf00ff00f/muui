@@ -4,28 +4,10 @@
 #include "gradienttexture.h"
 #include "spritebatcher.h"
 
-#include "gl.h"
-
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace muui
 {
-
-namespace
-{
-
-struct Vertex
-{
-    glm::vec2 position;
-};
-
-struct VertexUV
-{
-    glm::vec2 position;
-    glm::vec2 texCoord;
-};
-
-} // namespace
 
 Painter::Painter()
     : m_spriteBatcher(std::make_unique<SpriteBatcher>())
@@ -86,11 +68,6 @@ void Painter::setOutlineBrush(const std::optional<Brush> &brush)
 void Painter::setClipRect(const RectF &rect)
 {
     m_clipRect = rect;
-    const auto x = static_cast<GLint>(rect.min.x);
-    const auto y = static_cast<GLint>(rect.min.y);
-    const auto w = static_cast<GLint>(rect.width());
-    const auto h = static_cast<GLint>(rect.height());
-    m_spriteBatcher->setBatchScissorBox({.position = {x, m_windowHeight - (y + h)}, .size = {w, h}});
 }
 
 void Painter::drawRect(const RectF &rect, int depth)
@@ -115,29 +92,6 @@ void Painter::drawPixmap(const PackedPixmap &pixmap, const RectF &rect, int dept
         std::visit([this](const auto &brush) { setDecalProgram(brush); }, *m_foregroundBrush);
         const VertexUV topLeftVertex = {.position = rect.min, .texCoord = pixmap.texCoord.min};
         const VertexUV bottomRightVertex = {.position = rect.max, .texCoord = pixmap.texCoord.max};
-        m_spriteBatcher->setBatchTexture(pixmap.texture);
-        std::visit([this, &topLeftVertex, &bottomRightVertex,
-                    depth](const auto &brush) { addSprite(topLeftVertex, bottomRightVertex, brush, depth); },
-                   *m_foregroundBrush);
-    }
-}
-
-void Painter::drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const RectF &clipRect, int depth)
-{
-    if (m_clipRect.intersects(rect) && m_clipRect.intersects(rect))
-    {
-        assert(m_foregroundBrush);
-        std::visit([this](const auto &brush) { setDecalProgram(brush); }, *m_foregroundBrush);
-        const auto texPos = [&rect, &texCoord = pixmap.texCoord](const glm::vec2 &p) {
-            const float x =
-                (p.x - rect.min.x) * (texCoord.max.x - texCoord.min.x) / (rect.max.x - rect.min.x) + texCoord.min.x;
-            const float y =
-                (p.y - rect.min.y) * (texCoord.max.y - texCoord.min.y) / (rect.max.y - rect.min.y) + texCoord.min.y;
-            return glm::vec2(x, y);
-        };
-        const auto spriteRect = rect.intersected(clipRect);
-        const VertexUV topLeftVertex = {.position = spriteRect.min, .texCoord = texPos(spriteRect.min)};
-        const VertexUV bottomRightVertex = {.position = spriteRect.max, .texCoord = texPos(spriteRect.max)};
         m_spriteBatcher->setBatchTexture(pixmap.texture);
         std::visit([this, &topLeftVertex, &bottomRightVertex,
                     depth](const auto &brush) { addSprite(topLeftVertex, bottomRightVertex, brush, depth); },
@@ -188,34 +142,6 @@ void Painter::drawGlyph(const Font::Glyph *glyph, const glm::vec2 &pos, bool out
         const auto topLeftVertex = VertexUV{.position = topLeft, .texCoord = pixmap.texCoord.min};
         const auto bottomRightVertex = VertexUV{.position = bottomRight, .texCoord = pixmap.texCoord.max};
         std::visit([this, &topLeftVertex, &bottomRightVertex,
-                    depth](const auto &brush) { addSprite(topLeftVertex, bottomRightVertex, brush, depth); },
-                   *brush);
-    }
-}
-
-void Painter::drawGlyph(const Font::Glyph *glyph, const glm::vec2 &pos, const RectF &clipRect, bool outline, int depth)
-{
-    const auto topLeft = pos + glm::vec2(glyph->boundingBox.min);
-    const auto bottomRight = topLeft + glm::vec2(glyph->boundingBox.max - glyph->boundingBox.min);
-    const auto rect = RectF{topLeft, bottomRight};
-    if (m_clipRect.intersects(rect))
-    {
-        const auto &brush = outline ? m_outlineBrush : m_foregroundBrush;
-        assert(brush);
-        std::visit([this, outline](const auto &brush) { setTextProgram(brush, outline); }, *brush);
-        const auto &pixmap = glyph->pixmap;
-        const auto texPos = [&rect, &texCoord = pixmap.texCoord](const glm::vec2 &p) {
-            const float x =
-                (p.x - rect.min.x) * (texCoord.max.x - texCoord.min.x) / (rect.max.x - rect.min.x) + texCoord.min.x;
-            const float y =
-                (p.y - rect.min.y) * (texCoord.max.y - texCoord.min.y) / (rect.max.y - rect.min.y) + texCoord.min.y;
-            return glm::vec2(x, y);
-        };
-        const auto spriteRect = rect.intersected(clipRect);
-        m_spriteBatcher->setBatchTexture(pixmap.texture);
-        const auto topLeftVertex = VertexUV{.position = spriteRect.min, .texCoord = texPos(spriteRect.min)};
-        const auto bottomRightVertex = VertexUV{.position = spriteRect.max, .texCoord = texPos(spriteRect.max)};
-        std::visit([this, &topLeftVertex, bottomRightVertex,
                     depth](const auto &brush) { addSprite(topLeftVertex, bottomRightVertex, brush, depth); },
                    *brush);
     }
@@ -325,30 +251,73 @@ void Painter::setRoundedRectProgram(const LinearGradient &gradient)
 template<typename VertexT>
 void Painter::addSprite(const VertexT &topLeft, const VertexT &bottomRight, const Color &color, int depth)
 {
-    m_spriteBatcher->addSprite(topLeft, bottomRight, color, depth);
+    addSprite(topLeft, bottomRight, color, {}, depth);
 }
 
 template<typename VertexT>
 void Painter::addSprite(const VertexT &topLeft, const VertexT &bottomRight, const LinearGradient &gradient, int depth)
 {
-    m_spriteBatcher->addSprite(topLeft, bottomRight,
-                               glm::vec4(gradient.start.x, gradient.start.y, gradient.end.x, gradient.end.y), depth);
+    addSprite(topLeft, bottomRight, glm::vec4(gradient.start.x, gradient.start.y, gradient.end.x, gradient.end.y), {},
+              depth);
 }
 
 template<typename VertexT>
 void Painter::addRoundedRectSprite(const VertexT &topLeft, const VertexT &bottomRight, const Color &color,
                                    const glm::vec2 &size, float radius, int depth)
 {
-    m_spriteBatcher->addSprite(topLeft, bottomRight, color, glm::vec4(size, radius, 0), depth);
+    addSprite(topLeft, bottomRight, color, glm::vec4(size, radius, 0), depth);
 }
 
 template<typename VertexT>
 void Painter::addRoundedRectSprite(const VertexT &topLeft, const VertexT &bottomRight, const LinearGradient &gradient,
                                    const glm::vec2 &size, float radius, int depth)
 {
-    m_spriteBatcher->addSprite(topLeft, bottomRight,
-                               glm::vec4(gradient.start.x, gradient.start.y, gradient.end.x, gradient.end.y),
-                               glm::vec4(size, radius, 0), depth);
+    addSprite(topLeft, bottomRight, glm::vec4(gradient.start.x, gradient.start.y, gradient.end.x, gradient.end.y),
+              glm::vec4(size, radius, 0), depth);
+}
+
+void Painter::addSprite(const Vertex &topLeft, const Vertex &bottomRight, const glm::vec4 &fgColor,
+                        const glm::vec4 &bgColor, int depth)
+{
+    const auto rect = RectF{topLeft.position, bottomRight.position};
+    if (m_clipRect.contains(rect))
+    {
+        m_spriteBatcher->addSprite(topLeft, bottomRight, fgColor, bgColor, depth);
+    }
+    else
+    {
+        const auto clippedRect = rect.intersected(m_clipRect);
+        if (!clippedRect.isNull())
+            m_spriteBatcher->addSprite(Vertex{clippedRect.min}, Vertex{clippedRect.max}, fgColor, bgColor, depth);
+    }
+}
+
+void Painter::addSprite(const VertexUV &topLeft, const VertexUV &bottomRight, const glm::vec4 &fgColor,
+                        const glm::vec4 &bgColor, int depth)
+{
+    const auto rect = RectF{topLeft.position, bottomRight.position};
+    if (m_clipRect.contains(rect))
+    {
+        m_spriteBatcher->addSprite(topLeft, bottomRight, fgColor, bgColor, depth);
+    }
+    else
+    {
+        const auto clippedRect = rect.intersected(m_clipRect);
+        if (!clippedRect.isNull())
+        {
+            const auto texCoord = [&topLeft, &bottomRight](const glm::vec2 &p) {
+                const float x = (p.x - topLeft.position.x) * (bottomRight.texCoord.x - topLeft.texCoord.x) /
+                                    (bottomRight.position.x - topLeft.position.x) +
+                                topLeft.texCoord.x;
+                const float y = (p.y - topLeft.position.y) * (bottomRight.texCoord.y - topLeft.texCoord.y) /
+                                    (bottomRight.position.y - topLeft.position.y) +
+                                topLeft.texCoord.y;
+                return glm::vec2(x, y);
+            };
+            m_spriteBatcher->addSprite(VertexUV{clippedRect.min, texCoord(clippedRect.min)},
+                                       VertexUV{clippedRect.max, texCoord(clippedRect.max)}, fgColor, bgColor, depth);
+        }
+    }
 }
 
 } // namespace muui

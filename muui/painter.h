@@ -50,15 +50,24 @@ public:
 
     void drawRect(const RectF &rect, int depth);
     void drawPixmap(const PackedPixmap &pixmap, const RectF &rect, int depth);
-    void drawPixmap(const PackedPixmap &pixmap, const RectF &rect, const RectF &clipRect, int depth);
     void drawText(std::u32string_view text, const glm::vec2 &pos, int depth);
     void drawGlyph(const Font::Glyph *glyph, const glm::vec2 &pos, bool outline, int depth);
-    void drawGlyph(const Font::Glyph *glyph, const glm::vec2 &pos, const RectF &clipRect, bool outline, int depth);
     void drawCircle(const glm::vec2 &center, float radius, int depth);
     void drawCapsule(const RectF &rect, int depth);
     void drawRoundedRect(const RectF &rect, float cornerRadius, int depth);
 
 private:
+    struct Vertex
+    {
+        glm::vec2 position;
+    };
+
+    struct VertexUV
+    {
+        glm::vec2 position;
+        glm::vec2 texCoord;
+    };
+
     void drawText(std::u32string_view text, const glm::vec2 &pos, bool outline, int depth);
     void setRectProgram(const Color &color);
     void setRectProgram(const LinearGradient &gradient);
@@ -88,6 +97,11 @@ private:
     template<typename VertexT>
     void addRoundedRectSprite(const VertexT &topLeft, const VertexT &bottomRight, const LinearGradient &gradient,
                               const glm::vec2 &size, float radius, int depth);
+
+    void addSprite(const Vertex &topLeft, const Vertex &bottomRight, const glm::vec4 &fgColor, const glm::vec4 &bgColor,
+                   int depth);
+    void addSprite(const VertexUV &topLeft, const VertexUV &bottomRight, const glm::vec4 &fgColor,
+                   const glm::vec4 &bgColor, int depth);
 
     void render();
     void updateTransformMatrix();

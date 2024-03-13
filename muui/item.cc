@@ -688,8 +688,11 @@ bool Image::renderContents(Painter *painter, const glm::vec2 &pos, int depth)
     }
     else
     {
+        const auto prevClipRect = painter->clipRect();
         const auto clipRect = RectF{topLeft, topLeft + glm::vec2(availableWidth, availableHeight)};
-        painter->drawPixmap(*m_pixmap, rect, clipRect, depth);
+        painter->setClipRect(clipRect);
+        painter->drawPixmap(*m_pixmap, rect, depth);
+        painter->setClipRect(prevClipRect);
     }
 
     return true;

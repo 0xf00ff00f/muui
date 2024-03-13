@@ -27,7 +27,6 @@ void DropShadow::applyEffect(Painter *painter, const glm::vec2 &pos, int depth)
     shaderManager->setUniform("baseColorTexture", 0);
 
     glDisable(GL_BLEND);
-    glDisable(GL_SCISSOR_TEST);
 
     auto applyBlur = [this, shaderManager](const gl::Texture *source, std::unique_ptr<gl::Framebuffer> &dest,
                                            bool horizontal) {
@@ -50,7 +49,6 @@ void DropShadow::applyEffect(Painter *painter, const glm::vec2 &pos, int depth)
         first = false;
     }
 
-    glEnable(GL_SCISSOR_TEST);
     glEnable(GL_BLEND);
 
     auto *spriteBatcher = painter->spriteBatcher();

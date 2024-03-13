@@ -60,7 +60,6 @@ void GradientTest::render() const
     m_spriteBatcher->begin();
     m_spriteBatcher->setBatchProgram(muui::ShaderManager::ProgramHandle::Gradient);
     m_spriteBatcher->setBatchGradientTexture(m_gradientTexture.get());
-    m_spriteBatcher->setBatchScissorBox({.position = {0, 0}, .size = {m_width, m_height}});
     {
         const glm::vec2 gradientFrom{20, 20};
         const glm::vec2 gradientTo{320, 220};

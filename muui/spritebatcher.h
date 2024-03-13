@@ -37,13 +37,6 @@ concept HasColor = requires(VertexT v) {
                    };
 // clang-format on
 
-struct ScissorBox
-{
-    glm::ivec2 position;
-    glm::ivec2 size;
-    bool operator==(const ScissorBox &) const = default;
-};
-
 struct BlendFunc
 {
     enum class Factor
@@ -81,9 +74,6 @@ public:
 
     void setBatchGradientTexture(const AbstractTexture *texture);
     const AbstractTexture *batchGradientTexture() const { return m_batchGradientTexture; }
-
-    void setBatchScissorBox(const ScissorBox &scissorBox);
-    ScissorBox batchScissorBox() const { return m_batchScissorBox; }
 
     void setBatchBlendFunc(BlendFunc blendFunc);
     BlendFunc batchBlendFunc() const { return m_batchBlendFunc; }
@@ -203,7 +193,6 @@ private:
         const AbstractTexture *gradientTexture;
         std::array<SpriteVertex, 4> vertices;
         int depth;
-        ScissorBox scissorBox;
         BlendFunc blendFunc;
     };
 
@@ -252,7 +241,6 @@ private:
         sprite.gradientTexture = m_batchGradientTexture;
         sprite.program = m_batchProgram;
         sprite.depth = depth;
-        sprite.scissorBox = m_batchScissorBox;
         sprite.blendFunc = m_batchBlendFunc;
         sprite.vertices = verts;
     }
@@ -270,7 +258,6 @@ private:
     ShaderManager::ProgramHandle m_batchProgram{ShaderManager::ProgramHandle::Invalid};
     const AbstractTexture *m_batchTexture{nullptr};
     const AbstractTexture *m_batchGradientTexture{nullptr};
-    ScissorBox m_batchScissorBox;
     BlendFunc m_batchBlendFunc{BlendFunc::Factor::SourceAlpha, BlendFunc::Factor::OneMinusSourceAlpha};
     bool m_bufferAllocated{false};
     int m_quadIndex{0};

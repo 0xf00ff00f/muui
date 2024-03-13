@@ -60,7 +60,6 @@ void SpriteBatcherTest::render() const
 
     m_spriteBatcher->begin();
     m_spriteBatcher->setBatchProgram(muui::ShaderManager::ProgramHandle::Flat);
-    m_spriteBatcher->setBatchScissorBox({.position = {0, 0}, .size = {m_width, m_height}});
 
     auto addSprite = [this](const glm::vec2 &topLeft, const glm::vec2 &bottomRight) {
         struct Vertex

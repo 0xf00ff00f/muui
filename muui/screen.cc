@@ -37,13 +37,11 @@ void Screen::render() const
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
-    glEnable(GL_SCISSOR_TEST);
 
     m_painter->begin();
     m_rootItem->render(m_painter.get(), glm::vec2(0, 0));
     m_painter->end();
 
-    glDisable(GL_SCISSOR_TEST);
     glDisable(GL_BLEND);
 }
 
