@@ -29,3 +29,7 @@ target_compile_definitions(test-dropshadow PUBLIC ASSETSDIR="${CMAKE_CURRENT_SOU
 add_executable(test-gradientitem test-gradientitem.cc)
 target_link_libraries(test-gradientitem PUBLIC muui)
 target_compile_definitions(test-gradientitem PUBLIC ASSETSDIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/")
+
+add_executable(test-scrollarea test-scrollarea.cc)
+target_link_libraries(test-scrollarea PUBLIC muui)
+target_compile_definitions(test-scrollarea PUBLIC ASSETSDIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/")
