@@ -76,18 +76,20 @@ void SpriteBatcherTest::render() const
     addSprite({20, 20}, {120, 120});
 
     {
-        const auto t = glm::translate(glm::mat3(1.0), glm::vec2(300, 20));
-        const auto r = glm::rotate(glm::mat3(1.0), m_angle);
-        m_spriteBatcher->setSpriteTransform(t * r);
+        auto prevTransform = m_spriteBatcher->transform();
+        m_spriteBatcher->translate({300, 20});
+        m_spriteBatcher->rotate(m_angle);
         addSprite({0, 0}, {100, 100});
+        m_spriteBatcher->setTransform(prevTransform);
     }
 
     {
-        const auto t0 = glm::translate(glm::mat3(1.0), glm::vec2(300 + 100, 220 + 100));
-        const auto r = glm::rotate(glm::mat3(1.0), m_angle);
-        const auto t1 = glm::translate(glm::mat3(1.0), glm::vec2(-100, -100));
-        m_spriteBatcher->setSpriteTransform(t0 * r * t1);
+        auto prevTransform = m_spriteBatcher->transform();
+        m_spriteBatcher->translate({300 + 100, 220 + 100});
+        m_spriteBatcher->rotate(m_angle);
+        m_spriteBatcher->translate({-100, -100});
         addSprite({0, 0}, {100, 100});
+        m_spriteBatcher->setTransform(prevTransform);
     }
 
     m_spriteBatcher->flush();

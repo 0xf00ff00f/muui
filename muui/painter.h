@@ -4,6 +4,7 @@
 
 #include "brush.h"
 #include "font.h"
+#include "transform.h"
 #include "util.h"
 
 #include <glm/glm.hpp>
@@ -31,8 +32,8 @@ public:
     void begin();
     void end();
 
-    void setTransform(const glm::mat3 &transform);
-    glm::mat3 transform() const;
+    void setTransform(const Transform &transform);
+    Transform transform() const;
 
     void translate(const glm::vec2 &pos);
     void rotate(float angle);
@@ -161,7 +162,7 @@ public:
 
 private:
     Painter *m_painter;
-    glm::mat4 m_transform;
+    Transform m_transform;
 };
 
 } // namespace muui

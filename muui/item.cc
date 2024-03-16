@@ -233,10 +233,9 @@ void Item::render(Painter *painter, int depth)
 void Item::doRender(Painter *painter, int depth)
 {
     PainterTransformSaver transformSaver(painter);
-    const auto t0 = glm::translate(glm::mat3(1.0), m_transformOrigin);
-    const auto r = glm::rotate(glm::mat3(1.0), m_rotation);
-    const auto t1 = glm::translate(glm::mat3(1.0), -m_transformOrigin);
-    painter->setTransform(painter->transform() * t0 * r * t1);
+    painter->translate(m_transformOrigin);
+    painter->rotate(m_rotation);
+    painter->translate(-m_transformOrigin);
 
     PainterBrushSaver brushSaver(painter);
     if (backgroundBrush)

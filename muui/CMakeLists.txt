@@ -68,7 +68,9 @@ set(MUUI_SOURCES
     gradienttexture.cc
     mesh.h
     dropshadow.h
-    dropshadow.cc)
+    dropshadow.cc
+    transform.h
+    transform.cc)
 
 list(APPEND MUUI_SOURCES sdlfs.h sdlfs.cc)
 

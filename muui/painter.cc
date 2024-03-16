@@ -46,27 +46,25 @@ void Painter::end()
     m_spriteBatcher->flush();
 }
 
-void Painter::setTransform(const glm::mat3 &transform)
+void Painter::setTransform(const Transform &transform)
 {
     // TODO: what do we do with the clip rectangle?
-    m_spriteBatcher->setSpriteTransform(transform);
+    m_spriteBatcher->setTransform(transform);
 }
 
-glm::mat3 Painter::transform() const
+Transform Painter::transform() const
 {
-    return m_spriteBatcher->spriteTransform();
+    return m_spriteBatcher->transform();
 }
 
 void Painter::translate(const glm::vec2 &pos)
 {
-    const auto t = glm::translate(glm::mat3(1.0), pos);
-    setTransform(transform() * t);
+    m_spriteBatcher->translate(pos);
 }
 
 void Painter::rotate(float angle)
 {
-    const auto r = glm::rotate(glm::mat3(1.0), angle);
-    setTransform(transform() * r);
+    m_spriteBatcher->rotate(angle);
 }
 
 void Painter::setFont(Font *font)

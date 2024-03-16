@@ -55,9 +55,19 @@ void SpriteBatcher::setMvp(const glm::mat4 &mvp)
     m_mvp = mvp;
 }
 
-void SpriteBatcher::setSpriteTransform(const glm::mat3 &spriteTransform)
+void SpriteBatcher::setTransform(const Transform &transform)
 {
-    m_spriteTransform = spriteTransform;
+    m_transform = transform;
+}
+
+void SpriteBatcher::translate(const glm::vec2 &p)
+{
+    m_transform.translate(p);
+}
+
+void SpriteBatcher::rotate(float angle)
+{
+    m_transform.rotate(angle);
 }
 
 void SpriteBatcher::setBatchProgram(ShaderManager::ProgramHandle program)
@@ -83,7 +93,7 @@ void SpriteBatcher::setBatchBlendFunc(BlendFunc blendFunc)
 void SpriteBatcher::begin()
 {
     m_quadCount = 0;
-    m_spriteTransform = glm::mat3{1.0f};
+    m_transform.reset();
     m_batchProgram = ShaderManager::ProgramHandle::Invalid;
     m_batchTexture = nullptr;
     m_batchGradientTexture = nullptr;

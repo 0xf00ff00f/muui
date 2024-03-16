@@ -3,6 +3,7 @@
 #include "buffer.h"
 #include "noncopyable.h"
 #include "shadermanager.h"
+#include "transform.h"
 #include "vertexarray.h"
 
 #include <glm/vec2.hpp>
@@ -62,8 +63,11 @@ public:
     void setMvp(const glm::mat4 &mvp);
     glm::mat4 mvp() const { return m_mvp; }
 
-    void setSpriteTransform(const glm::mat3 &transform);
-    glm::mat3 spriteTransform() const { return m_spriteTransform; }
+    void setTransform(const Transform &transform);
+    Transform transform() const { return m_transform; }
+
+    void translate(const glm::vec2 &p);
+    void rotate(float angle);
 
     void setBatchProgram(ShaderManager::ProgramHandle program);
     ShaderManager::ProgramHandle batchProgram() const { return m_batchProgram; }
@@ -86,7 +90,7 @@ public:
     {
         std::array<SpriteVertex, 4> spriteVerts;
         std::transform(verts.begin(), verts.end(), spriteVerts.begin(), [this](const VertexT &v) {
-            const auto position = glm::vec2(m_spriteTransform * glm::vec3(v.position, 1));
+            const auto position = m_transform.map(v.position);
             if constexpr (HasPosition<VertexT> && HasTexCoord<VertexT> && HasColor<VertexT>)
             {
                 return SpriteVertex(position, v.texCoord, v.color, {});
@@ -188,11 +192,6 @@ private:
         BlendFunc blendFunc;
     };
 
-    glm::vec2 transformed(const glm::vec2 &position) const
-    {
-        return glm::vec2(m_spriteTransform * glm::vec3(position, 1.0f));
-    }
-
     template<typename VertexT>
         requires HasPosition<VertexT>
     std::array<SpriteVertex, 4> unpack(const VertexT &topLeft, const VertexT &bottomRight,
@@ -200,10 +199,10 @@ private:
     {
         const auto &p0 = topLeft.position;
         const auto &p1 = bottomRight.position;
-        return {SpriteVertex{transformed({p0.x, p0.y}), {}, fgColor, bgColor},
-                SpriteVertex{transformed({p1.x, p0.y}), {}, fgColor, bgColor},
-                SpriteVertex{transformed({p1.x, p1.y}), {}, fgColor, bgColor},
-                SpriteVertex{transformed({p0.x, p1.y}), {}, fgColor, bgColor}};
+        return {SpriteVertex{m_transform.map({p0.x, p0.y}), {}, fgColor, bgColor},
+                SpriteVertex{m_transform.map({p1.x, p0.y}), {}, fgColor, bgColor},
+                SpriteVertex{m_transform.map({p1.x, p1.y}), {}, fgColor, bgColor},
+                SpriteVertex{m_transform.map({p0.x, p1.y}), {}, fgColor, bgColor}};
     }
 
     template<typename VertexT>
@@ -215,10 +214,10 @@ private:
         const auto &p1 = bottomRight.position;
         const auto &t0 = topLeft.texCoord;
         const auto &t1 = bottomRight.texCoord;
-        return {SpriteVertex{transformed({p0.x, p0.y}), {t0.x, t0.y}, fgColor, bgColor},
-                SpriteVertex{transformed({p1.x, p0.y}), {t1.x, t0.y}, fgColor, bgColor},
-                SpriteVertex{transformed({p1.x, p1.y}), {t1.x, t1.y}, fgColor, bgColor},
-                SpriteVertex{transformed({p0.x, p1.y}), {t0.x, t1.y}, fgColor, bgColor}};
+        return {SpriteVertex{m_transform.map({p0.x, p0.y}), {t0.x, t0.y}, fgColor, bgColor},
+                SpriteVertex{m_transform.map({p1.x, p0.y}), {t1.x, t0.y}, fgColor, bgColor},
+                SpriteVertex{m_transform.map({p1.x, p1.y}), {t1.x, t1.y}, fgColor, bgColor},
+                SpriteVertex{m_transform.map({p0.x, p1.y}), {t0.x, t1.y}, fgColor, bgColor}};
     }
 
     void addSprite(const std::array<SpriteVertex, 4> &verts, int depth)
@@ -244,7 +243,7 @@ private:
     gl::Buffer m_indexBuffer;
     gl::VertexArray m_vao;
     glm::mat4 m_mvp;
-    glm::mat3 m_spriteTransform = glm::mat3{1.0f};
+    Transform m_transform;
     ShaderManager::ProgramHandle m_batchProgram{ShaderManager::ProgramHandle::Invalid};
     const AbstractTexture *m_batchTexture{nullptr};
     const AbstractTexture *m_batchGradientTexture{nullptr};
