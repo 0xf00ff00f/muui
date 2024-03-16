@@ -38,7 +38,7 @@ void ShaderEffect::setSource(Item *source)
     }
 }
 
-void ShaderEffect::render(Painter *painter, const glm::vec2 &pos, int depth)
+void ShaderEffect::render(Painter *painter, int depth)
 {
     if (!m_source)
         return;
@@ -59,11 +59,12 @@ void ShaderEffect::render(Painter *painter, const glm::vec2 &pos, int depth)
         glEnable(GL_BLEND);
 
         m_painter.begin();
-        m_source->doRender(&m_painter, glm::vec2{m_padding, m_padding}, 0);
+        m_painter.translate({m_padding, m_padding});
+        m_source->doRender(&m_painter, 0);
         m_painter.end();
     }
 
-    applyEffect(painter, pos, depth);
+    applyEffect(painter, depth);
 }
 
 } // namespace muui

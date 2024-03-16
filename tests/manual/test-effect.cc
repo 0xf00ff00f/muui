@@ -50,10 +50,10 @@ public:
     float slope{3.0f};
 
 private:
-    void applyEffect(muui::Painter *painter, const glm::vec2 &pos, int depth) override;
+    void applyEffect(muui::Painter *painter, int depth) override;
 };
 
-void TransitionEffect::applyEffect(muui::Painter *painter, const glm::vec2 &pos, int depth)
+void TransitionEffect::applyEffect(muui::Painter *painter, int depth)
 {
     auto *spriteBatcher = painter->spriteBatcher();
     const auto size = glm::vec2{m_framebuffer->width(), m_framebuffer->height()};
@@ -67,7 +67,7 @@ void TransitionEffect::applyEffect(muui::Painter *painter, const glm::vec2 &pos,
         glm::vec2 position;
         glm::vec2 texCoord;
     };
-    const Vertex topLeftVertex{.position = pos - glm::vec2(m_padding), .texCoord = {0, 1}};
+    const Vertex topLeftVertex{.position = -glm::vec2(m_padding), .texCoord = {0, 1}};
     const Vertex bottomRightVertex{.position = topLeftVertex.position + size, .texCoord = {1, 0}};
 
     const glm::vec4 parameters{spacing, slope, progress, 0.0f};

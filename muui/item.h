@@ -131,7 +131,7 @@ public:
     float height() const { return m_size.height; }
     RectF rect() const { return RectF{{0, 0}, {m_size.width, m_size.height}}; }
 
-    void render(Painter *painter, const glm::vec2 &pos, int depth = 0);
+    void render(Painter *painter, int depth = 0);
 
     Item *mouseEvent(const TouchEvent &event);
     virtual void update(float elapsed);
@@ -177,6 +177,12 @@ public:
         }
         return nullptr;
     }
+
+    void setRotation(float angle);
+    float rotation() const { return m_rotation; }
+
+    void setTransformOrigin(const glm::vec2 &transformOrigin);
+    glm::vec2 transformOrigin() const { return m_transformOrigin; }
 
     void setContainerAlignment(Alignment alignment);
     Alignment containerAlignment() const { return m_containerAlignment; }
@@ -246,8 +252,8 @@ protected:
     void setHorizontalAnchor(const HorizontalAnchor &anchor);
     void setVerticalAnchor(const VerticalAnchor &anchor);
     virtual void updateLayout();
-    bool renderBackground(Painter *painter, const glm::vec2 &pos, int depth);
-    virtual bool renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0);
+    bool renderBackground(Painter *painter, int depth);
+    virtual bool renderContents(Painter *painter, int depth = 0);
     virtual Item *handleMouseEvent(const TouchEvent &event);
     virtual void handleChildUpdated();
     Brush adjustBrushToRect(const Brush &brush, const glm::vec2 &topLeft) const;
@@ -277,13 +283,15 @@ protected:
     };
 
     Size m_size;
+    float m_rotation{0.0f};
+    glm::vec2 m_transformOrigin{0.0f};
     Alignment m_containerAlignment{Alignment::VCenter | Alignment::Left};
     std::vector<LayoutItem> m_layoutItems;
     HorizontalAnchor m_horizontalAnchor{};
     VerticalAnchor m_verticalAnchor{};
 
 private:
-    void doRender(Painter *painter, const glm::vec2 &pos, int depth);
+    void doRender(Painter *painter, int depth);
 
     std::unique_ptr<ShaderEffect> m_effect;
 
@@ -334,7 +342,7 @@ public:
     muslots::Signal<> clickedSignal;
 
 protected:
-    bool renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
+    bool renderContents(Painter *painter, int depth = 0) override;
     Item *handleMouseEvent(const TouchEvent &event) override;
     void updateSizeAndOffset();
 
@@ -371,7 +379,7 @@ public:
     Alignment alignment() { return m_alignment; }
 
 protected:
-    bool renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
+    bool renderContents(Painter *painter, int depth = 0) override;
     Item *handleMouseEvent(const TouchEvent &event) override;
     void updateSizeAndOffset();
 
@@ -443,7 +451,7 @@ public:
 
 protected:
     void update(float elapsed) override;
-    bool renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
+    bool renderContents(Painter *painter, int depth = 0) override;
     Item *handleMouseEvent(const TouchEvent &event) override;
 
 private:
@@ -479,7 +487,7 @@ public:
     Alignment alignment = Alignment::VCenter | Alignment::Left;
 
 protected:
-    bool renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
+    bool renderContents(Painter *painter, int depth = 0) override;
 
 private:
     void updateSize();
@@ -517,7 +525,7 @@ public:
 
 protected:
     void update(float elapsed) override;
-    bool renderContents(Painter *painter, const glm::vec2 &pos, int depth = 0) override;
+    bool renderContents(Painter *painter, int depth = 0) override;
     Item *handleMouseEvent(const TouchEvent &event) override;
 
     bool m_checked = false;

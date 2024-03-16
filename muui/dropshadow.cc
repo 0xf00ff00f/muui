@@ -20,7 +20,7 @@ DropShadow::DropShadow()
     m_quad.setData(verts);
 }
 
-void DropShadow::applyEffect(Painter *painter, const glm::vec2 &pos, int depth)
+void DropShadow::applyEffect(Painter *painter, int depth)
 {
     auto *shaderManager = sys::shaderManager();
     shaderManager->useProgram(ShaderManager::ProgramHandle::GaussianBlur);
@@ -52,8 +52,8 @@ void DropShadow::applyEffect(Painter *painter, const glm::vec2 &pos, int depth)
     glEnable(GL_BLEND);
 
     auto *spriteBatcher = painter->spriteBatcher();
-    auto blitResult = [this, spriteBatcher, &pos](const gl::Texture *source, const glm::vec2 &offset,
-                                                  const glm::vec4 &color, int depth) {
+    auto blitResult = [this, spriteBatcher](const gl::Texture *source, const glm::vec2 &offset, const glm::vec4 &color,
+                                            int depth) {
         struct Vertex
         {
             glm::vec2 position;
@@ -61,7 +61,7 @@ void DropShadow::applyEffect(Painter *painter, const glm::vec2 &pos, int depth)
         };
         const auto size = glm::vec2{width(), height()};
         spriteBatcher->setBatchTexture(source);
-        const Vertex topLeftVertex{.position = pos - glm::vec2(m_padding) + offset, .texCoord = {0, 1}};
+        const Vertex topLeftVertex{.position = -glm::vec2(m_padding) + offset, .texCoord = {0, 1}};
         const Vertex bottomRightVertex{.position = topLeftVertex.position + size, .texCoord = {1, 0}};
         spriteBatcher->addSprite(topLeftVertex, bottomRightVertex, color, depth);
     };

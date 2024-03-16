@@ -6,6 +6,8 @@
 #include "shadereffect.h"
 #include "system.h"
 
+#include <glm/gtx/matrix_transform_2d.hpp>
+
 #include <algorithm>
 #include <memory>
 
@@ -85,11 +87,11 @@ std::vector<Item *> Item::children() const
     return children;
 }
 
-bool Item::renderBackground(Painter *painter, const glm::vec2 &pos, int depth)
+bool Item::renderBackground(Painter *painter, int depth)
 {
     if (!fillBackground)
         return false;
-    const auto rect = RectF{pos, pos + glm::vec2(width(), height())};
+    const auto rect = RectF{glm::vec2{0}, glm::vec2(width(), height())};
     switch (shape)
     {
     case Shape::Rectangle:
@@ -109,7 +111,7 @@ bool Item::renderBackground(Painter *painter, const glm::vec2 &pos, int depth)
     }
 }
 
-bool Item::renderContents(Painter *, const glm::vec2 &, int)
+bool Item::renderContents(Painter *, int)
 {
     return false;
 }
@@ -208,66 +210,51 @@ void Item::updateLayout()
     }
 }
 
-void Item::render(Painter *painter, const glm::vec2 &pos, int depth)
+void Item::render(Painter *painter, int depth)
 {
     if (!visible)
         return;
+#if 0
+    // TODO
     const auto rect = RectF{pos, pos + glm::vec2(width(), height())};
     if (!painter->clipRect().intersects(rect))
         return;
+#endif
     if (!m_effect)
     {
-        doRender(painter, pos, depth);
+        doRender(painter, depth);
     }
     else
     {
-        m_effect->render(painter, pos, depth);
+        m_effect->render(painter, depth);
     }
 }
 
-namespace
+void Item::doRender(Painter *painter, int depth)
 {
-class PainterBrushSaver
-{
-public:
-    explicit PainterBrushSaver(Painter *painter)
-        : m_painter(painter)
-        , m_backgroundBrush(painter->backgroundBrush())
-        , m_foregroundBrush(painter->foregroundBrush())
-        , m_outlineBrush(painter->outlineBrush())
-    {
-    }
+    PainterTransformSaver transformSaver(painter);
+    const auto t0 = glm::translate(glm::mat3(1.0), m_transformOrigin);
+    const auto r = glm::rotate(glm::mat3(1.0), m_rotation);
+    const auto t1 = glm::translate(glm::mat3(1.0), -m_transformOrigin);
+    painter->setTransform(painter->transform() * t0 * r * t1);
 
-    ~PainterBrushSaver()
-    {
-        m_painter->setBackgroundBrush(m_backgroundBrush);
-        m_painter->setForegroundBrush(m_foregroundBrush);
-        m_painter->setOutlineBrush(m_outlineBrush);
-    }
-
-private:
-    Painter *m_painter;
-    std::optional<Brush> m_backgroundBrush;
-    std::optional<Brush> m_foregroundBrush;
-    std::optional<Brush> m_outlineBrush;
-};
-}; // namespace
-
-void Item::doRender(Painter *painter, const glm::vec2 &pos, int depth)
-{
-    PainterBrushSaver saver(painter);
+    PainterBrushSaver brushSaver(painter);
     if (backgroundBrush)
-        painter->setBackgroundBrush(adjustBrushToRect(*backgroundBrush, pos));
+        painter->setBackgroundBrush(adjustBrushToRect(*backgroundBrush, glm::vec2{0.0f}));
     if (foregroundBrush)
-        painter->setForegroundBrush(adjustBrushToRect(*foregroundBrush, pos));
+        painter->setForegroundBrush(adjustBrushToRect(*foregroundBrush, glm::vec2{0.0f}));
     if (outlineBrush)
-        painter->setOutlineBrush(adjustBrushToRect(*outlineBrush, pos));
-    if (renderBackground(painter, pos, depth))
+        painter->setOutlineBrush(adjustBrushToRect(*outlineBrush, glm::vec2{0.0f}));
+    if (renderBackground(painter, depth))
         ++depth;
-    if (renderContents(painter, pos, depth))
+    if (renderContents(painter, depth))
         ++depth;
     for (auto &layoutItem : m_layoutItems)
-        layoutItem.item()->render(painter, pos + layoutItem.offset, depth);
+    {
+        PainterTransformSaver transformSaver(painter);
+        painter->translate(layoutItem.offset);
+        layoutItem.item()->render(painter, depth);
+    }
 }
 
 Item *Item::mouseEvent(const TouchEvent &event)
@@ -307,6 +294,16 @@ Item *Item::mouseEvent(const TouchEvent &event)
 Item *Item::handleMouseEvent(const TouchEvent &)
 {
     return nullptr;
+}
+
+void Item::setRotation(float angle)
+{
+    m_rotation = angle;
+}
+
+void Item::setTransformOrigin(const glm::vec2 &transformOrigin)
+{
+    m_transformOrigin = transformOrigin;
 }
 
 void Item::setContainerAlignment(Alignment alignment)
@@ -532,7 +529,7 @@ void Label::updateSizeAndOffset()
     m_offset = glm::vec2(m_margins.left, m_margins.top) + glm::vec2(xOffset, yOffset);
 }
 
-bool Label::renderContents(Painter *painter, const glm::vec2 &pos, int depth)
+bool Label::renderContents(Painter *painter, int depth)
 {
     const auto availableWidth = m_size.width - (m_margins.left + m_margins.right);
     if (availableWidth < 0.0f)
@@ -547,14 +544,13 @@ bool Label::renderContents(Painter *painter, const glm::vec2 &pos, int depth)
     if (clipped)
     {
         prevClipRect = painter->clipRect();
-        const auto p = pos + glm::vec2(m_margins.left, m_margins.top);
+        const auto p = glm::vec2(m_margins.left, m_margins.top);
         const auto rect = RectF{p, p + glm::vec2(availableWidth, availableHeight)};
         painter->setClipRect(prevClipRect.intersected(rect));
     }
 
-    const auto textPos = pos + m_offset;
     painter->setFont(m_font);
-    painter->drawText(m_text, textPos, depth);
+    painter->drawText(m_text, m_offset, depth);
 
     if (clipped)
         painter->setClipRect(prevClipRect);
@@ -670,7 +666,7 @@ void Image::updateSizeAndOffset()
     m_offset = glm::vec2(xOffset, yOffset);
 }
 
-bool Image::renderContents(Painter *painter, const glm::vec2 &pos, int depth)
+bool Image::renderContents(Painter *painter, int depth)
 {
     if (!m_pixmap)
         return false;
@@ -679,7 +675,7 @@ bool Image::renderContents(Painter *painter, const glm::vec2 &pos, int depth)
     const auto availableHeight = m_size.height - (m_margins.top + m_margins.bottom);
     const bool clipped = availableWidth < m_pixmap->width - 0.5f || availableHeight < m_pixmap->height - 0.5f;
 
-    const auto topLeft = pos + glm::vec2(m_margins.left, m_margins.top);
+    const auto topLeft = glm::vec2(m_margins.left, m_margins.top);
     const auto imagePos = topLeft + m_offset;
     const auto rect = RectF{imagePos, imagePos + glm::vec2(m_pixmap->width, m_pixmap->height)};
     if (!clipped)
@@ -837,13 +833,19 @@ void ScrollArea::update(float elapsed)
     m_contentItem->update(elapsed);
 }
 
-bool ScrollArea::renderContents(Painter *painter, const glm::vec2 &pos, int depth)
+bool ScrollArea::renderContents(Painter *painter, int depth)
 {
-    const auto viewportPos = pos + glm::vec2(m_margins.left, m_margins.top);
+    const auto viewportPos = glm::vec2(m_margins.left, m_margins.top);
     const auto prevClipRect = painter->clipRect();
     const auto viewportRect = RectF{viewportPos, viewportPos + glm::vec2(m_viewportSize.width, m_viewportSize.height)};
     painter->setClipRect(prevClipRect.intersected(viewportRect));
-    m_contentItem->render(painter, viewportPos + m_viewportOffset, depth);
+
+    {
+        PainterTransformSaver saver(painter);
+        painter->translate(viewportPos + m_viewportOffset);
+        m_contentItem->render(painter, depth);
+    }
+
     painter->setClipRect(prevClipRect);
 
     return true;
@@ -977,12 +979,12 @@ void Switch::update(float elapsed)
     m_animation.update(elapsed);
 }
 
-bool Switch::renderContents(Painter *painter, const glm::vec2 &pos, int depth)
+bool Switch::renderContents(Painter *painter, int depth)
 {
     const float radius = 0.5f * m_size.height;
     const float indicatorRadius = 0.75f * radius;
     const float centerX = radius + m_indicatorPosition * (m_size.width - 2 * radius);
-    const auto center = pos + glm::vec2(centerX, 0.5f * m_size.height);
+    const auto center = glm::vec2(centerX, 0.5f * m_size.height);
     auto oldBrush = painter->backgroundBrush();
     painter->setBackgroundBrush(indicatorColor);
     painter->drawCircle(center, indicatorRadius, depth);
@@ -1057,7 +1059,7 @@ void MultiLineText::updateSize()
     setSize({m_fixedWidth, height});
 }
 
-bool MultiLineText::renderContents(Painter *painter, const glm::vec2 &pos, int depth)
+bool MultiLineText::renderContents(Painter *painter, int depth)
 {
     const auto availableWidth = m_size.width - (m_margins.left + m_margins.right);
     if (availableWidth < 0.0f)
@@ -1072,7 +1074,7 @@ bool MultiLineText::renderContents(Painter *painter, const glm::vec2 &pos, int d
     if (clipped)
     {
         prevClipRect = painter->clipRect();
-        const auto p = pos + glm::vec2(m_margins.left, m_margins.top);
+        const auto p = glm::vec2(m_margins.left, m_margins.top);
         const auto rect = RectF{p, p + glm::vec2(availableWidth, availableHeight)};
         painter->setClipRect(prevClipRect.intersected(rect));
     }
@@ -1090,7 +1092,7 @@ bool MultiLineText::renderContents(Painter *painter, const glm::vec2 &pos, int d
             return availableHeight - m_contentHeight;
         }
     }();
-    auto textPos = pos + glm::vec2(m_margins.left, m_margins.top) + glm::vec2(0.0f, yOffset);
+    auto textPos = glm::vec2(m_margins.left, m_margins.top) + glm::vec2(0.0f, yOffset);
     painter->setFont(m_font);
     for (const auto &line : m_lines)
     {

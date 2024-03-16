@@ -26,13 +26,13 @@ public:
     Item *source() const { return m_source; }
     void setSource(Item *source);
 
-    void render(Painter *painter, const glm::vec2 &pos, int depth);
+    void render(Painter *painter, int depth);
 
     int width() const { return m_painter.windowWidth(); }
     int height() const { return m_painter.windowHeight(); }
 
 protected:
-    virtual void applyEffect(Painter *painter, const glm::vec2 &pos, int depth) = 0;
+    virtual void applyEffect(Painter *painter, int depth) = 0;
 
     int m_padding{0};
     std::unique_ptr<gl::Framebuffer> m_framebuffer;

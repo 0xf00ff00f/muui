@@ -60,11 +60,6 @@ void SpriteBatcher::setSpriteTransform(const glm::mat3 &spriteTransform)
     m_spriteTransform = spriteTransform;
 }
 
-void SpriteBatcher::clearSpriteTransform()
-{
-    m_spriteTransform.reset();
-}
-
 void SpriteBatcher::setBatchProgram(ShaderManager::ProgramHandle program)
 {
     m_batchProgram = program;
@@ -88,7 +83,7 @@ void SpriteBatcher::setBatchBlendFunc(BlendFunc blendFunc)
 void SpriteBatcher::begin()
 {
     m_quadCount = 0;
-    clearSpriteTransform();
+    m_spriteTransform = glm::mat3{1.0f};
     m_batchProgram = ShaderManager::ProgramHandle::Invalid;
     m_batchTexture = nullptr;
     m_batchGradientTexture = nullptr;

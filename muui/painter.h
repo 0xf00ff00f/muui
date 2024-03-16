@@ -31,6 +31,12 @@ public:
     void begin();
     void end();
 
+    void setTransform(const glm::mat3 &transform);
+    glm::mat3 transform() const;
+
+    void translate(const glm::vec2 &pos);
+    void rotate(float angle);
+
     void setFont(Font *font);
     Font *font() const { return m_font; }
 
@@ -115,6 +121,47 @@ private:
     std::optional<Brush> m_outlineBrush;    // text outline
     RectF m_clipRect;
     bool m_clippingEnabled{false};
+};
+
+class PainterBrushSaver
+{
+public:
+    explicit PainterBrushSaver(Painter *painter)
+        : m_painter(painter)
+        , m_backgroundBrush(painter->backgroundBrush())
+        , m_foregroundBrush(painter->foregroundBrush())
+        , m_outlineBrush(painter->outlineBrush())
+    {
+    }
+
+    ~PainterBrushSaver()
+    {
+        m_painter->setBackgroundBrush(m_backgroundBrush);
+        m_painter->setForegroundBrush(m_foregroundBrush);
+        m_painter->setOutlineBrush(m_outlineBrush);
+    }
+
+private:
+    Painter *m_painter;
+    std::optional<Brush> m_backgroundBrush;
+    std::optional<Brush> m_foregroundBrush;
+    std::optional<Brush> m_outlineBrush;
+};
+
+class PainterTransformSaver
+{
+public:
+    explicit PainterTransformSaver(Painter *painter)
+        : m_painter(painter)
+        , m_transform(painter->transform())
+    {
+    }
+
+    ~PainterTransformSaver() { m_painter->setTransform(m_transform); }
+
+private:
+    Painter *m_painter;
+    glm::mat4 m_transform;
 };
 
 } // namespace muui

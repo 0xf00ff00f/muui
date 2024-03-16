@@ -96,7 +96,8 @@ void LayoutTest::render() const
     glEnable(GL_SCISSOR_TEST);
 
     m_painter->begin();
-    m_rootItem->render(m_painter.get(), {8, 8});
+    m_painter->translate({8, 8});
+    m_rootItem->render(m_painter.get());
     m_painter->end();
 }
 

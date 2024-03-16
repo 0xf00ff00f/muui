@@ -15,7 +15,7 @@ public:
     glm::vec4 color = glm::vec4(0);
 
 protected:
-    void applyEffect(Painter *painter, const glm::vec2 &pos, int depth) override;
+    void applyEffect(Painter *painter, int depth) override;
 
 private:
     struct Vertex

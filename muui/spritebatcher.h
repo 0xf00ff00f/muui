@@ -63,8 +63,7 @@ public:
     glm::mat4 mvp() const { return m_mvp; }
 
     void setSpriteTransform(const glm::mat3 &transform);
-    void clearSpriteTransform();
-    std::optional<glm::mat3> spriteTransform() const { return m_spriteTransform; }
+    glm::mat3 spriteTransform() const { return m_spriteTransform; }
 
     void setBatchProgram(ShaderManager::ProgramHandle program);
     ShaderManager::ProgramHandle batchProgram() const { return m_batchProgram; }
@@ -86,32 +85,25 @@ public:
     void addSprite(const std::array<VertexT, 4> &verts, int depth)
     {
         std::array<SpriteVertex, 4> spriteVerts;
-        if (!m_spriteTransform)
-        {
-            std::copy(verts.begin(), verts.end(), spriteVerts.begin());
-        }
-        else
-        {
-            std::transform(verts.begin(), verts.end(), spriteVerts.begin(), [this](const VertexT &v) {
-                const auto position = glm::vec2(*m_spriteTransform * glm::vec3(v.position, 1));
-                if constexpr (HasPosition<VertexT> && HasTexCoord<VertexT> && HasColor<VertexT>)
-                {
-                    return SpriteVertex(position, v.texCoord, v.color, {});
-                }
-                else if constexpr (HasPosition<VertexT> && HasColor<VertexT>)
-                {
-                    return SpriteVertex(position, {}, v.color, {});
-                }
-                else if constexpr (HasPosition<VertexT> && HasTexCoord<VertexT>)
-                {
-                    return SpriteVertex(position, v.texCoord, {}, {});
-                }
-                else
-                {
-                    return SpriteVertex(position, {}, {}, {});
-                }
-            });
-        }
+        std::transform(verts.begin(), verts.end(), spriteVerts.begin(), [this](const VertexT &v) {
+            const auto position = glm::vec2(m_spriteTransform * glm::vec3(v.position, 1));
+            if constexpr (HasPosition<VertexT> && HasTexCoord<VertexT> && HasColor<VertexT>)
+            {
+                return SpriteVertex(position, v.texCoord, v.color, {});
+            }
+            else if constexpr (HasPosition<VertexT> && HasColor<VertexT>)
+            {
+                return SpriteVertex(position, {}, v.color, {});
+            }
+            else if constexpr (HasPosition<VertexT> && HasTexCoord<VertexT>)
+            {
+                return SpriteVertex(position, v.texCoord, {}, {});
+            }
+            else
+            {
+                return SpriteVertex(position, {}, {}, {});
+            }
+        });
         addSprite(spriteVerts, depth);
     }
 
@@ -198,9 +190,7 @@ private:
 
     glm::vec2 transformed(const glm::vec2 &position) const
     {
-        if (!m_spriteTransform)
-            return position;
-        return glm::vec2(*m_spriteTransform * glm::vec3(position, 1.0f));
+        return glm::vec2(m_spriteTransform * glm::vec3(position, 1.0f));
     }
 
     template<typename VertexT>
@@ -254,7 +244,7 @@ private:
     gl::Buffer m_indexBuffer;
     gl::VertexArray m_vao;
     glm::mat4 m_mvp;
-    std::optional<glm::mat3> m_spriteTransform;
+    glm::mat3 m_spriteTransform = glm::mat3{1.0f};
     ShaderManager::ProgramHandle m_batchProgram{ShaderManager::ProgramHandle::Invalid};
     const AbstractTexture *m_batchTexture{nullptr};
     const AbstractTexture *m_batchGradientTexture{nullptr};

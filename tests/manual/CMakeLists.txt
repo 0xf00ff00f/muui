@@ -33,3 +33,7 @@ target_compile_definitions(test-gradientitem PUBLIC ASSETSDIR="${CMAKE_CURRENT_S
 add_executable(test-scrollarea test-scrollarea.cc)
 target_link_libraries(test-scrollarea PUBLIC muui)
 target_compile_definitions(test-scrollarea PUBLIC ASSETSDIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/")
+
+add_executable(test-item-rotation test-item-rotation.cc)
+target_link_libraries(test-item-rotation PUBLIC muui)
+target_compile_definitions(test-item-rotation PUBLIC ASSETSDIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/")

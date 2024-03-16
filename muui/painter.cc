@@ -5,6 +5,7 @@
 #include "spritebatcher.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/matrix_transform_2d.hpp>
 
 namespace muui
 {
@@ -43,6 +44,29 @@ void Painter::begin()
 void Painter::end()
 {
     m_spriteBatcher->flush();
+}
+
+void Painter::setTransform(const glm::mat3 &transform)
+{
+    // TODO: what do we do with the clip rectangle?
+    m_spriteBatcher->setSpriteTransform(transform);
+}
+
+glm::mat3 Painter::transform() const
+{
+    return m_spriteBatcher->spriteTransform();
+}
+
+void Painter::translate(const glm::vec2 &pos)
+{
+    const auto t = glm::translate(glm::mat3(1.0), pos);
+    setTransform(transform() * t);
+}
+
+void Painter::rotate(float angle)
+{
+    const auto r = glm::rotate(glm::mat3(1.0), angle);
+    setTransform(transform() * r);
 }
 
 void Painter::setFont(Font *font)

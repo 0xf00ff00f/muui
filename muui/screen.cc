@@ -39,7 +39,7 @@ void Screen::render() const
     glEnable(GL_BLEND);
 
     m_painter->begin();
-    m_rootItem->render(m_painter.get(), glm::vec2(0, 0));
+    m_rootItem->render(m_painter.get());
     m_painter->end();
 
     glDisable(GL_BLEND);
