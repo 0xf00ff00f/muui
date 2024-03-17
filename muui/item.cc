@@ -214,12 +214,12 @@ void Item::render(Painter *painter, int depth)
 {
     if (!visible)
         return;
-#if 0
-    // TODO
-    const auto rect = RectF{pos, pos + glm::vec2(width(), height())};
-    if (!painter->clipRect().intersects(rect))
-        return;
-#endif
+    if (const auto clipRect = painter->clipRect())
+    {
+        const auto rect = RectF{glm::vec2{0}, glm::vec2(width(), height())};
+        if (!clipRect->intersects(rect))
+            return;
+    }
     if (!m_effect)
     {
         doRender(painter, depth);
