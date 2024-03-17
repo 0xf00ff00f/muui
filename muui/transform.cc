@@ -14,7 +14,7 @@ void Transform::reset()
 
 void Transform::translate(const glm::vec2 &p)
 {
-    if (p == glm::vec2{0.0f})
+    if (p.x == 0.0f && p.y == 0.0f)
         return;
     switch (m_type)
     {
