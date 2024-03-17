@@ -10,6 +10,7 @@
 #include <glm/glm.hpp>
 
 #include <memory>
+#include <stack>
 #include <string>
 #include <string_view>
 
@@ -32,11 +33,11 @@ public:
     void begin();
     void end();
 
-    void setTransform(const Transform &transform);
-    Transform transform() const;
-
     void translate(const glm::vec2 &pos);
     void rotate(float angle);
+
+    void pushTransform();
+    void popTransform();
 
     void setFont(Font *font);
     Font *font() const { return m_font; }
@@ -50,8 +51,8 @@ public:
     void setOutlineBrush(const std::optional<Brush> &brush);
     std::optional<Brush> outlineBrush() const { return m_outlineBrush; }
 
-    void setClipRect(const RectF &rect);
-    RectF clipRect() const { return m_clipRect; }
+    void setClipRect(const std::optional<RectF> &rect);
+    std::optional<RectF> clipRect() const { return m_clipRect; }
 
     SpriteBatcher *spriteBatcher() const { return m_spriteBatcher.get(); }
 
@@ -120,8 +121,14 @@ private:
     std::optional<Brush> m_backgroundBrush; // rect, capsule, circle
     std::optional<Brush> m_foregroundBrush; // pixmap, text
     std::optional<Brush> m_outlineBrush;    // text outline
-    RectF m_clipRect;
+    std::optional<RectF> m_clipRect;
     bool m_clippingEnabled{false};
+    struct TransformClipRect
+    {
+        Transform transform;
+        std::optional<RectF> clipRect;
+    };
+    std::stack<TransformClipRect> m_transformStack;
 };
 
 class PainterBrushSaver
@@ -147,22 +154,6 @@ private:
     std::optional<Brush> m_backgroundBrush;
     std::optional<Brush> m_foregroundBrush;
     std::optional<Brush> m_outlineBrush;
-};
-
-class PainterTransformSaver
-{
-public:
-    explicit PainterTransformSaver(Painter *painter)
-        : m_painter(painter)
-        , m_transform(painter->transform())
-    {
-    }
-
-    ~PainterTransformSaver() { m_painter->setTransform(m_transform); }
-
-private:
-    Painter *m_painter;
-    Transform m_transform;
 };
 
 } // namespace muui

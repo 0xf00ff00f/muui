@@ -38,7 +38,7 @@ void Painter::begin()
     m_foregroundBrush.reset();
     m_outlineBrush.reset();
     m_spriteBatcher->begin();
-    setClipRect({{0, 0}, {m_windowWidth, m_windowHeight}});
+    m_clipRect.reset();
 }
 
 void Painter::end()
@@ -46,24 +46,40 @@ void Painter::end()
     m_spriteBatcher->flush();
 }
 
-void Painter::setTransform(const Transform &transform)
+void Painter::pushTransform()
 {
-    // TODO: what do we do with the clip rectangle?
-    m_spriteBatcher->setTransform(transform);
+    m_transformStack.push({m_spriteBatcher->transform(), m_clipRect});
 }
 
-Transform Painter::transform() const
+void Painter::popTransform()
 {
-    return m_spriteBatcher->transform();
+    const auto &[transform, clipRect] = m_transformStack.top();
+    m_spriteBatcher->setTransform(transform);
+    m_clipRect = clipRect;
+    m_transformStack.pop();
 }
 
 void Painter::translate(const glm::vec2 &pos)
 {
+    if (pos.x == 0.0f && pos.y == 0.0f)
+        return;
+    if (m_clipRect)
+    {
+        m_clipRect->min -= pos;
+        m_clipRect->max -= pos;
+    }
     m_spriteBatcher->translate(pos);
 }
 
 void Painter::rotate(float angle)
 {
+    if (angle == 0.0f)
+        return;
+    if (m_clipRect)
+    {
+        // TODO: ???
+        assert(0);
+    }
     m_spriteBatcher->rotate(angle);
 }
 
@@ -87,14 +103,14 @@ void Painter::setOutlineBrush(const std::optional<Brush> &brush)
     m_outlineBrush = brush;
 }
 
-void Painter::setClipRect(const RectF &rect)
+void Painter::setClipRect(const std::optional<RectF> &rect)
 {
     m_clipRect = rect;
 }
 
 void Painter::drawRect(const RectF &rect, int depth)
 {
-    if (m_clipRect.intersects(rect))
+    if (!m_clipRect || m_clipRect->intersects(rect))
     {
         assert(m_backgroundBrush);
         std::visit([this](const auto &brush) { setRectProgram(brush); }, *m_backgroundBrush);
@@ -108,7 +124,7 @@ void Painter::drawRect(const RectF &rect, int depth)
 
 void Painter::drawPixmap(const PackedPixmap &pixmap, const RectF &rect, int depth)
 {
-    if (m_clipRect.intersects(rect))
+    if (!m_clipRect || m_clipRect->intersects(rect))
     {
         assert(m_foregroundBrush);
         std::visit([this](const auto &brush) { setDecalProgram(brush); }, *m_foregroundBrush);
@@ -154,7 +170,7 @@ void Painter::drawGlyph(const Font::Glyph *glyph, const glm::vec2 &pos, bool out
     const auto topLeft = pos + glm::vec2(glyph->boundingBox.min);
     const auto bottomRight = topLeft + glm::vec2(glyph->boundingBox.max - glyph->boundingBox.min);
     const auto rect = RectF{topLeft, bottomRight};
-    if (m_clipRect.intersects(rect))
+    if (!m_clipRect || m_clipRect->intersects(rect))
     {
         const auto &brush = outline ? m_outlineBrush : m_foregroundBrush;
         assert(brush);
@@ -174,7 +190,7 @@ void Painter::drawCircle(const glm::vec2 &center, float radius, int depth)
     const auto topLeft = center - glm::vec2(radius, radius);
     const auto bottomRight = center + glm::vec2(radius, radius);
     const auto rect = RectF{topLeft, bottomRight};
-    if (m_clipRect.intersects(rect))
+    if (!m_clipRect || m_clipRect->intersects(rect))
     {
         assert(m_backgroundBrush);
         std::visit([this](const auto &brush) { setCircleProgram(brush); }, *m_backgroundBrush);
@@ -194,7 +210,7 @@ void Painter::drawCapsule(const RectF &rect, int depth)
 
 void Painter::drawRoundedRect(const RectF &rect, float cornerRadius, int depth)
 {
-    if (m_clipRect.intersects(rect))
+    if (!m_clipRect || m_clipRect->intersects(rect))
     {
         assert(m_backgroundBrush);
         std::visit([this](const auto &brush) { setRoundedRectProgram(brush); }, *m_backgroundBrush);
@@ -302,13 +318,14 @@ void Painter::addSprite(const Vertex &topLeft, const Vertex &bottomRight, const 
                         const glm::vec4 &bgColor, int depth)
 {
     const auto rect = RectF{topLeft.position, bottomRight.position};
-    if (m_clipRect.contains(rect))
+    if (!m_clipRect || m_clipRect->contains(rect))
     {
         m_spriteBatcher->addSprite(topLeft, bottomRight, fgColor, bgColor, depth);
     }
     else
     {
-        const auto clippedRect = rect.intersected(m_clipRect);
+        assert(m_clipRect.has_value());
+        const auto clippedRect = rect.intersected(*m_clipRect);
         if (!clippedRect.isNull())
             m_spriteBatcher->addSprite(Vertex{clippedRect.min}, Vertex{clippedRect.max}, fgColor, bgColor, depth);
     }
@@ -318,13 +335,14 @@ void Painter::addSprite(const VertexUV &topLeft, const VertexUV &bottomRight, co
                         const glm::vec4 &bgColor, int depth)
 {
     const auto rect = RectF{topLeft.position, bottomRight.position};
-    if (m_clipRect.contains(rect))
+    if (!m_clipRect || m_clipRect->contains(rect))
     {
         m_spriteBatcher->addSprite(topLeft, bottomRight, fgColor, bgColor, depth);
     }
     else
     {
-        const auto clippedRect = rect.intersected(m_clipRect);
+        assert(m_clipRect.has_value());
+        const auto clippedRect = rect.intersected(*m_clipRect);
         if (!clippedRect.isNull())
         {
             const auto texCoord = [&topLeft, &bottomRight](const glm::vec2 &p) {

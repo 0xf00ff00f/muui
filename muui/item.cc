@@ -232,7 +232,7 @@ void Item::render(Painter *painter, int depth)
 
 void Item::doRender(Painter *painter, int depth)
 {
-    PainterTransformSaver transformSaver(painter);
+    painter->pushTransform();
     painter->translate(m_transformOrigin);
     painter->rotate(m_rotation);
     painter->translate(-m_transformOrigin);
@@ -250,10 +250,13 @@ void Item::doRender(Painter *painter, int depth)
         ++depth;
     for (auto &layoutItem : m_layoutItems)
     {
-        PainterTransformSaver transformSaver(painter);
+        painter->pushTransform();
         painter->translate(layoutItem.offset);
         layoutItem.item()->render(painter, depth);
+        painter->popTransform();
     }
+
+    painter->popTransform();
 }
 
 Item *Item::mouseEvent(const TouchEvent &event)
@@ -539,13 +542,13 @@ bool Label::renderContents(Painter *painter, int depth)
         return false;
 
     const bool clipped = availableWidth < m_contentWidth - 0.5f || availableHeight < m_contentHeight - 0.5f;
-    RectF prevClipRect;
+    std::optional<RectF> prevClipRect;
     if (clipped)
     {
         prevClipRect = painter->clipRect();
         const auto p = glm::vec2(m_margins.left, m_margins.top);
         const auto rect = RectF{p, p + glm::vec2(availableWidth, availableHeight)};
-        painter->setClipRect(prevClipRect.intersected(rect));
+        painter->setClipRect(prevClipRect ? prevClipRect->intersected(rect) : rect);
     }
 
     painter->setFont(m_font);
@@ -685,7 +688,7 @@ bool Image::renderContents(Painter *painter, int depth)
     {
         const auto prevClipRect = painter->clipRect();
         const auto clipRect = RectF{topLeft, topLeft + glm::vec2(availableWidth, availableHeight)};
-        painter->setClipRect(prevClipRect.intersected(clipRect));
+        painter->setClipRect(prevClipRect ? prevClipRect->intersected(clipRect) : clipRect);
         painter->drawPixmap(*m_pixmap, rect, depth);
         painter->setClipRect(prevClipRect);
     }
@@ -837,12 +840,13 @@ bool ScrollArea::renderContents(Painter *painter, int depth)
     const auto viewportPos = glm::vec2(m_margins.left, m_margins.top);
     const auto prevClipRect = painter->clipRect();
     const auto viewportRect = RectF{viewportPos, viewportPos + glm::vec2(m_viewportSize.width, m_viewportSize.height)};
-    painter->setClipRect(prevClipRect.intersected(viewportRect));
+    painter->setClipRect(prevClipRect ? prevClipRect->intersected(viewportRect) : viewportRect);
 
     {
-        PainterTransformSaver saver(painter);
+        painter->pushTransform();
         painter->translate(viewportPos + m_viewportOffset);
         m_contentItem->render(painter, depth);
+        painter->popTransform();
     }
 
     painter->setClipRect(prevClipRect);
@@ -1069,13 +1073,13 @@ bool MultiLineText::renderContents(Painter *painter, int depth)
         return false;
 
     const bool clipped = availableWidth < m_contentWidth - 0.5f || availableHeight < m_contentHeight - 0.5f;
-    RectF prevClipRect;
+    std::optional<RectF> prevClipRect;
     if (clipped)
     {
         prevClipRect = painter->clipRect();
         const auto p = glm::vec2(m_margins.left, m_margins.top);
         const auto rect = RectF{p, p + glm::vec2(availableWidth, availableHeight)};
-        painter->setClipRect(prevClipRect.intersected(rect));
+        painter->setClipRect(prevClipRect ? prevClipRect->intersected(rect) : rect);
     }
 
     const auto yOffset = [this, availableHeight] {

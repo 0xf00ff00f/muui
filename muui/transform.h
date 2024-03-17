@@ -13,7 +13,6 @@ public:
     void rotate(float angle);
 
     glm::vec2 map(const glm::vec2 &p) const;
-    RectF map(const RectF &r) const;
 
 private:
     enum class Type

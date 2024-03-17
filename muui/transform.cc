@@ -72,18 +72,4 @@ glm::vec2 Transform::map(const glm::vec2 &p) const
     }
 }
 
-RectF Transform::map(const RectF &r) const
-{
-    switch (m_type)
-    {
-    case Type::Identity:
-        return r;
-    case Type::Translation:
-        return {r.min + m_translation, r.max + m_translation};
-    default:
-        assert(false);
-        return {};
-    }
-}
-
 } // namespace muui
