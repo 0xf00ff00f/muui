@@ -36,8 +36,11 @@ private:
     std::unique_ptr<muui::Font> m_font;
     std::unique_ptr<muui::Rectangle> m_rootItem;
     std::unique_ptr<muui::Screen> m_screen;
-    muui::Button *m_button{nullptr};
+    muui::Button *m_button1{nullptr};
+    muui::Button *m_button2{nullptr};
+    muui::Button *m_button3{nullptr};
     float m_direction{1.0f};
+    float m_time{0.0f};
 };
 
 bool ItemRotationTest::initialize()
@@ -49,19 +52,31 @@ bool ItemRotationTest::initialize()
 
     m_rootItem = std::make_unique<muui::Rectangle>();
 
-    m_button = m_rootItem->appendChild<muui::Button>(m_font.get(), U"Sphinx of black quartz"sv);
-    m_button->foregroundBrush = glm::vec4{1};
-    m_button->backgroundBrush = glm::vec4{1, 0, 0, 1};
-    m_button->fillBackground = true;
-    m_button->setMargins(muui::Margins{8, 8, 8, 8});
-    m_button->setLeft(muui::Length::pixels(50));
-    m_button->setTop(muui::Length::pixels(50));
-    m_button->setFixedWidth(400);
-    m_button->setFixedHeight(60);
-    m_button->setTransformOrigin(glm::vec2{400, 60});
-    m_button->clickedSignal.connect([] { std::cout << "**** clicked\n"; });
+    auto addButton = [this](muui::Item *parent, std::u32string_view text) {
+        auto *button = parent->appendChild<muui::Button>(m_font.get(), text);
+        button->foregroundBrush = glm::vec4{1};
+        button->backgroundBrush = glm::vec4{1, 0, 0, 1};
+        button->fillBackground = true;
+        button->setMargins(muui::Margins{4, 4, 4, 4});
+        button->setFixedWidth(200);
+        button->setFixedHeight(60);
+        return button;
+    };
 
-    m_button->setRotation(0.15f);
+    m_button1 = addButton(m_rootItem.get(), U"button 1"sv);
+    m_button1->setLeft(muui::Length::pixels(40));
+    m_button1->setTop(muui::Length::pixels(40));
+    m_button1->clickedSignal.connect([] { std::cout << "button 1\n"; });
+
+    m_button2 = addButton(m_button1, U"button 2"sv);
+    m_button2->setLeft(muui::Length::percent(100));
+    m_button2->setTop(muui::Length::percent(100));
+    m_button2->clickedSignal.connect([] { std::cout << "button 2\n"; });
+
+    m_button3 = addButton(m_button2, U"button 3"sv);
+    m_button3->setLeft(muui::Length::percent(100));
+    m_button3->setTop(muui::Length::percent(100));
+    m_button3->clickedSignal.connect([] { std::cout << "button 3\n"; });
 
     m_screen = std::make_unique<muui::Screen>();
     m_screen->setRootItem(m_rootItem.get());
@@ -78,7 +93,10 @@ void ItemRotationTest::resize(int width, int height)
 void ItemRotationTest::update(float elapsed)
 {
     assert(m_rootItem);
-    m_button->setRotation(m_button->rotation() + 0.1f * elapsed);
+    m_time += elapsed;
+    m_button1->setRotation(0.3f * sinf(0.3f * m_time));
+    m_button2->setRotation(0.2f * sinf(0.2f * m_time));
+    m_button3->setRotation(0.1f * sinf(0.1f * m_time));
     m_rootItem->update(elapsed);
 }
 

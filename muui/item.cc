@@ -263,34 +263,37 @@ Item *Item::mouseEvent(const TouchEvent &event)
 {
     if (!visible)
         return nullptr;
-    switch (event.type)
+
+    const auto t0 = glm::translate(glm::mat3(1), -m_transformOrigin);
+    const auto r = glm::rotate(glm::mat3(1), -m_rotation);
+    const auto t1 = glm::translate(glm::mat3(1), m_transformOrigin);
+    const auto m = t1 * r * t0;
+
+    TouchEvent transformedEvent = event;
+    transformedEvent.position = glm::vec2(m * glm::vec3(event.position, 1.0));
+
+    switch (transformedEvent.type)
     {
     case TouchEvent::Type::Press:
     case TouchEvent::Type::Release:
     case TouchEvent::Type::DragBegin: {
-        const auto &pos = event.position;
-        if (!rect().contains(pos))
-            return nullptr;
+        const auto &pos = transformedEvent.position;
         // back to front, we want items that are drawn last to be tested first
         for (auto it = m_layoutItems.rbegin(); it != m_layoutItems.rend(); ++it)
         {
             auto *item = it->item();
             const auto &offset = it->offset;
-            const auto childRect = RectF{offset, offset + glm::vec2(item->width(), item->height())};
-            if (childRect.contains(pos))
-            {
-                TouchEvent childEvent = event;
-                childEvent.position -= offset;
-                if (auto *handler = item->mouseEvent(childEvent); handler)
-                    return handler;
-            }
+            TouchEvent childEvent = transformedEvent;
+            childEvent.position -= offset;
+            if (auto *handler = item->mouseEvent(childEvent); handler)
+                return handler;
         }
         break;
     }
     default:
         break;
     }
-    return handleMouseEvent(event);
+    return handleMouseEvent(transformedEvent);
 }
 
 Item *Item::handleMouseEvent(const TouchEvent &)
