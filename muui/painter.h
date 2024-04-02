@@ -33,6 +33,8 @@ public:
     void begin();
     void end();
 
+    const Transform &transform() const;
+
     void translate(const glm::vec2 &pos);
     void rotate(float angle);
 

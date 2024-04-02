@@ -4,6 +4,7 @@
 #include <muui/dropshadow.h>
 #include <muui/font.h>
 #include <muui/framebuffer.h>
+#include <muui/gradienttexture.h>
 #include <muui/item.h>
 #include <muui/log.h>
 #include <muui/painter.h>
@@ -41,10 +42,16 @@ private:
     muui::Button *m_button3{nullptr};
     float m_direction{1.0f};
     float m_time{0.0f};
+    std::unique_ptr<muui::GradientTexture> m_gradientTexture;
 };
 
 bool ItemRotationTest::initialize()
 {
+    m_gradientTexture = std::make_unique<muui::GradientTexture>();
+    m_gradientTexture->setColorAt(0, glm::vec4(1, 0, 0, 1));
+    m_gradientTexture->setColorAt(1, glm::vec4(0, 0, 1, 1));
+    m_gradientTexture->setColorAt(0.5, glm::vec4(0, 1, 1, 1));
+
     m_textureAtlas = std::make_unique<muui::TextureAtlas>(512, 512);
     m_font = std::make_unique<muui::Font>(m_textureAtlas.get());
     if (!m_font->load(AssetsPath / "OpenSans_Bold.ttf", 60))
@@ -53,9 +60,11 @@ bool ItemRotationTest::initialize()
     m_rootItem = std::make_unique<muui::Rectangle>();
 
     auto addButton = [this](muui::Item *parent, std::u32string_view text) {
+        const muui::LinearGradient gradient = {
+            .texture = m_gradientTexture.get(), .start = glm::vec2(0, 0), .end = glm::vec2(0, 1)};
         auto *button = parent->appendChild<muui::Button>(m_font.get(), text);
         button->foregroundBrush = glm::vec4{1};
-        button->backgroundBrush = glm::vec4{1, 0, 0, 1};
+        button->backgroundBrush = gradient;
         button->fillBackground = true;
         button->setMargins(muui::Margins{4, 4, 4, 4});
         button->setFixedWidth(200);
@@ -66,16 +75,19 @@ bool ItemRotationTest::initialize()
     m_button1 = addButton(m_rootItem.get(), U"button 1"sv);
     m_button1->setLeft(muui::Length::pixels(40));
     m_button1->setTop(muui::Length::pixels(40));
+    m_button1->setTransformOrigin({100, 30});
     m_button1->clickedSignal.connect([] { std::cout << "button 1\n"; });
 
     m_button2 = addButton(m_button1, U"button 2"sv);
     m_button2->setLeft(muui::Length::percent(100));
     m_button2->setTop(muui::Length::percent(100));
+    m_button2->setTransformOrigin({100, 30});
     m_button2->clickedSignal.connect([] { std::cout << "button 2\n"; });
 
     m_button3 = addButton(m_button2, U"button 3"sv);
     m_button3->setLeft(muui::Length::percent(100));
     m_button3->setTop(muui::Length::percent(100));
+    m_button3->setTransformOrigin({100, 30});
     m_button3->clickedSignal.connect([] { std::cout << "button 3\n"; });
 
     m_screen = std::make_unique<muui::Screen>();

@@ -5,7 +5,7 @@
 namespace muui
 {
 
-struct Transform
+class Transform
 {
 public:
     void reset();

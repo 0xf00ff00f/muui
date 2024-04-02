@@ -133,24 +133,23 @@ void Item::handleChildUpdated()
 namespace
 {
 
-Brush adjustToRect(const LinearGradient &gradient, const RectF &rect)
+Brush adjustToRect(const LinearGradient &gradient, const Transform &transform, const Size &size)
 {
-    const auto start = glm::mix(rect.min, rect.max, gradient.start);
-    const auto end = glm::mix(rect.min, rect.max, gradient.end);
+    const auto start = transform.map(gradient.start * glm::vec2{size.width, size.height});
+    const auto end = transform.map(gradient.end * glm::vec2{size.width, size.height});
     return LinearGradient{.texture = gradient.texture, .start = start, .end = end};
 }
 
-Brush adjustToRect(const Color &color, const RectF &)
+Brush adjustToRect(const Color &color, const Transform &, const Size &)
 {
     return color;
 }
 
 } // namespace
 
-Brush Item::adjustBrushToRect(const Brush &brush, const glm::vec2 &topLeft) const
+Brush Item::adjustBrushToRect(const Brush &brush, const Transform &transform) const
 {
-    const RectF rect{topLeft, topLeft + glm::vec2(m_size.width, m_size.height)};
-    return std::visit([&rect](auto &brush) { return adjustToRect(brush, rect); }, brush);
+    return std::visit([this, &transform](auto &brush) { return adjustToRect(brush, transform, m_size); }, brush);
 }
 
 void Item::updateLayout()
@@ -239,11 +238,11 @@ void Item::doRender(Painter *painter, int depth)
 
     PainterBrushSaver brushSaver(painter);
     if (backgroundBrush)
-        painter->setBackgroundBrush(adjustBrushToRect(*backgroundBrush, glm::vec2{0.0f}));
+        painter->setBackgroundBrush(adjustBrushToRect(*backgroundBrush, painter->transform()));
     if (foregroundBrush)
-        painter->setForegroundBrush(adjustBrushToRect(*foregroundBrush, glm::vec2{0.0f}));
+        painter->setForegroundBrush(adjustBrushToRect(*foregroundBrush, painter->transform()));
     if (outlineBrush)
-        painter->setOutlineBrush(adjustBrushToRect(*outlineBrush, glm::vec2{0.0f}));
+        painter->setOutlineBrush(adjustBrushToRect(*outlineBrush, painter->transform()));
     if (renderBackground(painter, depth))
         ++depth;
     if (renderContents(painter, depth))

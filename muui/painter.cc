@@ -59,6 +59,11 @@ void Painter::popTransform()
     m_transformStack.pop();
 }
 
+const Transform &Painter::transform() const
+{
+    return m_spriteBatcher->transform();
+}
+
 void Painter::translate(const glm::vec2 &pos)
 {
     if (pos.x == 0.0f && pos.y == 0.0f)

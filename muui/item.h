@@ -21,6 +21,7 @@ namespace muui
 {
 class Painter;
 class ShaderEffect;
+class Transform;
 
 enum class Alignment : unsigned
 {
@@ -256,7 +257,7 @@ protected:
     virtual bool renderContents(Painter *painter, int depth = 0);
     virtual Item *handleMouseEvent(const TouchEvent &event);
     virtual void handleChildUpdated();
-    Brush adjustBrushToRect(const Brush &brush, const glm::vec2 &topLeft) const;
+    Brush adjustBrushToRect(const Brush &brush, const Transform &transform) const;
 
     class LayoutItem
     {
