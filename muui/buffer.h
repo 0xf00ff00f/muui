@@ -37,7 +37,9 @@ public:
     Buffer &operator=(const Buffer &) = delete;
 
     Buffer(Buffer &&other);
-    Buffer &operator=(Buffer &&other);
+    Buffer &operator=(Buffer other);
+
+    friend void swap(Buffer &lhs, Buffer &rhs);
 
     void bind() const;
     void allocate(std::size_t size) const;

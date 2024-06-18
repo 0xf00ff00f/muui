@@ -1,5 +1,7 @@
 #include "vertexarray.h"
 
+#include <utility>
+
 namespace muui::gl
 {
 
@@ -14,18 +16,19 @@ VertexArray::~VertexArray()
 }
 
 VertexArray::VertexArray(VertexArray &&other)
-    : m_handle{other.m_handle}
+    : m_handle{std::exchange(other.m_handle, 0)}
 {
-    other.m_handle = 0;
 }
 
-VertexArray &VertexArray::operator=(VertexArray &&other)
+VertexArray &VertexArray::operator=(VertexArray other)
 {
-    m_handle = other.m_handle;
-
-    other.m_handle = 0;
-
+    swap(*this, other);
     return *this;
+}
+
+void swap(VertexArray &lhs, VertexArray &rhs)
+{
+    std::swap(lhs.m_handle, rhs.m_handle);
 }
 
 void VertexArray::bind() const

@@ -30,7 +30,9 @@ public:
     Shader &operator=(const Shader &) = delete;
 
     Shader(Shader &&other);
-    Shader &operator=(Shader &&other);
+    Shader &operator=(Shader other);
+
+    friend void swap(Shader &lhs, Shader &rhs);
 
     bool addSourceFromFile(const std::filesystem::path &path);
     void addSource(std::string_view source);
@@ -59,7 +61,9 @@ public:
     ShaderProgram &operator=(const ShaderProgram &) = delete;
 
     ShaderProgram(ShaderProgram &&other);
-    ShaderProgram &operator=(ShaderProgram &&other);
+    ShaderProgram &operator=(ShaderProgram other);
+
+    friend void swap(ShaderProgram &lhs, ShaderProgram &rhs);
 
     bool addShader(Shader::Type type, const std::filesystem::path &path);
     bool addShaderSource(Shader::Type type, std::string_view source);

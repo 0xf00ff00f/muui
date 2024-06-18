@@ -15,7 +15,9 @@ public:
     VertexArray &operator=(const VertexArray &) = delete;
 
     VertexArray(VertexArray &&other);
-    VertexArray &operator=(VertexArray &&other);
+    VertexArray &operator=(VertexArray other);
+
+    friend void swap(VertexArray &lhs, VertexArray &rhs);
 
     void bind() const;
     void unbind() const;

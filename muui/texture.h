@@ -34,7 +34,9 @@ public:
     Texture &operator=(Texture &) = delete;
 
     Texture(Texture &&other);
-    Texture &operator=(Texture &&other);
+    Texture &operator=(Texture other);
+
+    friend void swap(Texture &lhs, Texture &rhs);
 
     enum class Filter
     {

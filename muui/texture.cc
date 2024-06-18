@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cassert>
 #include <memory>
+#include <utility>
 
 namespace muui::gl
 {
@@ -45,30 +46,26 @@ Texture::~Texture()
 }
 
 Texture::Texture(Texture &&other)
-    : m_width(other.m_width)
-    , m_height(other.m_height)
-    , m_pixelType(other.m_pixelType)
-    , m_id(other.m_id)
+    : m_width(std::exchange(other.m_width, 0))
+    , m_height(std::exchange(other.m_height, 0))
+    , m_pixelType(std::exchange(other.m_pixelType, PixelType::Invalid))
+    , m_id(std::exchange(other.m_id, 0))
 {
-    other.m_width = 0;
-    other.m_height = 0;
-    other.m_pixelType = PixelType::Invalid;
-    other.m_id = 0;
 }
 
-Texture &Texture::operator=(Texture &&other)
+Texture &Texture::operator=(Texture other)
 {
-    m_width = other.m_width;
-    m_height = other.m_height;
-    m_pixelType = other.m_pixelType;
-    m_id = other.m_id;
-
-    other.m_width = 0;
-    other.m_height = 0;
-    other.m_pixelType = PixelType::Invalid;
-    other.m_id = 0;
-
+    swap(*this, other);
     return *this;
+}
+
+void swap(Texture &lhs, Texture &rhs)
+{
+    using std::swap;
+    swap(lhs.m_width, rhs.m_width);
+    swap(lhs.m_height, rhs.m_height);
+    swap(lhs.m_pixelType, rhs.m_pixelType);
+    swap(lhs.m_id, rhs.m_id);
 }
 
 void Texture::initialize()

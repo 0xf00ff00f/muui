@@ -1,5 +1,7 @@
 #include "buffer.h"
 
+#include <utility>
+
 namespace muui::gl
 {
 
@@ -17,26 +19,24 @@ Buffer::~Buffer()
 }
 
 Buffer::Buffer(Buffer &&other)
-    : m_type{other.m_type}
-    , m_usage{other.m_usage}
-    , m_handle{other.m_handle}
+    : m_type{std::exchange(other.m_type, 0)}
+    , m_usage{std::exchange(other.m_usage, 0)}
+    , m_handle{std::exchange(other.m_handle, 0)}
 {
-    other.m_type = 0;
-    other.m_usage = 0;
-    other.m_handle = 0;
 }
 
-Buffer &Buffer::operator=(Buffer &&other)
+Buffer &Buffer::operator=(Buffer other)
 {
-    m_type = other.m_type;
-    m_usage = other.m_usage;
-    m_handle = other.m_handle;
-
-    other.m_type = 0;
-    other.m_usage = 0;
-    other.m_handle = 0;
-
+    swap(*this, other);
     return *this;
+}
+
+void swap(Buffer &lhs, Buffer &rhs)
+{
+    using std::swap;
+    swap(lhs.m_type, rhs.m_type);
+    swap(lhs.m_usage, rhs.m_usage);
+    swap(lhs.m_handle, rhs.m_handle);
 }
 
 void Buffer::bind() const

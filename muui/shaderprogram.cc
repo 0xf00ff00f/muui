@@ -12,6 +12,7 @@
 #include <optional>
 #include <regex>
 #include <streambuf>
+#include <utility>
 
 namespace muui::gl
 {
@@ -109,30 +110,28 @@ Shader::~Shader()
 }
 
 Shader::Shader(Shader &&other)
-    : m_type{other.m_type}
-    , m_id{other.m_id}
+    : m_type{std::exchange(other.m_type, Type::Invalid)}
+    , m_id{std::exchange(other.m_id, 0)}
     , m_sources{std::move(other.m_sources)}
     , m_log{std::move(other.m_log)}
 {
-    other.m_type = Type::Invalid;
-    other.m_id = 0;
     other.m_sources.clear();
     other.m_log.clear();
 }
 
-Shader &Shader::operator=(Shader &&other)
+Shader &Shader::operator=(Shader other)
 {
-    m_type = other.m_type;
-    m_id = other.m_id;
-    m_sources = std::move(other.m_sources);
-    m_log = std::move(other.m_log);
-
-    other.m_type = Type::Invalid;
-    other.m_id = 0;
-    other.m_sources.clear();
-    other.m_log.clear();
-
+    swap(*this, other);
     return *this;
+}
+
+void swap(Shader &lhs, Shader &rhs)
+{
+    using std::swap;
+    swap(lhs.m_type, rhs.m_type);
+    swap(lhs.m_id, rhs.m_id);
+    swap(lhs.m_sources, rhs.m_sources);
+    swap(lhs.m_log, rhs.m_log);
 }
 
 bool Shader::addSourceFromFile(const std::filesystem::path &path)
@@ -202,26 +201,26 @@ ShaderProgram::~ShaderProgram()
 }
 
 ShaderProgram::ShaderProgram(ShaderProgram &&other)
-    : m_id(other.m_id)
+    : m_id(std::exchange(other.m_id, 0))
     , m_log(std::move(other.m_log))
     , m_attachedShaders(std::move(other.m_attachedShaders))
 {
-    other.m_id = 0;
     other.m_log.clear();
     other.m_attachedShaders.clear();
 }
 
-ShaderProgram &ShaderProgram::operator=(ShaderProgram &&other)
+ShaderProgram &ShaderProgram::operator=(ShaderProgram other)
 {
-    m_id = other.m_id;
-    m_log = std::move(other.m_log);
-    m_attachedShaders = std::move(other.m_attachedShaders);
-
-    other.m_id = 0;
-    other.m_log.clear();
-    other.m_attachedShaders.clear();
-
+    swap(*this, other);
     return *this;
+}
+
+void swap(ShaderProgram &lhs, ShaderProgram &rhs)
+{
+    using std::swap;
+    swap(lhs.m_id, rhs.m_id);
+    swap(lhs.m_log, rhs.m_log);
+    swap(lhs.m_attachedShaders, rhs.m_attachedShaders);
 }
 
 bool ShaderProgram::addShader(Shader::Type type, const std::filesystem::path &path)
