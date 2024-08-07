@@ -107,8 +107,8 @@ inline Size operator*(float s, const Size &size)
 
 struct Length
 {
-    static Length pixels(float value) { return {Type::Pixels, value}; }
-    static Length percent(float value) { return {Type::Percent, value * 0.01f}; }
+    static constexpr Length pixels(float value) { return {Type::Pixels, value}; }
+    static constexpr Length percent(float value) { return {Type::Percent, value * 0.01f}; }
 
     enum class Type
     {
@@ -120,6 +120,16 @@ struct Length
 
     bool operator==(const Length &other) const = default;
 };
+
+constexpr Length operator""_px(long double value)
+{
+    return Length::pixels(value);
+}
+
+constexpr Length operator""_pct(long double value)
+{
+    return Length::percent(value);
+}
 
 class Item
 {
