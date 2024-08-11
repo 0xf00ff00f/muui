@@ -48,7 +48,7 @@ private:
     UnderlyingType m_value{};
 };
 
-#define MUUI_DEFINE_FLAGS(Enum)                                                                                             \
+#define MUUI_DEFINE_FLAGS(FlagsName, Enum)                                                                             \
     inline Flags<Enum> operator|(Enum lhs, Enum rhs)                                                                   \
     {                                                                                                                  \
         return Flags<Enum>(lhs) | rhs;                                                                                 \
@@ -57,6 +57,6 @@ private:
     {                                                                                                                  \
         return Flags<Enum>(lhs) & rhs;                                                                                 \
     }                                                                                                                  \
-    using Enum##Flags = Flags<Enum>;
+    using FlagsName = Flags<Enum>;
 
 } // namespace muui

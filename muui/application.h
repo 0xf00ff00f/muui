@@ -1,5 +1,6 @@
 #pragma once
 
+#include "flags.h"
 #include "noncopyable.h"
 #include "uiinput.h"
 
@@ -7,7 +8,6 @@
 
 #include <SDL.h>
 
-#include <functional>
 #include <string_view>
 
 struct SDL_Window;
@@ -15,13 +15,22 @@ struct SDL_Window;
 namespace muui
 {
 
+enum class WindowFlag : unsigned
+{
+    None = 0,
+    Windowed = 1 << 0,
+    VSync = 1 << 1
+};
+MUUI_DEFINE_FLAGS(WindowFlags, WindowFlag)
+
 class Application : private NonCopyable
 {
 public:
     Application();
     virtual ~Application();
 
-    virtual bool createWindow(int width, int height, const char *title, bool windowed = false);
+    virtual bool createWindow(int width, int height, const char *title,
+                              WindowFlags flags = WindowFlag::Windowed | WindowFlag::VSync);
     void exec();
     void quit();
 

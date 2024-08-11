@@ -35,7 +35,7 @@ enum class Alignment : unsigned
     Bottom = 1 << 5,
     Center = HCenter | VCenter
 };
-MUUI_DEFINE_FLAGS(Alignment)
+MUUI_DEFINE_FLAGS(AlignmentFlags, Alignment)
 
 struct Margins
 {

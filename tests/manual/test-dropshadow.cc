@@ -121,6 +121,6 @@ void DropShadowTest::handleTouchEvent(TouchAction action, int x, int y)
 int main(int argc, char *argv[])
 {
     DropShadowTest app;
-    if (app.createWindow(800, 400, "hello", true))
+    if (app.createWindow(800, 400, "hello"))
         app.exec();
 }

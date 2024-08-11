@@ -107,6 +107,6 @@ void PainterTest::render() const
 int main(int argc, char *argv[])
 {
     PainterTest app;
-    if (app.createWindow(800, 600, "hello", true))
+    if (app.createWindow(800, 600, "hello"))
         app.exec();
 }

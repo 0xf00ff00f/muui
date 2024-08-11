@@ -31,7 +31,7 @@ Application::~Application()
     }
 }
 
-bool Application::createWindow(int width, int height, const char *title, bool windowed)
+bool Application::createWindow(int width, int height, const char *title, WindowFlags flags)
 {
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
@@ -49,18 +49,17 @@ bool Application::createWindow(int width, int height, const char *title, bool wi
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-    Uint32 flags = SDL_WINDOW_OPENGL;
+    Uint32 f = SDL_WINDOW_OPENGL;
 #ifndef __ANDROID__
-    if (windowed)
-        flags |= SDL_WINDOW_RESIZABLE;
+    if (flags.testFlag(WindowFlag::Windowed))
+        f |= SDL_WINDOW_RESIZABLE;
     else
-        flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+        f |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 #else
-    flags |= SDL_WINDOW_FULLSCREEN;
+    f |= SDL_WINDOW_FULLSCREEN;
 #endif
     std::unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> window(
-        SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, flags),
-        SDL_DestroyWindow);
+        SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, f), SDL_DestroyWindow);
     if (!window)
     {
         log_error("Failed to create window");
@@ -96,7 +95,7 @@ bool Application::createWindow(int width, int height, const char *title, bool wi
     log_info("GL Renderer: %s", glGetString(GL_RENDERER));
     log_info("GL Version: %s", glGetString(GL_VERSION));
 
-    SDL_GL_SetSwapInterval(0);
+    SDL_GL_SetSwapInterval(flags.testFlag(WindowFlag::VSync) ? 1 : 0);
 
     if (!initialize())
         return false;

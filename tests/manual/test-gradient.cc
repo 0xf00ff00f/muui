@@ -78,6 +78,6 @@ void GradientTest::render() const
 int main(int argc, char *argv[])
 {
     GradientTest app;
-    if (app.createWindow(800, 400, "hello", true))
+    if (app.createWindow(800, 400, "hello"))
         app.exec();
 }

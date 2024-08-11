@@ -271,6 +271,6 @@ void LeaderboardTest::handleTouchEvent(TouchAction action, int x, int y)
 int main(int argc, char *argv[])
 {
     LeaderboardTest app;
-    if (app.createWindow(1223, 512, "hello", true))
+    if (app.createWindow(1223, 512, "hello"))
         app.exec();
 }
