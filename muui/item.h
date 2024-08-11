@@ -1,6 +1,7 @@
 #pragma once
 
 #include "brush.h"
+#include "flags.h"
 #include "font.h"
 #include "textureatlas.h"
 #include "touchevent.h"
@@ -34,28 +35,7 @@ enum class Alignment : unsigned
     Bottom = 1 << 5,
     Center = HCenter | VCenter
 };
-
-constexpr Alignment operator&(Alignment x, Alignment y)
-{
-    using UT = typename std::underlying_type_t<Alignment>;
-    return static_cast<Alignment>(static_cast<UT>(x) & static_cast<UT>(y));
-}
-
-constexpr Alignment &operator&=(Alignment &x, Alignment y)
-{
-    return x = x & y;
-}
-
-constexpr Alignment operator|(Alignment x, Alignment y)
-{
-    using UT = typename std::underlying_type_t<Alignment>;
-    return static_cast<Alignment>(static_cast<UT>(x) | static_cast<UT>(y));
-}
-
-constexpr Alignment &operator|=(Alignment &x, Alignment y)
-{
-    return x = x | y;
-}
+MUUI_DEFINE_FLAGS(Alignment)
 
 struct Margins
 {
@@ -195,8 +175,8 @@ public:
     void setTransformOrigin(const glm::vec2 &transformOrigin);
     glm::vec2 transformOrigin() const { return m_transformOrigin; }
 
-    void setContainerAlignment(Alignment alignment);
-    Alignment containerAlignment() const { return m_containerAlignment; }
+    void setContainerAlignment(AlignmentFlags alignment);
+    AlignmentFlags containerAlignment() const { return m_containerAlignment; }
 
     void setLeft(const Length &position);
     void setHorizontalCenter(const Length &position);
@@ -296,7 +276,7 @@ protected:
     Size m_size;
     float m_rotation{0.0f};
     glm::vec2 m_transformOrigin{0.0f};
-    Alignment m_containerAlignment{Alignment::VCenter | Alignment::Left};
+    AlignmentFlags m_containerAlignment{Alignment::VCenter | Alignment::Left};
     std::vector<LayoutItem> m_layoutItems;
     HorizontalAnchor m_horizontalAnchor{};
     VerticalAnchor m_verticalAnchor{};
@@ -343,8 +323,8 @@ public:
     void setFixedHeight(float height);
     float fixedHeight() const { return m_fixedHeight; }
 
-    void setAlignment(Alignment alignment);
-    Alignment alignment() { return m_alignment; }
+    void setAlignment(AlignmentFlags alignment);
+    AlignmentFlags alignment() { return m_alignment; }
 
     bool shadowEnabled = false;
     glm::vec2 shadowOffset = glm::vec2(4, 4);
@@ -357,7 +337,7 @@ protected:
     Item *handleMouseEvent(const TouchEvent &event) override;
     void updateSizeAndOffset();
 
-    Alignment m_alignment = Alignment::VCenter | Alignment::Left;
+    AlignmentFlags m_alignment = Alignment::VCenter | Alignment::Left;
     Font *m_font;
     std::u32string m_text;
     Margins m_margins;
@@ -386,15 +366,15 @@ public:
     void setFixedHeight(float height);
     float fixedHeight() const { return m_fixedHeight; }
 
-    void setAlignment(Alignment alignment);
-    Alignment alignment() { return m_alignment; }
+    void setAlignment(AlignmentFlags alignment);
+    AlignmentFlags alignment() { return m_alignment; }
 
 protected:
     bool renderContents(Painter *painter, int depth = 0) override;
     Item *handleMouseEvent(const TouchEvent &event) override;
     void updateSizeAndOffset();
 
-    Alignment m_alignment = Alignment::VCenter | Alignment::Left;
+    AlignmentFlags m_alignment = Alignment::VCenter | Alignment::Left;
     std::string m_source;
     std::optional<PackedPixmap> m_pixmap;
     Margins m_margins;
@@ -495,7 +475,7 @@ public:
     void setFixedHeight(float height);
     float fixedHeight() const { return m_fixedHeight; }
 
-    Alignment alignment = Alignment::VCenter | Alignment::Left;
+    AlignmentFlags alignment = Alignment::VCenter | Alignment::Left;
 
 protected:
     bool renderContents(Painter *painter, int depth = 0) override;

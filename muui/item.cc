@@ -310,7 +310,7 @@ void Item::setTransformOrigin(const glm::vec2 &transformOrigin)
     m_transformOrigin = transformOrigin;
 }
 
-void Item::setContainerAlignment(Alignment alignment)
+void Item::setContainerAlignment(AlignmentFlags alignment)
 {
     if (alignment == m_containerAlignment)
         return;
@@ -477,7 +477,7 @@ void Label::setFixedHeight(float height)
     updateSizeAndOffset();
 }
 
-void Label::setAlignment(Alignment alignment)
+void Label::setAlignment(AlignmentFlags alignment)
 {
     if (alignment == m_alignment)
         return;
@@ -505,29 +505,33 @@ void Label::updateSizeAndOffset()
     const auto availableHeight = std::max(m_size.height - (m_margins.top + m_margins.bottom), 0.0f);
 
     const auto xOffset = [this, availableWidth] {
-        const auto horizAlignment = m_alignment & (Alignment::Left | Alignment::HCenter | Alignment::Right);
-        switch (horizAlignment)
+        if (m_alignment.testFlag(Alignment::HCenter))
         {
-        case Alignment::Left:
-        default:
-            return 0.0f;
-        case Alignment::HCenter:
             return 0.5f * (availableWidth - m_contentWidth);
-        case Alignment::Right:
+        }
+        else if (m_alignment.testFlag(Alignment::Right))
+        {
             return availableWidth - m_contentWidth;
+        }
+        else
+        {
+            // Alignment::Left
+            return 0.0f;
         }
     }();
     const auto yOffset = [this, availableHeight] {
-        const auto vertAlignment = m_alignment & (Alignment::Top | Alignment::VCenter | Alignment::Bottom);
-        switch (vertAlignment)
+        if (m_alignment.testFlag(Alignment::VCenter))
         {
-        case Alignment::Top:
-            return 0.0f;
-        case Alignment::VCenter:
-        default:
             return 0.5f * (availableHeight - m_contentHeight);
-        case Alignment::Bottom:
+        }
+        else if (m_alignment.testFlag(Alignment::Bottom))
+        {
             return availableHeight - m_contentHeight;
+        }
+        else
+        {
+            // Alignment::Top
+            return 0.0f;
         }
     }();
     m_offset = glm::vec2(m_margins.left, m_margins.top) + glm::vec2(xOffset, yOffset);
@@ -610,7 +614,7 @@ void Image::setFixedHeight(float height)
     updateSizeAndOffset();
 }
 
-void Image::setAlignment(Alignment alignment)
+void Image::setAlignment(AlignmentFlags alignment)
 {
     if (alignment == m_alignment)
         return;
@@ -642,29 +646,33 @@ void Image::updateSizeAndOffset()
     const auto availableHeight = m_size.height - (m_margins.top + m_margins.bottom);
 
     const auto xOffset = [this, availableWidth] {
-        const auto horizAlignment = m_alignment & (Alignment::Left | Alignment::HCenter | Alignment::Right);
-        switch (horizAlignment)
+        if (m_alignment.testFlag(Alignment::HCenter))
         {
-        case Alignment::Left:
-        default:
-            return 0.0f;
-        case Alignment::HCenter:
             return 0.5f * (availableWidth - m_pixmap->width);
-        case Alignment::Right:
+        }
+        else if (m_alignment.testFlag(Alignment::Right))
+        {
             return availableWidth - m_pixmap->width;
+        }
+        else
+        {
+            // Alignment::Left
+            return 0.0f;
         }
     }();
     const auto yOffset = [this, availableHeight] {
-        const auto vertAlignment = m_alignment & (Alignment::Top | Alignment::VCenter | Alignment::Bottom);
-        switch (vertAlignment)
+        if (m_alignment.testFlag(Alignment::VCenter))
         {
-        case Alignment::Top:
-            return 0.0f;
-        case Alignment::VCenter:
-        default:
             return 0.5f * (availableHeight - m_pixmap->height);
-        case Alignment::Bottom:
+        }
+        else if (m_alignment.testFlag(Alignment::Bottom))
+        {
             return availableHeight - m_pixmap->height;
+        }
+        else
+        {
+            // Alignment::Top
+            return 0.0f;
         }
     }();
     m_offset = glm::vec2(xOffset, yOffset);
@@ -751,18 +759,20 @@ void Column::updateLayout()
     for (auto &layoutItem : m_layoutItems)
     {
         const float offset = [this, item = layoutItem.item()] {
-            const auto alignment =
-                item->containerAlignment() & (Alignment::Left | Alignment::HCenter | Alignment::Right);
             const auto availableWidth = m_size.width - (m_margins.left + m_margins.right);
-            switch (alignment)
+            const auto alignment = item->containerAlignment();
+            if (alignment.testFlag(Alignment::HCenter))
             {
-            case Alignment::Left:
-            default:
-                return 0.0f;
-            case Alignment::HCenter:
                 return 0.5f * (availableWidth - item->width());
-            case Alignment::Right:
+            }
+            else if (alignment.testFlag(Alignment::Right))
+            {
                 return availableWidth - item->width();
+            }
+            else
+            {
+                // Alignment::Left
+                return 0.0f;
             }
         }();
         layoutItem.offset = p + glm::vec2(offset, 0.0f);
@@ -802,17 +812,19 @@ void Row::updateLayout()
     {
         const float offset = [this, item = layoutItem.item()] {
             const auto availableHeight = m_size.height - (m_margins.top + m_margins.bottom);
-            const auto alignment =
-                item->containerAlignment() & (Alignment::Top | Alignment::VCenter | Alignment::Bottom);
-            switch (alignment)
+            const auto alignment = item->containerAlignment();
+            if (alignment.testFlag(Alignment::VCenter))
             {
-            case Alignment::Top:
-                return 0.0f;
-            case Alignment::VCenter:
-            default:
                 return 0.5f * (availableHeight - item->height());
-            case Alignment::Bottom:
+            }
+            else if (alignment.testFlag(Alignment::Bottom))
+            {
                 return availableHeight - item->height();
+            }
+            else
+            {
+                // Alignment::Top
+                return 0.0f;
             }
         }();
         layoutItem.offset = p + glm::vec2(0.0f, offset);
@@ -1085,16 +1097,18 @@ bool MultiLineText::renderContents(Painter *painter, int depth)
     }
 
     const auto yOffset = [this, availableHeight] {
-        const auto vertAlignment = alignment & (Alignment::Top | Alignment::VCenter | Alignment::Bottom);
-        switch (vertAlignment)
+        if (alignment.testFlag(Alignment::VCenter))
         {
-        case Alignment::Top:
-            return 0.0f;
-        case Alignment::VCenter:
-        default:
             return 0.5f * (availableHeight - m_contentHeight);
-        case Alignment::Bottom:
+        }
+        else if (alignment.testFlag(Alignment::Bottom))
+        {
             return availableHeight - m_contentHeight;
+        }
+        else
+        {
+            // Alignment::Top
+            return 0.0f;
         }
     }();
     auto textPos = glm::vec2(m_margins.left, m_margins.top) + glm::vec2(0.0f, yOffset);
@@ -1102,16 +1116,18 @@ bool MultiLineText::renderContents(Painter *painter, int depth)
     for (const auto &line : m_lines)
     {
         const auto offset = [this, &line, availableWidth] {
-            const auto horizAlignment = alignment & (Alignment::Left | Alignment::HCenter | Alignment::Right);
-            switch (horizAlignment)
+            if (alignment.testFlag(Alignment::HCenter))
             {
-            case Alignment::Left:
-            default:
-                return 0.0f;
-            case Alignment::HCenter:
                 return 0.5f * (availableWidth - line.width);
-            case Alignment::Right:
+            }
+            else if (alignment.testFlag(Alignment::Right))
+            {
                 return availableWidth - line.width;
+            }
+            else
+            {
+                // Alignment::Left
+                return 0.0f;
             }
         }();
         painter->drawText(line.text, textPos + glm::vec2(offset, 0), depth);
