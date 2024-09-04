@@ -3,9 +3,7 @@
 #include "noncopyable.h"
 #include "shaderprogram.h"
 
-#include <array>
 #include <memory>
-#include <optional>
 
 class Connection;
 
@@ -19,6 +17,12 @@ class ShaderProgram;
 
 struct ProgramDescription
 {
+    struct Define
+    {
+        std::string key;
+        std::string value;
+    };
+    std::vector<Define> defines;
     std::filesystem::path vertexShaderPath;
     std::filesystem::path fragmentShaderPath;
 };

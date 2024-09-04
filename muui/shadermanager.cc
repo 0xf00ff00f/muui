@@ -4,7 +4,6 @@
 
 #include <fmt/core.h>
 
-#include <optional>
 #include <span>
 #include <type_traits>
 #include <vector>
@@ -17,16 +16,35 @@ namespace
 std::unique_ptr<gl::ShaderProgram> loadProgram(const ProgramDescription &description)
 {
     auto program = std::make_unique<gl::ShaderProgram>();
-    if (!program->addShader(gl::Shader::Type::Vertex, description.vertexShaderPath))
+    auto addShader = [program = program.get()](gl::Shader::Type type, const std::filesystem::path &path,
+                                               const std::span<const ProgramDescription::Define> defines) {
+        gl::Shader shader(type);
+        if (!defines.empty())
+        {
+            std::string definesSource;
+            for (const auto &define : defines)
+                definesSource += "#define " + define.key + " " + define.value + "\n";
+            shader.addSource(definesSource);
+        }
+        if (!shader.addSourceFromFile(path))
+        {
+            log_error("Failed to load shader %s", path);
+            return false;
+        }
+        if (!shader.compile())
+        {
+            log_error("Failed to compile shader %s: %s", path, shader.log().c_str());
+            return false;
+        }
+        program->attach(std::move(shader));
+        return true;
+    };
+    if (!addShader(gl::Shader::Type::Vertex, description.vertexShaderPath, description.defines))
     {
-        log_error("Failed to add vertex shader for program %s: %s", description.vertexShaderPath.c_str(),
-                  program->log().c_str());
         return {};
     }
-    if (!program->addShader(gl::Shader::Type::Fragment, description.fragmentShaderPath))
+    if (!addShader(gl::Shader::Type::Fragment, description.fragmentShaderPath, description.defines))
     {
-        log_error("Failed to add fragment shader for program %s: %s", description.fragmentShaderPath.c_str(),
-                  program->log().c_str());
         return {};
     }
     if (!program->link())
