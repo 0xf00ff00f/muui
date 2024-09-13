@@ -91,9 +91,9 @@ bool Application::createWindow(int width, int height, const char *title, WindowF
     m_window = window.release();
     m_context = context.release();
 
-    log_info("GL Vendor: %s", glGetString(GL_VENDOR));
-    log_info("GL Renderer: %s", glGetString(GL_RENDERER));
-    log_info("GL Version: %s", glGetString(GL_VERSION));
+    log_info("GL Vendor: {}", reinterpret_cast<const char *>(glGetString(GL_VENDOR)));
+    log_info("GL Renderer: {}", reinterpret_cast<const char *>(glGetString(GL_RENDERER)));
+    log_info("GL Version: {}", reinterpret_cast<const char *>(glGetString(GL_VERSION)));
 
     SDL_GL_SetSwapInterval(flags.testFlag(WindowFlag::VSync) ? 1 : 0);
 
@@ -139,7 +139,7 @@ void Application::exec()
                 case SDL_WINDOWEVENT_RESIZED: {
                     const auto width = event.window.data1;
                     const auto height = event.window.data2;
-                    log_info("Window resized to %dx%d", width, height);
+                    log_info("Window resized to {}x{}", width, height);
                     resize(width, height);
                     break;
                 }

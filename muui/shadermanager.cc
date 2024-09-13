@@ -28,12 +28,12 @@ std::unique_ptr<gl::ShaderProgram> loadProgram(const ProgramDescription &descrip
         }
         if (!shader.addSourceFromFile(path))
         {
-            log_error("Failed to load shader %s", path);
+            log_error("Failed to load shader {}", path.c_str());
             return false;
         }
         if (!shader.compile())
         {
-            log_error("Failed to compile shader %s: %s", path, shader.log().c_str());
+            log_error("Failed to compile shader {}: {}", path.c_str(), shader.log());
             return false;
         }
         program->attach(std::move(shader));
@@ -49,7 +49,7 @@ std::unique_ptr<gl::ShaderProgram> loadProgram(const ProgramDescription &descrip
     }
     if (!program->link())
     {
-        log_error("Failed to link program: %s", program->log().c_str());
+        log_error("Failed to link program: {}", program->log());
         return {};
     }
     return program;

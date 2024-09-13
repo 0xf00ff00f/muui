@@ -35,7 +35,7 @@ Font *FontCache::font(std::string_view source, int pixelHeight, int outlineSize)
         const auto path = m_rootPath / fmt::format("{}.ttf", source);
         if (!font->load(path, pixelHeight, outlineSize))
         {
-            log_error("Failed to load font %s", std::string(source).c_str());
+            log_error("Failed to load font {}", source);
             font.reset();
         }
         it = m_fonts.emplace(std::move(key), std::move(font)).first;

@@ -5,6 +5,7 @@
 #else
 #include <cstdio>
 #endif
+#include <fmt/core.h>
 
 enum class LogPriority
 {
@@ -39,41 +40,31 @@ inline const char *logPriorityName(LogPriority priority)
 }
 #endif
 
-inline void log_message(LogPriority priority, const char *fmt)
+template<typename... Args>
+inline void log_message(LogPriority priority, fmt::format_string<Args...> fmt, Args &&...args)
 {
+    const auto message = fmt::vformat(fmt.get(), fmt::make_format_args(args...));
 #ifdef MUUI_USE_SDL2
-    SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, static_cast<SDL_LogPriority>(priority), "%s", fmt);
+    SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, static_cast<SDL_LogPriority>(priority), "%s", message.c_str());
 #else
-    fprintf(stderr, "[%s] %s\n", logPriorityName(priority), fmt);
+    fprintf(stderr, "[%s] %s\n", logPriorityName(priority), message.c_str());
 #endif
 }
 
 template<typename... Args>
-inline void log_message(LogPriority priority, const char *fmt, const Args &...args)
+inline void log_error(fmt::format_string<Args...> fmt, Args &&...args)
 {
-#ifdef MUUI_USE_SDL2
-    SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, static_cast<SDL_LogPriority>(priority), fmt, args...);
-#else
-    fprintf(stderr, "[%s] ", logPriorityName(priority));
-    fprintf(stderr, fmt, args...);
-    fputc('\n', stderr);
-#endif
+    log_message(LogPriority::Error, fmt, std::forward<Args>(args)...);
 }
 
 template<typename... Args>
-inline void log_error(const char *fmt, const Args &...args)
+inline void log_info(fmt::format_string<Args...> fmt, Args &&...args)
 {
-    log_message(LogPriority::Error, fmt, args...);
+    log_message(LogPriority::Info, fmt, std::forward<Args>(args)...);
 }
 
 template<typename... Args>
-inline void log_info(const char *fmt, const Args &...args)
+inline void log_debug(fmt::format_string<Args...> fmt, Args &&...args)
 {
-    log_message(LogPriority::Info, fmt, args...);
-}
-
-template<typename... Args>
-inline void log_debug(const char *fmt, const Args &...args)
-{
-    log_message(LogPriority::Debug, fmt, args...);
+    log_message(LogPriority::Debug, fmt, std::forward<Args>(args)...);
 }

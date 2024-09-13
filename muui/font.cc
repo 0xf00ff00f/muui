@@ -91,7 +91,7 @@ std::unique_ptr<FontInfo> loadFont(const std::filesystem::path &path)
     File file(path);
     if (!file)
     {
-        log_error("Failed to load font %s", path.c_str());
+        log_error("Failed to load font {}", path.c_str());
         return {};
     }
     auto font = std::make_unique<FontInfo>();
@@ -100,10 +100,10 @@ std::unique_ptr<FontInfo> loadFont(const std::filesystem::path &path)
     int result = stbtt_InitFont(&font->font, ttfData, stbtt_GetFontOffsetForIndex(ttfData, 0));
     if (result == 0)
     {
-        log_error("Failed to parse font %s", path.c_str());
+        log_error("Failed to parse font {}", path.c_str());
         return {};
     }
-    log_info("Loaded font %s", path.c_str());
+    log_info("Loaded font {}", path.c_str());
     return font;
 }
 
@@ -222,7 +222,7 @@ std::unique_ptr<Font::Glyph> Font::initializeGlyph(int codepoint)
     auto packedPixmap = m_textureAtlas->addPixmap(pixmap);
     if (!packedPixmap)
     {
-        log_error("Couldn't fit glyph %d in texture atlas", codepoint);
+        log_error("Couldn't fit glyph {} in texture atlas", codepoint);
         return {};
     }
 

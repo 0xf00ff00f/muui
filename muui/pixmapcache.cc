@@ -25,7 +25,7 @@ std::optional<PackedPixmap> PixmapCache::pixmap(std::string_view source)
             Pixmap pm = loadPixmap(path.string());
             if (!pm)
             {
-                log_error("Failed to load image %s", path.c_str());
+                log_error("Failed to load image {}", path.c_str());
                 return std::nullopt;
             }
             return m_textureAtlas->addPixmap(pm);
