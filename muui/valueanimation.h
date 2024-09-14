@@ -7,10 +7,12 @@
 namespace muui
 {
 
-template<typename F, typename T>
+template<typename F>
 class ValueAnimation
 {
 public:
+    using T = typename F::Type;
+
     T startValue = T{};
     T endValue = T{};
     float duration = 0.0f;

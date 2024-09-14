@@ -11,12 +11,16 @@ namespace detail
 template<typename T, typename F>
 struct Out
 {
+    using Type = T;
+
     constexpr T operator()(T t) const { return 1.f - F()(1.f - t); }
 };
 
 template<typename T, typename F>
 struct InOut
 {
+    using Type = T;
+
     constexpr T operator()(T t) const
     {
         if (t < .5f)
@@ -37,12 +41,16 @@ struct InOut
 template<typename T>
 struct Linear
 {
+    using Type = T;
+
     constexpr T operator()(T t) const { return t; }
 };
 
 template<typename T>
 struct InQuadratic
 {
+    using Type = T;
+
     constexpr T operator()(T t) const { return t * t; }
 };
 
@@ -55,6 +63,8 @@ using InOutQuadratic = detail::InOut<T, InQuadratic<T>>;
 template<typename T>
 struct InBack
 {
+    using Type = T;
+
     constexpr T operator()(T t) const
     {
         // stolen from robert penner
@@ -72,6 +82,8 @@ using InOutBack = detail::InOut<T, InBack<T>>;
 template<typename T>
 struct OutBounce
 {
+    using Type = T;
+
     constexpr T operator()(T t) const
     {
         if (t < 1. / 2.75)

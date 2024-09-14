@@ -520,7 +520,7 @@ protected:
     Item *handleMouseEvent(const TouchEvent &event) override;
 
     bool m_checked = false;
-    ValueAnimation<tweening::InQuadratic<float>, float> m_animation;
+    ValueAnimation<tweening::InQuadratic<float>> m_animation;
     float m_indicatorPosition = 0.0f;
 };
 
