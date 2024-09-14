@@ -14,7 +14,7 @@ void Transform::reset()
 
 void Transform::translate(const glm::vec2 &p)
 {
-    if (p.x == 0.0f && p.y == 0.0f)
+    if (p == glm::vec2(0.0f))
         return;
     switch (m_type)
     {
@@ -25,11 +25,10 @@ void Transform::translate(const glm::vec2 &p)
     case Type::Translation:
         m_translation += p;
         break;
-    case Type::General: {
+    case Type::General:
         const auto t = glm::translate(glm::mat3(1.0), p);
         m_transform *= t;
         break;
-    }
     }
 }
 
@@ -51,10 +50,33 @@ void Transform::rotate(float angle)
         break;
     }
     default:
-    case Type::General: {
+    case Type::General:
         m_transform *= r;
         break;
     }
+}
+
+void Transform::scale(const glm::vec2 &v)
+{
+    if (v == glm::vec2(1.0f))
+        return;
+    const auto s = glm::scale(glm::mat3(1.0), v);
+    switch (m_type)
+    {
+    case Type::Identity:
+        m_transform = s;
+        m_type = Type::General;
+        break;
+    case Type::Translation: {
+        const auto t = glm::translate(glm::mat3(1.0), m_translation);
+        m_transform = t * s;
+        m_type = Type::General;
+        break;
+    }
+    default:
+    case Type::General:
+        m_transform *= s;
+        break;
     }
 }
 

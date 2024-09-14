@@ -68,6 +68,7 @@ public:
 
     void translate(const glm::vec2 &p);
     void rotate(float angle);
+    void scale(const glm::vec2 &v);
 
     void setBatchProgram(ShaderManager::ProgramHandle program);
     ShaderManager::ProgramHandle batchProgram() const { return m_batchProgram; }

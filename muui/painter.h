@@ -37,6 +37,7 @@ public:
 
     void translate(const glm::vec2 &pos);
     void rotate(float angle);
+    void scale(const glm::vec2 &v);
 
     void pushTransform();
     void popTransform();

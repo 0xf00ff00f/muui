@@ -66,7 +66,7 @@ const Transform &Painter::transform() const
 
 void Painter::translate(const glm::vec2 &pos)
 {
-    if (pos.x == 0.0f && pos.y == 0.0f)
+    if (pos == glm::vec2(0.0f))
         return;
     if (m_clipRect)
     {
@@ -86,6 +86,18 @@ void Painter::rotate(float angle)
         assert(0);
     }
     m_spriteBatcher->rotate(angle);
+}
+
+void Painter::scale(const glm::vec2 &v)
+{
+    if (v == glm::vec2(1.0f))
+        return;
+    if (m_clipRect)
+    {
+        // TODO: ???
+        assert(0);
+    }
+    m_spriteBatcher->scale(v);
 }
 
 void Painter::setFont(Font *font)

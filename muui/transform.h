@@ -11,6 +11,7 @@ public:
     void reset();
     void translate(const glm::vec2 &p);
     void rotate(float angle);
+    void scale(const glm::vec2 &s);
 
     glm::vec2 map(const glm::vec2 &p) const;
 

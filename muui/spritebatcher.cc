@@ -71,6 +71,11 @@ void SpriteBatcher::rotate(float angle)
     m_transform.rotate(angle);
 }
 
+void SpriteBatcher::scale(const glm::vec2 &v)
+{
+    m_transform.scale(v);
+}
+
 void SpriteBatcher::setBatchProgram(ShaderManager::ProgramHandle program)
 {
     m_batchProgram = program;
