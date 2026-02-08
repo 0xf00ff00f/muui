@@ -1,4 +1,6 @@
-add_subdirectory(SDL)
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+  add_subdirectory(SDL)
+endif()
 add_subdirectory(fmt)
 add_subdirectory(glm)
 add_subdirectory(stb)

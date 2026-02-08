@@ -37,7 +37,7 @@ public:
     Buffer &operator=(const Buffer &) = delete;
 
     Buffer(Buffer &&other);
-    Buffer &operator=(Buffer other);
+    Buffer &operator=(Buffer &&other);
 
     friend void swap(Buffer &lhs, Buffer &rhs);
 

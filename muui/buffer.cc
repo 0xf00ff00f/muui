@@ -25,9 +25,10 @@ Buffer::Buffer(Buffer &&other)
 {
 }
 
-Buffer &Buffer::operator=(Buffer other)
+Buffer &Buffer::operator=(Buffer &&other)
 {
-    swap(*this, other);
+    Buffer temp = std::move(other);
+    swap(*this, temp);
     return *this;
 }
 

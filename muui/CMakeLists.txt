@@ -2,7 +2,8 @@ add_subdirectory(muslots)
 add_subdirectory(assets)
 add_subdirectory(3rdparty)
 
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Android")
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Android" AND NOT ${CMAKE_SYSTEM_NAME}
+                                                  MATCHES "Emscripten")
   find_package(OpenGL REQUIRED)
   find_package(GLEW REQUIRED)
 endif()
@@ -80,22 +81,26 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC MUUI_USE_SDL2)
 
 target_link_libraries(
   ${PROJECT_NAME}
-  PUBLIC
-    muslots
-    glm
-    stb
-    fmt::fmt
-    SDL2::SDL2
-  PRIVATE
-    cmrc-base
-    embed-assets
-)
+  PUBLIC muslots glm stb fmt::fmt
+  PRIVATE cmrc-base embed-assets)
+
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+  target_link_libraries(${PROJECT_NAME} PUBLIC SDL2::SDL2)
+endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Android")
   target_link_libraries(${PROJECT_NAME} PUBLIC android log EGL GLESv3)
   target_compile_definitions(${PROJECT_NAME} PRIVATE ASSETSDIR="")
 else()
+  if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
     target_link_libraries(${PROJECT_NAME} PUBLIC GLEW::GLEW OpenGL::GL)
+  endif()
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+    set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS
+                                                     "-sUSE_SDL=2")
+  endif()
+
   target_compile_definitions(
     ${PROJECT_NAME} PRIVATE ASSETSDIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/")
 endif()

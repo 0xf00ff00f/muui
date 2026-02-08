@@ -20,9 +20,10 @@ VertexArray::VertexArray(VertexArray &&other)
 {
 }
 
-VertexArray &VertexArray::operator=(VertexArray other)
+VertexArray &VertexArray::operator=(VertexArray &&other)
 {
-    swap(*this, other);
+    VertexArray temp = std::move(other);
+    swap(*this, temp);
     return *this;
 }
 
