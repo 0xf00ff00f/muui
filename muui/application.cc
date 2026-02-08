@@ -80,10 +80,10 @@ bool Application::createWindow(int width, int height, const char *title, WindowF
         return false;
     }
 
-#if !defined(__ANDROID__)
-    if (glewInit() != GLEW_OK)
+#if !defined(__ANDROID__) && !defined(__EMSCRIPTEN__)
+    if (!gladLoadGLES2(reinterpret_cast<GLADloadfunc>(SDL_GL_GetProcAddress)))
     {
-        log_error("Failed to initialize GLEW");
+        log_error("Failed to initialize GLAD");
         SDL_Quit();
         return false;
     }

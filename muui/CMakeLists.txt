@@ -5,7 +5,6 @@ add_subdirectory(3rdparty)
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Android" AND NOT ${CMAKE_SYSTEM_NAME}
                                                   MATCHES "Emscripten")
   find_package(OpenGL REQUIRED)
-  find_package(GLEW REQUIRED)
 endif()
 
 add_library(muui STATIC)
@@ -93,7 +92,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Android")
   target_compile_definitions(${PROJECT_NAME} PRIVATE ASSETSDIR="")
 else()
   if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
-    target_link_libraries(${PROJECT_NAME} PUBLIC GLEW::GLEW OpenGL::GL)
+    target_link_libraries(${PROJECT_NAME} PUBLIC glad OpenGL::GL)
   endif()
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
