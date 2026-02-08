@@ -27,7 +27,8 @@ public:
     {
         Read = GL_MAP_READ_BIT,
         Write = GL_MAP_WRITE_BIT,
-        Unsynchronized = GL_MAP_UNSYNCHRONIZED_BIT
+        Unsynchronized = GL_MAP_UNSYNCHRONIZED_BIT,
+        InvalidateBuffer = GL_MAP_INVALIDATE_BUFFER_BIT,
     };
 
     explicit Buffer(Type type = Type::Vertex, Usage usage = Usage::StaticDraw);

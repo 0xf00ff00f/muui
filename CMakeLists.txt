@@ -10,6 +10,10 @@ include(CMakeRC)
 
 set(CMAKE_CXX_STANDARD 20)
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+  set(CMAKE_EXECUTABLE_SUFFIX ".html")
+endif()
+
 add_subdirectory(muui)
 
 if(MUUI_TESTS)

@@ -1,3 +1,7 @@
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+#endif
+
 #include "application.h"
 
 #include "gl.h"
@@ -115,106 +119,108 @@ void Application::exec()
 
     resize(width, height);
 
-    auto recreateGLContext = [this] {
-        m_context = SDL_GL_CreateContext(m_window);
-        m_contextRecreatedSignal();
-        log_info("GL context recreated!");
-    };
-
     m_running = true;
-    bool firstFrame = true;
-    Uint32 lastUpdate = 0;
-    int frameCount = 0;
-    Uint32 tRate0 = ~0u;
+#if !defined(__EMSCRIPTEN__)
     while (m_running)
     {
-        SDL_Event event;
-        while (SDL_PollEvent(&event))
+        updateAndRender();
+    }
+#else
+    emscripten_set_main_loop_arg(
+        [](void *arg) {
+            auto *app = reinterpret_cast<Application *>(arg);
+            app->updateAndRender();
+        },
+        this, 0, true); // simulate infinite loop
+#endif
+}
+
+void Application::updateAndRender()
+{
+    SDL_Event event;
+    while (SDL_PollEvent(&event))
+    {
+        switch (event.type)
         {
-            switch (event.type)
+        case SDL_WINDOWEVENT: {
+            switch (event.window.event)
             {
-            case SDL_WINDOWEVENT: {
-                switch (event.window.event)
-                {
-                case SDL_WINDOWEVENT_RESIZED: {
-                    const auto width = event.window.data1;
-                    const auto height = event.window.data2;
-                    log_info("Window resized to {}x{}", width, height);
-                    resize(width, height);
-                    break;
-                }
-                break;
-                }
+            case SDL_WINDOWEVENT_RESIZED: {
+                const auto width = event.window.data1;
+                const auto height = event.window.data2;
+                log_info("Window resized to {}x{}", width, height);
+                resize(width, height);
                 break;
             }
-            case SDL_RENDER_DEVICE_RESET: {
-                recreateGLContext();
-                break;
+            break;
             }
-            case SDL_MOUSEBUTTONDOWN: {
-                if (event.button.button == SDL_BUTTON_LEFT && event.button.state == SDL_PRESSED)
-                    handleTouchEvent(TouchAction::Down, event.button.x, event.button.y);
-                break;
-            }
-            case SDL_MOUSEBUTTONUP: {
-                if (event.button.button == SDL_BUTTON_LEFT && event.button.state == SDL_RELEASED)
-                    handleTouchEvent(TouchAction::Up, event.button.x, event.button.y);
-                break;
-            }
-            case SDL_MOUSEMOTION: {
-                if (event.button.button & SDL_BUTTON_LMASK)
-                    handleTouchEvent(TouchAction::Move, event.motion.x, event.motion.y);
-                break;
-            }
-            case SDL_KEYDOWN: {
-                const SDL_Keycode key = event.key.keysym.sym;
-                switch (key)
-                {
-                case SDLK_ESCAPE:
-                    m_running = false;
-                    break;
-                default:
-                    handleKeyPress(event.key.keysym);
-                    break;
-                }
-                break;
-            }
-            case SDL_TEXTINPUT: {
-                handleTextInputEvent(event.text.text); // utf-8 encoded
-                break;
-            }
-            case SDL_QUIT:
+            break;
+        }
+        case SDL_RENDER_DEVICE_RESET: {
+            recreateGLContext();
+            break;
+        }
+        case SDL_MOUSEBUTTONDOWN: {
+            if (event.button.button == SDL_BUTTON_LEFT && event.button.state == SDL_PRESSED)
+                handleTouchEvent(TouchAction::Down, event.button.x, event.button.y);
+            break;
+        }
+        case SDL_MOUSEBUTTONUP: {
+            if (event.button.button == SDL_BUTTON_LEFT && event.button.state == SDL_RELEASED)
+                handleTouchEvent(TouchAction::Up, event.button.x, event.button.y);
+            break;
+        }
+        case SDL_MOUSEMOTION: {
+            if (event.button.button & SDL_BUTTON_LMASK)
+                handleTouchEvent(TouchAction::Move, event.motion.x, event.motion.y);
+            break;
+        }
+        case SDL_KEYDOWN: {
+            const SDL_Keycode key = event.key.keysym.sym;
+            switch (key)
+            {
+            case SDLK_ESCAPE:
                 m_running = false;
                 break;
             default:
+                handleKeyPress(event.key.keysym);
                 break;
             }
+            break;
         }
-
-        const Uint32 now = SDL_GetTicks();
-        if (firstFrame)
-        {
-            lastUpdate = now;
-            firstFrame = false;
+        case SDL_TEXTINPUT: {
+            handleTextInputEvent(event.text.text); // utf-8 encoded
+            break;
         }
-        const auto elapsed = static_cast<float>(now - lastUpdate) / 1000.0f;
-        update(elapsed);
-        lastUpdate = now;
-
-        render();
-        SDL_GL_SwapWindow(m_window);
-
-        ++frameCount;
-
-        if (tRate0 == ~0u)
-            tRate0 = now;
-        if (now - tRate0 >= 5000)
-        {
-            const auto seconds = static_cast<float>(now - tRate0) / 1000;
-            m_fps = frameCount / seconds;
-            tRate0 = now;
-            frameCount = 0;
+        case SDL_QUIT:
+            m_running = false;
+            break;
+        default:
+            break;
         }
+    }
+
+    const Uint32 now = SDL_GetTicks();
+
+    if (m_lastUpdate == ~0u)
+        m_lastUpdate = now;
+    const auto elapsed = static_cast<float>(now - m_lastUpdate) / 1000.0f;
+    m_lastUpdate = now;
+    update(elapsed);
+
+    render();
+    SDL_GL_SwapWindow(m_window);
+
+    ++m_frameCount;
+
+    if (m_frameCountStart == ~0u)
+        m_frameCountStart = now;
+    if (now - m_frameCountStart >= 5000)
+    {
+        const auto seconds = static_cast<float>(now - m_frameCountStart) / 1000;
+        m_fps = m_frameCount / seconds;
+        m_frameCountStart = now;
+        m_frameCount = 0;
     }
 }
 
@@ -230,5 +236,12 @@ void Application::handleKeyPress(const SDL_Keysym &) {}
 void Application::handleTouchEvent(TouchAction, int, int) {}
 
 void Application::handleTextInputEvent(std::string_view) {}
+
+void Application::recreateGLContext()
+{
+    m_context = SDL_GL_CreateContext(m_window);
+    m_contextRecreatedSignal();
+    log_info("GL context recreated!");
+}
 
 } // namespace muui

@@ -8,12 +8,18 @@ macro(AddDemo)
 
   add_executable(${DEMO_NAME} ${DEMO_SOURCES})
   target_link_libraries(${DEMO_NAME} PUBLIC muui)
-  target_compile_definitions(
-    ${DEMO_NAME} PUBLIC ASSETSDIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/")
   if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
     set_target_properties(
-      ${DEMO_NAME} PROPERTIES COMPILE_FLAGS "-sUSE_SDL=2"
-                              LINK_FLAGS "-sUSE_SDL=2 -sFULL_ES3=1")
+      ${DEMO_NAME}
+      PROPERTIES
+        COMPILE_FLAGS "-sUSE_SDL=2"
+        LINK_FLAGS
+        "-sUSE_SDL=2 -sFULL_ES3=1 -sALLOW_MEMORY_GROWTH --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/assets@/assets"
+    )
+    target_compile_definitions(${DEMO_NAME} PUBLIC ASSETSDIR="assets/")
+  else()
+    target_compile_definitions(
+      ${DEMO_NAME} PUBLIC ASSETSDIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/")
   endif()
 endmacro()
 

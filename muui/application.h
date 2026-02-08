@@ -37,6 +37,7 @@ public:
     muslots::Signal<> &contextRecreatedEvent() { return m_contextRecreatedSignal; }
 
     float framesPerSecond() const { return m_fps; }
+    void updateAndRender();
 
 protected:
     virtual bool initialize() = 0;
@@ -48,12 +49,17 @@ protected:
     virtual void handleTextInputEvent(std::string_view text);
 
 private:
+    void recreateGLContext();
+
     SDL_Window *m_window = nullptr;
     SDL_GLContext m_context = nullptr;
     bool m_initialized = false;
     muslots::Signal<> m_contextRecreatedSignal;
     bool m_running = false;
+    Uint32 m_lastUpdate = ~0u;
     float m_fps = 0.0f;
+    Uint32 m_frameCountStart = ~0u;
+    int m_frameCount = 0;
 };
 
 } // namespace muui
