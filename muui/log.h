@@ -5,7 +5,7 @@
 #else
 #include <cstdio>
 #endif
-#include <fmt/core.h>
+#include <fmt/format.h>
 
 enum class LogPriority
 {

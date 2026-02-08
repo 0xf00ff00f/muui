@@ -2,7 +2,7 @@
 
 #include "file.h"
 
-#include <fmt/core.h>
+#include <fmt/format.h>
 
 #include <glm/gtc/type_ptr.hpp>
 
