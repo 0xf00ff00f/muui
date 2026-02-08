@@ -4,6 +4,7 @@ add_subdirectory(3rdparty)
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Android")
   find_package(OpenGL REQUIRED)
+  find_package(GLEW REQUIRED)
 endif()
 
 add_library(muui STATIC)
@@ -94,7 +95,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Android")
   target_link_libraries(${PROJECT_NAME} PUBLIC android log EGL GLESv3)
   target_compile_definitions(${PROJECT_NAME} PRIVATE ASSETSDIR="")
 else()
-  target_link_libraries(${PROJECT_NAME} PUBLIC glad OpenGL::GL)
+    target_link_libraries(${PROJECT_NAME} PUBLIC GLEW::GLEW OpenGL::GL)
   target_compile_definitions(
     ${PROJECT_NAME} PRIVATE ASSETSDIR="${CMAKE_CURRENT_SOURCE_DIR}/assets/")
 endif()

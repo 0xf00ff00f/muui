@@ -1,7 +1,4 @@
 add_subdirectory(SDL)
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Android")
-  add_subdirectory(glad)
-endif()
 add_subdirectory(fmt)
 add_subdirectory(glm)
 add_subdirectory(stb)
