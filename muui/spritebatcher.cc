@@ -155,7 +155,13 @@ void SpriteBatcher::flush()
         }
 
         auto *data = m_vertexBuffer.mapRange<GLfloat>(m_quadIndex * 4 * GLVertexSize, quadCount * 4 * GLVertexSize,
-                                                      gl::Buffer::Access::Write | gl::Buffer::Access::InvalidateBuffer);
+                                                      gl::Buffer::Access::Write
+#if defined(__EMSCRIPTEN__)
+                                                          | gl::Buffer::Access::InvalidateRange
+#else
+                                                          | gl::Buffer::Access::Unsynchronized
+#endif
+        );
         for (auto it = batchStart; it != batchEnd; ++it)
         {
             auto *quadPtr = *it;
