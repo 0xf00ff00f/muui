@@ -63,7 +63,6 @@ void PainterTest::render() const
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_SCISSOR_TEST);
 
     const muui::LinearGradient gradient = {
         .texture = m_gradientTexture.get(), .start = glm::vec2(0, 0), .end = glm::vec2(500, 0)};
