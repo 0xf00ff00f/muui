@@ -14,7 +14,7 @@ macro(AddDemo)
       PROPERTIES
         COMPILE_FLAGS "-sUSE_SDL=2"
         LINK_FLAGS
-        "-sUSE_SDL=2 -sFULL_ES3=1 -sALLOW_MEMORY_GROWTH --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/assets@/assets"
+        "-sUSE_SDL=2 -sFULL_ES3=1 -sALLOW_MEMORY_GROWTH --preload-file ${CMAKE_CURRENT_SOURCE_DIR}/assets@/assets --shell-file ${CMAKE_CURRENT_SOURCE_DIR}/emscripten-shell.html"
     )
     target_compile_definitions(${DEMO_NAME} PUBLIC ASSETSDIR="assets/")
   else()
