@@ -83,6 +83,7 @@ bool Screen::handleTouchEvent(TouchAction action, int x, int y)
         constexpr auto StartDragDistance = 10;
         if (!m_dragStarted && glm::distance(pos, m_lastTouchPosition) > StartDragDistance)
         {
+            assert(!m_grabTarget);
             for (auto &layoutItem : m_layoutItems)
             {
                 auto *item = layoutItem.item();
@@ -92,7 +93,7 @@ bool Screen::handleTouchEvent(TouchAction action, int x, int y)
                 {
                     m_grabTarget =
                         item->mouseEvent({TouchEvent::Type::DragBegin, m_lastTouchPosition - layoutItem.offset});
-                    if (m_clickTarget)
+                    if (m_grabTarget)
                         break;
                 }
             }
