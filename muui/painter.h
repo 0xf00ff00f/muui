@@ -28,7 +28,7 @@ public:
     int windowWidth() const { return m_windowWidth; }
     int windowHeight() const { return m_windowHeight; }
 
-    void setWindowSize(int width, int height);
+    void setWindowSize(float width, float height);
 
     void begin();
     void end();
@@ -117,8 +117,8 @@ private:
     void render();
     void updateTransformMatrix();
 
-    int m_windowWidth{0};
-    int m_windowHeight{0};
+    float m_windowWidth{0.0f};
+    float m_windowHeight{0.0f};
     std::unique_ptr<SpriteBatcher> m_spriteBatcher;
     Font *m_font{nullptr};
     std::optional<Brush> m_backgroundBrush; // rect, capsule, circle

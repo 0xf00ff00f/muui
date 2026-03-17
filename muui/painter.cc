@@ -18,7 +18,7 @@ Painter::Painter()
 
 Painter::~Painter() = default;
 
-void Painter::setWindowSize(int width, int height)
+void Painter::setWindowSize(float width, float height)
 {
     m_windowWidth = width;
     m_windowHeight = height;
@@ -27,7 +27,7 @@ void Painter::setWindowSize(int width, int height)
 
 void Painter::updateTransformMatrix()
 {
-    const auto mvp = glm::ortho(0.0f, static_cast<float>(m_windowWidth), static_cast<float>(m_windowHeight), 0.0f);
+    const auto mvp = glm::ortho(0.0f, m_windowWidth, m_windowHeight, 0.0f);
     m_spriteBatcher->setMvp(mvp);
 }
 
