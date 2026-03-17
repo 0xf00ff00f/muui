@@ -33,7 +33,6 @@ public:
 private:
     std::unique_ptr<muui::TextureAtlas> m_textureAtlas;
     std::unique_ptr<muui::Font> m_font;
-    std::unique_ptr<muui::Rectangle> m_rootItem;
     std::unique_ptr<muui::Screen> m_screen;
     float m_direction{1.0f};
 };
@@ -45,34 +44,29 @@ bool ScrollAreaTest::initialize()
     if (!m_font->load(AssetsPath / "OpenSans_Bold.ttf", 300))
         panic("Failed to load font\n");
 
-    m_rootItem = std::make_unique<muui::Rectangle>();
+    m_screen = std::make_unique<muui::Screen>();
 
     auto label = std::make_unique<muui::Label>(m_font.get(), U"Sphinx of black quartz"sv);
     label->foregroundBrush = glm::vec4{1};
     label->backgroundBrush = glm::vec4{1, 0, 0, 1};
     label->fillBackground = true;
 
-    auto* scrollArea = m_rootItem->appendChild<muui::ScrollArea>(std::move(label));
+    auto *scrollArea = m_screen->appendChild<muui::ScrollArea>(std::move(label));
     scrollArea->setLeft(muui::Length::pixels(50));
     scrollArea->setTop(muui::Length::pixels(50));
     scrollArea->setViewportSize(muui::Size{150, 150});
-
-    m_screen = std::make_unique<muui::Screen>();
-    m_screen->setRootItem(m_rootItem.get());
 
     return true;
 }
 
 void ScrollAreaTest::resize(int width, int height)
 {
-    m_rootItem->setSize(width, height);
-    m_screen->resize(width, height);
+    m_screen->setSize(static_cast<float>(width), static_cast<float>(height));
 }
 
 void ScrollAreaTest::update(float elapsed)
 {
-    assert(m_rootItem);
-    m_rootItem->update(elapsed);
+    m_screen->update(elapsed);
 }
 
 void ScrollAreaTest::render() const

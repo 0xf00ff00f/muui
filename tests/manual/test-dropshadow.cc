@@ -33,23 +33,28 @@ public:
 private:
     std::unique_ptr<muui::TextureAtlas> m_textureAtlas;
     std::unique_ptr<muui::Font> m_font;
-    std::unique_ptr<muui::Container> m_rootItem;
     std::unique_ptr<muui::Screen> m_screen;
     float m_direction{1.0f};
 };
 
 bool DropShadowTest::initialize()
 {
+    using namespace muui;
+
     m_textureAtlas = std::make_unique<muui::TextureAtlas>(512, 512);
     m_font = std::make_unique<muui::Font>(m_textureAtlas.get());
     if (!m_font->load(AssetsPath / "OpenSans_Bold.ttf", 80))
         panic("Failed to load font\n");
 
-    m_rootItem = std::make_unique<muui::Column>();
-    m_rootItem->setMargins(muui::Margins{8, 8, 8, 8});
-    m_rootItem->setSpacing(12);
+    m_screen = std::make_unique<muui::Screen>();
 
-    auto *item = m_rootItem->appendChild<muui::Label>(m_font.get(), U"Sphinx of black quartz"sv);
+    auto *rootItem = m_screen->appendChild<muui::Column>();
+    rootItem->setVerticalCenter(50.0_pct);
+    rootItem->setHorizontalCenter(50.0_pct);
+    rootItem->setMargins(muui::Margins{8, 8, 8, 8});
+    rootItem->setSpacing(12);
+
+    auto *item = rootItem->appendChild<muui::Label>(m_font.get(), U"Sphinx of black quartz"sv);
     item->foregroundBrush = glm::vec4(1);
 
     auto applyDropShadow = [](auto *item) {
@@ -60,7 +65,7 @@ bool DropShadowTest::initialize()
     };
     applyDropShadow(item);
 
-    auto *enableEffect = m_rootItem->appendChild<muui::Switch>(60.0f, 30.0f);
+    auto *enableEffect = rootItem->appendChild<muui::Switch>(60.0f, 30.0f);
     enableEffect->setChecked(true);
     enableEffect->backgroundBrush = glm::vec4{0.5, 0.5, 0.5, 1};
     enableEffect->toggledSignal.connect([this, applyDropShadow, item](bool checked) {
@@ -74,21 +79,17 @@ bool DropShadowTest::initialize()
         }
     });
 
-    m_screen = std::make_unique<muui::Screen>();
-    m_screen->setRootItem(m_rootItem.get());
-
     return true;
 }
 
 void DropShadowTest::resize(int width, int height)
 {
-    m_screen->resize(width, height);
+    m_screen->setSize(static_cast<float>(width), static_cast<float>(height));
 }
 
 void DropShadowTest::update(float elapsed)
 {
-    assert(m_rootItem);
-    m_rootItem->update(elapsed);
+    m_screen->update(elapsed);
 }
 
 void DropShadowTest::render() const

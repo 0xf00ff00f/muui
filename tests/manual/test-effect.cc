@@ -88,7 +88,6 @@ private:
     std::unique_ptr<muui::TextureAtlas> m_textureAtlas;
     std::unique_ptr<muui::Font> m_bigFont;
     std::unique_ptr<muui::Font> m_smallFont;
-    std::unique_ptr<muui::Container> m_rootItem;
     std::unique_ptr<muui::Screen> m_screen;
     muui::Container *m_innerContainer{nullptr};
     float m_direction{1.0f};
@@ -96,6 +95,8 @@ private:
 
 bool EffectTest::initialize()
 {
+    using namespace muui;
+
     m_textureAtlas = std::make_unique<muui::TextureAtlas>(128, 128);
     m_bigFont = std::make_unique<muui::Font>(m_textureAtlas.get());
     if (!m_bigFont->load(AssetsPath / "OpenSans_Bold.ttf", 80))
@@ -104,11 +105,15 @@ bool EffectTest::initialize()
     if (!m_smallFont->load(AssetsPath / "OpenSans-Light.ttf", 18))
         panic("Failed to load font\n");
 
-    m_rootItem = std::make_unique<muui::Column>();
-    m_rootItem->setMargins(muui::Margins{8, 8, 8, 8});
-    m_rootItem->setSpacing(12);
+    m_screen = std::make_unique<muui::Screen>();
 
-    m_innerContainer = m_rootItem->appendChild<muui::Column>();
+    auto *rootItem = m_screen->appendChild<muui::Column>();
+    rootItem->setVerticalCenter(51.0_pct);
+    rootItem->setHorizontalCenter(50.0_pct);
+    rootItem->setMargins(muui::Margins{8, 8, 8, 8});
+    rootItem->setSpacing(12);
+
+    m_innerContainer = rootItem->appendChild<muui::Column>();
     m_innerContainer->setMargins(muui::Margins{1, 1, 1, 1});
 
     auto *innerColumn = m_innerContainer->appendChild<muui::Column>();
@@ -134,7 +139,7 @@ bool EffectTest::initialize()
 
     m_innerContainer->setShaderEffect(std::make_unique<TransitionEffect>());
 
-    auto *direction = m_rootItem->appendChild<muui::Switch>(60.0f, 30.0f);
+    auto *direction = rootItem->appendChild<muui::Switch>(60.0f, 30.0f);
     direction->setChecked(true);
     direction->backgroundBrush = glm::vec4{0.5, 0.5, 0.5, 1};
     direction->toggledSignal.connect([this](bool checked) {
@@ -144,7 +149,7 @@ bool EffectTest::initialize()
             m_direction = -1.0f;
     });
 
-    auto *enableEffect = m_rootItem->appendChild<muui::Switch>(60.0f, 30.0f);
+    auto *enableEffect = rootItem->appendChild<muui::Switch>(60.0f, 30.0f);
     enableEffect->setChecked(true);
     enableEffect->backgroundBrush = glm::vec4{0.5, 0.5, 0.5, 1};
     enableEffect->toggledSignal.connect([this](bool checked) {
@@ -158,20 +163,16 @@ bool EffectTest::initialize()
         }
     });
 
-    m_screen = std::make_unique<muui::Screen>();
-    m_screen->setRootItem(m_rootItem.get());
-
     return true;
 }
 
 void EffectTest::resize(int width, int height)
 {
-    m_screen->resize(width, height);
+    m_screen->setSize(static_cast<float>(width), static_cast<float>(height));
 }
 
 void EffectTest::update(float elapsed)
 {
-    assert(m_rootItem);
     if (auto *effect = static_cast<TransitionEffect *>(m_innerContainer->shaderEffect()))
     {
         float t = effect->progress;
@@ -179,7 +180,7 @@ void EffectTest::update(float elapsed)
         t = std::clamp(t, 0.0f, 1.0f);
         effect->progress = t;
     }
-    m_rootItem->update(elapsed);
+    m_screen->update(elapsed);
 }
 
 void EffectTest::render() const

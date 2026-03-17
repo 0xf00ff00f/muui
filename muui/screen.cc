@@ -10,59 +10,43 @@ namespace muui
 Screen::Screen()
     : m_painter(std::make_unique<Painter>())
 {
+    resizedSignal.connect([this](Size size) { m_painter->setWindowSize(size.width, size.height); });
 }
 
 Screen::~Screen() = default;
 
-void Screen::resize(int width, int height)
+void Screen::render()
 {
-    m_painter->setWindowSize(width, height);
-}
-
-int Screen::width() const
-{
-    return m_painter->windowWidth();
-}
-
-int Screen::height() const
-{
-    return m_painter->windowHeight();
-}
-
-void Screen::render() const
-{
-    if (!m_rootItem)
-        return;
-
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
 
     m_painter->begin();
-    m_rootItem->render(m_painter.get());
+    Rectangle::render(m_painter.get());
     m_painter->end();
 
     glDisable(GL_BLEND);
 }
 
-void Screen::setRootItem(Item *rootItem)
-{
-    m_rootItem = rootItem;
-}
-
 bool Screen::handleTouchEvent(TouchAction action, int x, int y)
 {
-    if (!m_rootItem)
-        return false;
-
     const auto pos = glm::vec2(x, y);
     switch (action)
     {
     case TouchAction::Down: {
-        if (!m_rootItem->rect().contains(pos))
-            return false;
         assert(!m_clickTarget);
-        m_clickTarget = m_rootItem->mouseEvent({TouchEvent::Type::Press, pos});
+        for (auto &layoutItem : m_layoutItems)
+        {
+            auto *item = layoutItem.item();
+            const auto size = item->size();
+            const auto rect = RectF{layoutItem.offset, layoutItem.offset + glm::vec2{size.width, size.height}};
+            if (rect.contains(pos))
+            {
+                m_clickTarget = item->mouseEvent({TouchEvent::Type::Press, pos - layoutItem.offset});
+                if (m_clickTarget)
+                    break;
+            }
+        }
         assert(!m_grabTarget);
         m_grabTarget = nullptr;
         m_dragStarted = false;
@@ -71,9 +55,15 @@ bool Screen::handleTouchEvent(TouchAction action, int x, int y)
     }
     case TouchAction::Up: {
         bool clicked = false;
-        if (m_rootItem->rect().contains(pos))
+        for (auto &layoutItem : m_layoutItems)
         {
-            m_rootItem->mouseEvent({TouchEvent::Type::Release, pos});
+            auto *item = layoutItem.item();
+            const auto size = item->size();
+            const auto rect = RectF{layoutItem.offset, layoutItem.offset + glm::vec2{size.width, size.height}};
+            if (rect.contains(pos))
+            {
+                item->mouseEvent({TouchEvent::Type::Release, pos - layoutItem.offset});
+            }
         }
         if (m_clickTarget)
         {
@@ -93,7 +83,19 @@ bool Screen::handleTouchEvent(TouchAction action, int x, int y)
         constexpr auto StartDragDistance = 10;
         if (!m_dragStarted && glm::distance(pos, m_lastTouchPosition) > StartDragDistance)
         {
-            m_grabTarget = m_rootItem->mouseEvent({TouchEvent::Type::DragBegin, m_lastTouchPosition});
+            for (auto &layoutItem : m_layoutItems)
+            {
+                auto *item = layoutItem.item();
+                const auto size = item->size();
+                const auto rect = RectF{layoutItem.offset, layoutItem.offset + glm::vec2{size.width, size.height}};
+                if (rect.contains(pos))
+                {
+                    m_grabTarget =
+                        item->mouseEvent({TouchEvent::Type::DragBegin, m_lastTouchPosition - layoutItem.offset});
+                    if (m_clickTarget)
+                        break;
+                }
+            }
             m_clickTarget = nullptr;
             m_dragStarted = true;
         }

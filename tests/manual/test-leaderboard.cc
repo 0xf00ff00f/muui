@@ -30,13 +30,16 @@ constexpr glm::vec3 rgbToColor(unsigned color)
     return (1.0f / 255.0f) * glm::vec3(r, g, b);
 }
 
-std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float height)
+void buildUI(Item *rootItem, Font *smallFont, Font *bigFont)
 {
+    const auto width = rootItem->width();
+    const auto height = rootItem->height();
+
     constexpr auto headingColor = rgbToColor(0x04568e);
     constexpr auto textColor = rgbToColor(0x040a18);
     constexpr auto outerMargin = 40;
 
-    auto outerContainer = std::make_unique<Column>();
+    auto outerContainer = rootItem->appendChild<Column>();
     outerContainer->setMargins(Margins{outerMargin, outerMargin, outerMargin, outerMargin});
     outerContainer->setSpacing(5);
 
@@ -195,8 +198,6 @@ std::unique_ptr<Item> buildUI(Font *smallFont, Font *bigFont, float width, float
 
     assert(outerContainer->width() == width);
     assert(outerContainer->height() == height);
-
-    return outerContainer;
 }
 
 } // namespace
@@ -212,7 +213,6 @@ public:
 private:
     std::unique_ptr<TextureAtlas> m_textureAtlas;
     std::unique_ptr<Font> m_smallFont, m_bigFont;
-    std::unique_ptr<Item> m_rootItem;
     std::unique_ptr<Screen> m_screen;
 };
 
@@ -235,10 +235,11 @@ bool LeaderboardTest::initialize()
 
 void LeaderboardTest::resize(int width, int height)
 {
-    m_screen->resize(width, height);
+    m_screen->setSize(static_cast<float>(width), static_cast<float>(height));
 
-    m_rootItem = buildUI(m_smallFont.get(), m_bigFont.get(), width, height);
-    m_screen->setRootItem(m_rootItem.get());
+    if (m_screen->childCount() > 0)
+        m_screen->removeChild(0);
+    buildUI(m_screen.get(), m_smallFont.get(), m_bigFont.get());
 }
 
 void LeaderboardTest::render() const

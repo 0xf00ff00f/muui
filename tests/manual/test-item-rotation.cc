@@ -35,7 +35,6 @@ public:
 private:
     std::unique_ptr<muui::TextureAtlas> m_textureAtlas;
     std::unique_ptr<muui::Font> m_font;
-    std::unique_ptr<muui::Rectangle> m_rootItem;
     std::unique_ptr<muui::Screen> m_screen;
     muui::Button *m_button1{nullptr};
     muui::Button *m_button2{nullptr};
@@ -57,7 +56,7 @@ bool ItemRotationTest::initialize()
     if (!m_font->load(AssetsPath / "OpenSans_Bold.ttf", 60))
         panic("Failed to load font\n");
 
-    m_rootItem = std::make_unique<muui::Rectangle>();
+    m_screen = std::make_unique<muui::Screen>();
 
     auto addButton = [this](muui::Item *parent, std::u32string_view text) {
         const muui::LinearGradient gradient = {
@@ -72,7 +71,7 @@ bool ItemRotationTest::initialize()
         return button;
     };
 
-    m_button1 = addButton(m_rootItem.get(), U"button 1"sv);
+    m_button1 = addButton(m_screen.get(), U"button 1"sv);
     m_button1->setLeft(muui::Length::pixels(40));
     m_button1->setTop(muui::Length::pixels(40));
     m_button1->setTransformOrigin({100, 30});
@@ -90,26 +89,21 @@ bool ItemRotationTest::initialize()
     m_button3->setTransformOrigin({100, 30});
     m_button3->clickedSignal.connect([] { std::cout << "button 3\n"; });
 
-    m_screen = std::make_unique<muui::Screen>();
-    m_screen->setRootItem(m_rootItem.get());
-
     return true;
 }
 
 void ItemRotationTest::resize(int width, int height)
 {
-    m_rootItem->setSize(width, height);
-    m_screen->resize(width, height);
+    m_screen->setSize(static_cast<float>(width), static_cast<float>(height));
 }
 
 void ItemRotationTest::update(float elapsed)
 {
-    assert(m_rootItem);
     m_time += elapsed;
     m_button1->setRotation(0.3f * sinf(0.3f * m_time));
     m_button2->setRotation(0.2f * sinf(0.2f * m_time));
     m_button3->setRotation(0.1f * sinf(0.1f * m_time));
-    m_rootItem->update(elapsed);
+    m_screen->update(elapsed);
 }
 
 void ItemRotationTest::render() const

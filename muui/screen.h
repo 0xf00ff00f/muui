@@ -1,5 +1,6 @@
 #pragma once
 
+#include "item.h"
 #include "uiinput.h"
 
 #include <glm/glm.hpp>
@@ -11,25 +12,17 @@ namespace muui
 class Item;
 class Painter;
 
-class Screen
+class Screen : public Rectangle
 {
 public:
     Screen();
     ~Screen();
 
-    void resize(int width, int height);
-    void render() const;
+    void render();
     bool handleTouchEvent(TouchAction type, int x, int y);
-
-    int width() const;
-    int height() const;
-
-    muui::Item *rootItem() const { return m_rootItem; }
-    void setRootItem(Item *rootItem);
 
 public:
     std::unique_ptr<muui::Painter> m_painter;
-    Item *m_rootItem = nullptr;
     Item *m_grabTarget = nullptr;
     Item *m_clickTarget = nullptr;
     bool m_dragStarted = false;
