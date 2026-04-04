@@ -122,6 +122,9 @@ public:
     float height() const { return m_size.height; }
     RectF rect() const { return RectF{{0, 0}, {m_size.width, m_size.height}}; }
 
+    void setMargins(Margins margins);
+    Margins margins() const { return m_margins; }
+
     void render(Painter *painter, int depth = 0);
 
     Item *mouseEvent(const TouchEvent &event);
@@ -207,6 +210,7 @@ public:
     float cornerRadius = 0.0f;
 
     muslots::Signal<Size> resizedSignal;
+    muslots::Signal<Margins> marginsChangedSignal;
     muslots::Signal<> anchorChangedSignal;
     muslots::Signal<> alignmentChangedSignal;
 
@@ -274,6 +278,7 @@ protected:
     };
 
     Size m_size;
+    Margins m_margins;
     float m_rotation{0.0f};
     glm::vec2 m_transformOrigin{0.0f};
     AlignmentFlags m_containerAlignment{Alignment::VCenter | Alignment::Left};
@@ -314,9 +319,6 @@ public:
     void setText(std::u32string_view text);
     const std::u32string &text() const { return m_text; }
 
-    void setMargins(Margins margins);
-    Margins margins() const { return m_margins; }
-
     void setFixedWidth(float width);
     float fixedWidth() const { return m_fixedWidth; }
 
@@ -340,7 +342,6 @@ protected:
     AlignmentFlags m_alignment = Alignment::VCenter | Alignment::Left;
     Font *m_font;
     std::u32string m_text;
-    Margins m_margins;
     float m_contentWidth = 0;
     float m_contentHeight = 0;
     glm::vec2 m_offset;
@@ -356,9 +357,6 @@ public:
 
     void setSource(std::string_view source);
     const std::string &source() const { return m_source; }
-
-    void setMargins(Margins margins);
-    Margins margins() const { return m_margins; }
 
     void setFixedWidth(float width);
     float fixedWidth() const { return m_fixedWidth; }
@@ -377,7 +375,6 @@ protected:
     AlignmentFlags m_alignment = Alignment::VCenter | Alignment::Left;
     std::string m_source;
     std::optional<PackedPixmap> m_pixmap;
-    Margins m_margins;
     glm::vec2 m_offset;
     float m_fixedWidth = -1;  // ignored if < 0
     float m_fixedHeight = -1; // ignored if < 0
@@ -386,8 +383,7 @@ protected:
 class Container : public Item
 {
 public:
-    void setMargins(Margins margins);
-    Margins margins() const { return m_margins; }
+    Container();
 
     void setSpacing(float spacing);
     float spacing() const { return m_spacing; }
@@ -396,7 +392,6 @@ protected:
     void handleChildUpdated() override;
     virtual void updateSize() = 0;
 
-    Margins m_margins;
     float m_spacing = 0.0f;
 };
 
@@ -434,9 +429,6 @@ public:
 
     std::vector<Item *> children() const override;
 
-    void setMargins(Margins margins);
-    Margins margins() const { return m_margins; }
-
     void setViewportSize(Size size);
     Size viewportSize() const;
 
@@ -449,7 +441,6 @@ private:
     void updateSize();
 
     std::unique_ptr<Item> m_contentItem;
-    Margins m_margins;
     Size m_viewportSize;
     glm::vec2 m_viewportOffset = glm::vec2(0, 0);
 };

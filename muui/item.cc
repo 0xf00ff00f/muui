@@ -125,6 +125,15 @@ void Item::setSize(Size size)
     resizedSignal(m_size);
 }
 
+void Item::setMargins(Margins margins)
+{
+    if (margins == m_margins)
+        return;
+    m_margins = margins;
+    updateLayout();
+    marginsChangedSignal(m_margins);
+}
+
 void Item::handleChildUpdated()
 {
     updateLayout();
@@ -154,10 +163,13 @@ Brush Item::adjustBrushToRect(const Brush &brush, const Transform &transform) co
 
 void Item::updateLayout()
 {
+    const auto availableWidth = std::max(m_size.width - (m_margins.left + m_margins.right), 0.0f);
+    const auto availableHeight = std::max(m_size.height - (m_margins.top + m_margins.bottom), 0.0f);
+
     for (auto &layoutItem : m_layoutItems)
     {
         const auto *item = layoutItem.item();
-        const auto anchorX = [this, &item]() -> float {
+        const auto anchorX = [this, &item, availableWidth]() -> float {
             const auto &position = item->m_horizontalAnchor.position;
             switch (position.type)
             {
@@ -165,7 +177,7 @@ void Item::updateLayout()
             default:
                 return position.value;
             case Length::Type::Percent:
-                return position.value * m_size.width;
+                return position.value * availableWidth;
             }
         }();
         const auto offsetX = [this, &item, anchorX]() -> float {
@@ -181,7 +193,7 @@ void Item::updateLayout()
                 return anchorX - item->m_size.width;
             }
         }();
-        const auto anchorY = [this, &item]() -> float {
+        const auto anchorY = [this, &item, availableHeight]() -> float {
             const auto &position = item->m_verticalAnchor.position;
             switch (position.type)
             {
@@ -189,7 +201,7 @@ void Item::updateLayout()
             default:
                 return position.value;
             case Length::Type::Percent:
-                return position.value * m_size.height;
+                return position.value * availableHeight;
             }
         }();
         const auto offsetY = [this, &item, anchorY]() -> float {
@@ -205,7 +217,7 @@ void Item::updateLayout()
                 return anchorY - item->m_size.height;
             }
         }();
-        layoutItem.offset = glm::vec2{offsetX, offsetY};
+        layoutItem.offset = glm::vec2{offsetX + m_margins.left, offsetY + m_margins.top};
     }
 }
 
@@ -420,6 +432,7 @@ Label::Label(Font *font, std::u32string_view text)
     , m_text(text)
 {
     updateSizeAndOffset();
+    marginsChangedSignal.connect([this](Margins) { updateSizeAndOffset(); });
 }
 
 Item *Label::handleMouseEvent(const TouchEvent &event)
@@ -450,14 +463,6 @@ void Label::setText(std::u32string_view text)
     if (text == m_text)
         return;
     m_text = text;
-    updateSizeAndOffset();
-}
-
-void Label::setMargins(Margins margins)
-{
-    if (margins == m_margins)
-        return;
-    m_margins = margins;
     updateSizeAndOffset();
 }
 
@@ -571,6 +576,7 @@ Image::Image() = default;
 Image::Image(std::string_view source)
 {
     setSource(source);
+    marginsChangedSignal.connect([this](Margins) { updateSizeAndOffset(); });
 }
 
 Item *Image::handleMouseEvent(const TouchEvent &)
@@ -587,14 +593,6 @@ void Image::setSource(std::string_view source)
         auto *cache = sys::pixmapCache();
         return cache->pixmap(m_source);
     }();
-    updateSizeAndOffset();
-}
-
-void Image::setMargins(Margins margins)
-{
-    if (margins == m_margins)
-        return;
-    m_margins = margins;
     updateSizeAndOffset();
 }
 
@@ -706,12 +704,9 @@ bool Image::renderContents(Painter *painter, int depth)
     return true;
 }
 
-void Container::setMargins(Margins margins)
+Container::Container()
 {
-    if (margins == m_margins)
-        return;
-    m_margins = margins;
-    updateSize();
+    marginsChangedSignal.connect([this](Margins) { updateSize(); });
 }
 
 void Container::setSpacing(float spacing)
@@ -836,6 +831,7 @@ ScrollArea::ScrollArea(float viewportWidth, float viewportHeight, std::unique_pt
     : m_contentItem(std::move(contentItem))
 {
     updateSize();
+    marginsChangedSignal.connect([this](Margins) { updateSize(); });
 }
 
 ScrollArea::ScrollArea(std::unique_ptr<Item> contentItem)
@@ -903,14 +899,6 @@ std::vector<Item *> ScrollArea::children() const
     auto children = Item::children();
     children.insert(children.begin(), m_contentItem.get());
     return children;
-}
-
-void ScrollArea::setMargins(Margins margins)
-{
-    if (margins == m_margins)
-        return;
-    m_margins = margins;
-    updateSize();
 }
 
 void ScrollArea::setViewportSize(Size size)

@@ -45,6 +45,10 @@ TEST_CASE("Column layout", "[layouts]")
     column.takeChildAt(1);
     REQUIRE(column.childCount() == 1);
     REQUIRE(column.size() == Size{150, 30});
+
+    // add margins
+    column.setMargins(Margins{10, 20, 30, 40});
+    REQUIRE(column.size() == Size{220, 60});
 }
 
 TEST_CASE("Row layout", "[layouts]")
@@ -88,4 +92,8 @@ TEST_CASE("Row layout", "[layouts]")
     row.takeChildAt(1);
     REQUIRE(row.childCount() == 1);
     REQUIRE(row.size() == Size{150, 30});
+
+    // add margins
+    row.setMargins(Margins{10, 20, 30, 40});
+    REQUIRE(row.size() == Size{220, 60});
 }

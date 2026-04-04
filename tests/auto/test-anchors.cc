@@ -2,6 +2,8 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <iostream>
+
 using namespace muui;
 
 TEST_CASE("Anchors", "[anchors]")
@@ -10,6 +12,7 @@ TEST_CASE("Anchors", "[anchors]")
     REQUIRE(parent.childCount() == 0);
 
     // add a rectangle
+
     auto *child = parent.appendChild<Rectangle>(100.0f, 50.0f);
     REQUIRE(parent.childCount() == 1);
     REQUIRE(parent.childRect(0).min == glm::vec2{0.0f});
@@ -49,4 +52,19 @@ TEST_CASE("Anchors", "[anchors]")
 
     child->setBottom(Length::percent(50.0f));
     REQUIRE(parent.childRect(0).min == glm::vec2{100.0f, 100.0f});
+
+    // test margins
+
+    child->setLeft(Length::pixels(0.0f));
+    child->setTop(Length::pixels(0.0f));
+    REQUIRE(parent.childRect(0).min == glm::vec2{0.0f, 0.0f});
+
+    parent.setMargins(Margins{10, 20, 20, 10});
+    REQUIRE(parent.childRect(0).min == glm::vec2{20.0f, 10.0f});
+
+    child->setBottom(Length::percent(100.0f));
+    REQUIRE(parent.childRect(0).min == glm::vec2{20.0f, 230.0f});
+
+    child->setRight(Length::percent(100.0f));
+    REQUIRE(parent.childRect(0).min == glm::vec2{290.0f, 230.0f});
 }
