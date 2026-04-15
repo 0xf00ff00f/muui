@@ -20,87 +20,6 @@ struct FontInfo
 namespace
 {
 
-void dilateAlpha(Pixmap &pixmap, int outlineSize)
-{
-    assert(pixmap.pixelType == PixelType::RGBA);
-
-    const auto width = pixmap.width;
-    const auto height = pixmap.height;
-    auto *pixels = reinterpret_cast<glm::u8vec4 *>(pixmap.pixels.data());
-
-    std::vector<glm::vec2> closest(width * height);
-
-    for (std::size_t y = 0; y < height; ++y)
-    {
-        for (std::size_t x = 0; x < width; ++x)
-        {
-            const auto index = y * width + x;
-            const auto sourceAlpha = pixels[index].a;
-            closest[index] = sourceAlpha > 0.5f ? glm::ivec2{x, y} : glm::ivec2{-1};
-            // TODO sobel filter to estimate sub-pixel distance, see
-            // https://bgolus.medium.com/the-quest-for-very-wide-outlines-ba82ed442cd9
-        }
-    }
-
-    std::size_t jumpDistance = 1;
-    while (jumpDistance < outlineSize)
-        jumpDistance <<= 1;
-
-    while (jumpDistance > 0)
-    {
-        for (int y = 0; y < height; ++y)
-        {
-            for (int x = 0; x < width; ++x)
-            {
-                const std::size_t index = y * width + x;
-                auto curClosest = closest[index];
-                auto closestDistance = curClosest != glm::vec2{-1} ? glm::distance(glm::vec2{x, y}, curClosest)
-                                                                   : std::numeric_limits<float>::max();
-                for (int dy = -1; dy <= 1; ++dy)
-                {
-                    for (int dx = -1; dx <= 1; ++dx)
-                    {
-                        if (dx == 0 && dy == 0)
-                            continue;
-                        const auto ys = y + dy * jumpDistance;
-                        const auto xs = x + dx * jumpDistance;
-                        if (ys >= 0 && ys < height && xs >= 0 && xs < width)
-                        {
-                            const auto candidate = closest[ys * width + xs];
-                            if (candidate != glm::vec2{-1})
-                            {
-                                const auto candidateDistance = glm::distance(glm::vec2{x, y}, candidate);
-                                if (candidateDistance < closestDistance)
-                                {
-                                    closest[index] = candidate;
-                                    closestDistance = candidateDistance;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        jumpDistance >>= 1;
-    }
-
-    for (std::size_t y = 0; y < height; ++y)
-    {
-        for (std::size_t x = 0; x < width; ++x)
-        {
-            const auto i = y * width + x;
-            const auto origAlpha = static_cast<int>(pixels[i].a);
-            const auto curClosest = closest[i];
-            const auto closestDistance = curClosest == glm::vec2{-1} ? std::numeric_limits<float>::max()
-                                                                     : glm::distance(glm::vec2{x, y}, curClosest);
-            const auto alpha = 255 * (1.0f - glm::smoothstep(static_cast<float>(outlineSize) - 1.0f,
-                                                             static_cast<float>(outlineSize) + 1.0f, closestDistance));
-            const auto destColor = glm::u8vec4(origAlpha, origAlpha, origAlpha, alpha);
-            pixels[i] = destColor;
-        }
-    }
-}
-
 std::unique_ptr<FontInfo> loadFont(const std::filesystem::path &path)
 {
     File file(path);
@@ -198,10 +117,6 @@ std::unique_ptr<Font::Glyph> Font::initializeGlyph(int codepoint)
     const auto width = ix1 - ix0;
     const auto height = iy1 - iy0;
 
-    std::vector<unsigned char> pixels;
-    pixels.resize(width * height);
-    stbtt_MakeCodepointBitmap(&m_fontInfo->font, pixels.data(), width, height, width, m_scale, m_scale, codepoint);
-
     constexpr auto Border = 1;
 
     const int margin = Border + m_outlineSize;
@@ -213,25 +128,61 @@ std::unique_ptr<Font::Glyph> Font::initializeGlyph(int codepoint)
     pixmap.pixelType = pixelType;
     pixmap.pixels.resize(pixmap.width * pixmap.height * pixelSizeInBytes(pixelType));
     std::fill(pixmap.pixels.begin(), pixmap.pixels.end(), 0);
-    for (int i = 0; i < height; ++i)
+
+    if (m_outlineSize == 0)
     {
-        const auto *src = pixels.data() + i * width;
-        auto *dest = pixmap.pixels.data() + ((i + margin) * pixmap.width + margin) * pixelSizeInBytes(pixelType);
-        if (pixelType == PixelType::Grayscale)
+        std::vector<unsigned char> pixels;
+        pixels.resize(width * height);
+        stbtt_MakeCodepointBitmap(&m_fontInfo->font, pixels.data(), width, height, width, m_scale, m_scale, codepoint);
+
+        for (int i = 0; i < height; ++i)
         {
-            std::copy(src, src + width, dest);
-        }
-        else
-        {
-            static_assert(sizeof(glm::u8vec4) == 4);
-            std::transform(src, src + width, reinterpret_cast<glm::u8vec4 *>(dest),
-                           [](unsigned char v) { return glm::u8vec4(255, 255, 255, v); });
+            const auto *src = pixels.data() + i * width;
+            auto *dest = pixmap.pixels.data() + ((i + margin) * pixmap.width + margin) * pixelSizeInBytes(pixelType);
+            if (pixelType == PixelType::Grayscale)
+            {
+                std::copy(src, src + width, dest);
+            }
+            else
+            {
+                static_assert(sizeof(glm::u8vec4) == 4);
+                std::transform(src, src + width, reinterpret_cast<glm::u8vec4 *>(dest),
+                               [](unsigned char v) { return glm::u8vec4(255, 255, 255, v); });
+            }
         }
     }
-
-    if (m_outlineSize > 0)
+    else
     {
-        dilateAlpha(pixmap, m_outlineSize);
+        constexpr auto kOnEdgeValue = 180;
+        const auto pixelDistScale = static_cast<float>(kOnEdgeValue) / margin;
+        int sdfWidth = 0, sdfHeight = 0, xOff = 0, yOff = 0;
+        auto *sdf = stbtt_GetCodepointSDF(&m_fontInfo->font, m_scale, codepoint, margin, kOnEdgeValue, pixelDistScale,
+                                          &sdfWidth, &sdfHeight, &xOff, &yOff);
+        if (sdf)
+        {
+            assert(sdfWidth == width + 2 * margin);
+            assert(sdfHeight == height + 2 * margin);
+            assert(pixmap.pixelType == PixelType::RGBA);
+
+            auto *source = sdf;
+            auto *destPixels = reinterpret_cast<glm::u8vec4 *>(pixmap.pixels.data());
+
+            const auto glyphEdge = static_cast<float>(kOnEdgeValue) / 255.0f;
+            const auto outlineEdge = static_cast<float>(kOnEdgeValue - m_outlineSize * pixelDistScale) / 255.0f;
+            const auto feather = pixelDistScale / 255.0f;
+
+            for (std::size_t i = 0; i < sdfWidth * sdfHeight; ++i)
+            {
+                const auto distance = static_cast<float>(*source++) / 255.0f;
+                const auto alpha =
+                    static_cast<int>(255.0f * glm::smoothstep(outlineEdge - feather, outlineEdge + feather, distance));
+                const auto color =
+                    static_cast<int>(255.0f * glm::smoothstep(glyphEdge - feather, glyphEdge + feather, distance));
+                *destPixels++ = glm::u8vec4{color, color, color, alpha};
+            }
+
+            free(sdf);
+        }
     }
 
     auto packedPixmap = m_textureAtlas->addPixmap(pixmap);
