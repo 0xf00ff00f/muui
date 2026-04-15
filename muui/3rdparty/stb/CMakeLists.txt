@@ -1,6 +1,8 @@
 add_library(stb STATIC
     stb_image.c
     stb_image.h
+    stb_image_write.c
+    stb_image_write.h
     stb_truetype.c
     stb_truetype.h
 )
