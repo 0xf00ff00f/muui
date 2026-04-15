@@ -108,7 +108,7 @@ bool EffectTest::initialize()
     m_screen = std::make_unique<muui::Screen>();
 
     auto *rootItem = m_screen->appendChild<muui::Column>();
-    rootItem->setVerticalCenter(51.0_pct);
+    rootItem->setVerticalCenter(50.0_pct);
     rootItem->setHorizontalCenter(50.0_pct);
     rootItem->setMargins(muui::Margins{8, 8, 8, 8});
     rootItem->setSpacing(12);
