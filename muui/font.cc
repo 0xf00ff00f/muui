@@ -20,70 +20,85 @@ struct FontInfo
 namespace
 {
 
-void dilateAlpha(Pixmap &pixmap, int filterSize)
+void dilateAlpha(Pixmap &pixmap, int outlineSize)
 {
     assert(pixmap.pixelType == PixelType::RGBA);
 
-    assert((filterSize & 1) == 1);
-    const auto halfFilterSize = filterSize / 2;
-
-    std::vector<std::vector<float>> weightMatrix(filterSize);
-    for (int i = 0; i < filterSize; ++i)
-    {
-        auto &row = weightMatrix[i];
-        row.resize(filterSize);
-        for (int j = 0; j < filterSize; ++j)
-        {
-            const auto dx = static_cast<float>(i - halfFilterSize);
-            const auto dy = static_cast<float>(j - halfFilterSize);
-            const auto d = sqrtf(dx * dx + dy * dy);
-            float weight;
-            if (d < halfFilterSize)
-            {
-                weight = 1.0f;
-            }
-            else if (d < halfFilterSize + 1)
-            {
-                weight = 1.0f - (d - halfFilterSize);
-            }
-            else
-            {
-                weight = 0.0f;
-            }
-            row[j] = weight;
-        }
-    }
-
     const auto width = pixmap.width;
     const auto height = pixmap.height;
+    auto *pixels = reinterpret_cast<glm::u8vec4 *>(pixmap.pixels.data());
 
-    const auto *sourcePixels = reinterpret_cast<const glm::u8vec4 *>(pixmap.pixels.data());
+    std::vector<glm::vec2> closest(width * height);
 
-    std::vector<unsigned char> destBuffer(pixmap.pixels.size());
-    auto *destPixels = reinterpret_cast<glm::u8vec4 *>(destBuffer.data());
-
-    for (int y = 0; y < height; ++y)
+    for (std::size_t y = 0; y < height; ++y)
     {
-        for (int x = 0; x < width; ++x)
+        for (std::size_t x = 0; x < width; ++x)
         {
-            int alpha = 0;
-            for (int i = std::max(y - halfFilterSize, 0); i <= std::min(y + halfFilterSize, height - 1); ++i)
-            {
-                for (int j = std::max(x - halfFilterSize, 0); j <= std::min(x + halfFilterSize, width - 1); ++j)
-                {
-                    const auto w = weightMatrix[j - x + halfFilterSize][i - y + halfFilterSize];
-                    const auto sourceAlpha = static_cast<int>(sourcePixels[i * width + j].a);
-                    alpha = std::max(alpha, static_cast<int>(w * sourceAlpha));
-                }
-            }
-
-            const auto origAlpha = sourcePixels[y * width + x].a;
-            const auto destColor = glm::u8vec4(origAlpha, origAlpha, origAlpha, alpha);
-            destPixels[y * width + x] = destColor;
+            const auto index = y * width + x;
+            const auto sourceAlpha = pixels[index].a;
+            closest[index] = sourceAlpha > 0.5f ? glm::ivec2{x, y} : glm::ivec2{-1};
+            // TODO sobel filter to estimate sub-pixel distance, see
+            // https://bgolus.medium.com/the-quest-for-very-wide-outlines-ba82ed442cd9
         }
     }
 
-    std::swap(pixmap.pixels, destBuffer);
+    std::size_t jumpDistance = 1;
+    while (jumpDistance < outlineSize)
+        jumpDistance <<= 1;
+
+    while (jumpDistance > 0)
+    {
+        for (int y = 0; y < height; ++y)
+        {
+            for (int x = 0; x < width; ++x)
+            {
+                const std::size_t index = y * width + x;
+                auto curClosest = closest[index];
+                auto closestDistance = curClosest != glm::vec2{-1} ? glm::distance(glm::vec2{x, y}, curClosest)
+                                                                   : std::numeric_limits<float>::max();
+                for (int dy = -1; dy <= 1; ++dy)
+                {
+                    for (int dx = -1; dx <= 1; ++dx)
+                    {
+                        if (dx == 0 && dy == 0)
+                            continue;
+                        const auto ys = y + dy * jumpDistance;
+                        const auto xs = x + dx * jumpDistance;
+                        if (ys >= 0 && ys < height && xs >= 0 && xs < width)
+                        {
+                            const auto candidate = closest[ys * width + xs];
+                            if (candidate != glm::vec2{-1})
+                            {
+                                const auto candidateDistance = glm::distance(glm::vec2{x, y}, candidate);
+                                if (candidateDistance < closestDistance)
+                                {
+                                    closest[index] = candidate;
+                                    closestDistance = candidateDistance;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        jumpDistance >>= 1;
+    }
+
+    for (std::size_t y = 0; y < height; ++y)
+    {
+        for (std::size_t x = 0; x < width; ++x)
+        {
+            const auto i = y * width + x;
+            const auto origAlpha = static_cast<int>(pixels[i].a);
+            const auto curClosest = closest[i];
+            const auto closestDistance = curClosest == glm::vec2{-1} ? std::numeric_limits<float>::max()
+                                                                     : glm::distance(glm::vec2{x, y}, curClosest);
+            const auto alpha = 255 * (1.0f - glm::smoothstep(static_cast<float>(outlineSize) - 1.0f,
+                                                             static_cast<float>(outlineSize) + 1.0f, closestDistance));
+            const auto destColor = glm::u8vec4(origAlpha, origAlpha, origAlpha, alpha);
+            pixels[i] = destColor;
+        }
+    }
 }
 
 std::unique_ptr<FontInfo> loadFont(const std::filesystem::path &path)
@@ -216,7 +231,7 @@ std::unique_ptr<Font::Glyph> Font::initializeGlyph(int codepoint)
 
     if (m_outlineSize > 0)
     {
-        dilateAlpha(pixmap, 2 * m_outlineSize + 1);
+        dilateAlpha(pixmap, m_outlineSize);
     }
 
     auto packedPixmap = m_textureAtlas->addPixmap(pixmap);
